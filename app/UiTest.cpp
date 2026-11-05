@@ -279,6 +279,48 @@ void UiTest::run()
         key(Qt::Key_I);
         result("I hides stats overlay", waitFor([&] { return !eng->statsEnabled() && !vis("statsOverlay"); }));
 
+        // --- settings dialog ---
+        {
+            auto prop = [&](const char *n) {
+                char *s = mpv_get_property_string(eng->handle(), n);
+                QString r = s ? QString::fromUtf8(s) : QString();
+                mpv_free(s);
+                return r;
+            };
+            click("settingsButton");
+            result("settings button opens dialog", waitFor([&] { return vis("settingsPanel"); }));
+            shot("settings-playback");
+            click("hwdecOption_no");
+            result("hwdec Off applies to engine", waitFor([&] { return prop("hwdec") == "no"; }), prop("hwdec"));
+            result("hwdec persisted", p->setting("playback/hwdec").toString() == "no");
+            click("hwdecOption_auto-safe");
+            result("hwdec restored", waitFor([&] { return prop("hwdec") == "auto-safe"; }));
+            click("settingsNav_1");
+            QTest::qWait(300);
+            click("subSizePlus");
+            result("subtitle size applies to engine", waitFor([&] { return qAbs(prop("sub-font-size").toDouble() - 60) < 0.01; }), prop("sub-font-size"));
+            result("subtitle size persisted", p->setting("subtitles/fontSize").toInt() == 60);
+            click("subColor_FFE45C");
+            result("subtitle color applies", waitFor([&] { return prop("sub-color").toUpper().startsWith("#FFFFE45C") || prop("sub-color").toUpper().contains("FFE45C"); }), prop("sub-color"));
+            click("subSizeMinus");
+            click("subColor_FFFFFF");
+            shot("settings-subtitles");
+            click("settingsNav_2");
+            QTest::qWait(300);
+            const double hd0 = p->setting("interface/hideDelay", 2.6).toDouble();
+            click("hideDelayPlus");
+            result("hide delay persisted", qAbs(p->setting("interface/hideDelay").toDouble() - (hd0 + 0.5)) < 0.01,
+                   p->setting("interface/hideDelay").toString());
+            click("hideDelayMinus");
+            shot("settings-interface");
+            key(Qt::Key_Escape);
+            result("Esc closes settings", waitFor([&] { return !vis("settingsPanel"); }));
+            key(Qt::Key_Comma, Qt::ControlModifier);
+            result("Ctrl+, opens settings", waitFor([&] { return vis("settingsPanel"); }));
+            key(Qt::Key_Escape);
+            waitFor([&] { return !vis("settingsPanel"); });
+        }
+
         // --- playlist (queue: argv file + short1 + short2, kept paused) ---
         auto *pl = p->playlist();
         p->openFiles({QUrl::fromLocalFile(files.first()), QUrl::fromLocalFile("/tmp/short1.mp4"),
