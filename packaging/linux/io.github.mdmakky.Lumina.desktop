@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Lumina Player
+GenericName=Media Player
+Comment=Modern cross-platform media player
+Exec=lumina %U
+Icon=io.github.mdmakky.Lumina
+Terminal=false
+Categories=AudioVideo;Player;Video;
+MimeType=video/mp4;video/x-matroska;video/webm;video/quicktime;video/x-msvideo;video/mpeg;video/ogg;video/x-flv;video/x-ms-wmv;video/mp2t;audio/mpeg;audio/flac;audio/ogg;audio/x-vorbis+ogg;audio/opus;audio/x-wav;audio/mp4;audio/aac;audio/x-matroska;application/x-matroska;
+StartupWMClass=lumina

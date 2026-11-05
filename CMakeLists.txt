@@ -64,6 +64,9 @@ target_compile_definitions(lumina PRIVATE
     LUMINA_VERSION="${PROJECT_VERSION}"
 )
 
+option(LUMINA_MAC_BUNDLE "Build a macOS .app bundle (default OFF: plain bin/lumina for dev/CI)" OFF)
+
+set_source_files_properties(resources/icons/app/lumina-256.png PROPERTIES QT_RESOURCE_ALIAS icons/lumina.png)
 set_source_files_properties(ui/Theme/Theme.qml PROPERTIES
     QT_QML_SINGLETON_TYPE TRUE
 )
@@ -110,7 +113,23 @@ qt_add_qml_module(lumina
         resources/icons/shuffle.svg
         resources/icons/repeat.svg
         resources/icons/repeat-one.svg
+        resources/icons/app/lumina-256.png
 )
+
+if(APPLE AND LUMINA_MAC_BUNDLE)
+    set(LUMINA_ICNS ${CMAKE_CURRENT_SOURCE_DIR}/resources/icons/app/lumina.icns)
+    set_source_files_properties(${LUMINA_ICNS} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+    target_sources(lumina PRIVATE ${LUMINA_ICNS})
+    set_target_properties(lumina PROPERTIES
+        MACOSX_BUNDLE TRUE
+        MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/packaging/macos/Info.plist.in
+        MACOSX_BUNDLE_GUI_IDENTIFIER io.github.mdmakky.Lumina
+        MACOSX_BUNDLE_BUNDLE_NAME "Lumina Player"
+        MACOSX_BUNDLE_ICON_FILE lumina.icns
+        MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION}
+        MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
+    )
+endif()
 
 target_include_directories(lumina PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src
@@ -137,6 +156,29 @@ install(TARGETS lumina
     BUNDLE  DESTINATION .
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
+
+if(UNIX AND NOT APPLE)
+    install(FILES packaging/linux/io.github.mdmakky.Lumina.desktop
+            DESTINATION ${CMAKE_INSTALL_DATADIR}/applications)
+    install(FILES packaging/linux/io.github.mdmakky.Lumina.metainfo.xml
+            DESTINATION ${CMAKE_INSTALL_DATADIR}/metainfo)
+    foreach(sz 16 32 48 64 128 256 512)
+        install(FILES resources/icons/app/lumina-${sz}.png
+                DESTINATION ${CMAKE_INSTALL_DATADIR}/icons/hicolor/${sz}x${sz}/apps
+                RENAME io.github.mdmakky.Lumina.png)
+    endforeach()
+    install(FILES resources/icons/app/lumina.svg
+            DESTINATION ${CMAKE_INSTALL_DATADIR}/icons/hicolor/scalable/apps
+            RENAME io.github.mdmakky.Lumina.svg)
+endif()
+
+# Basic CPack (tarball / DEB-free; Flatpak is the primary Linux package).
+set(CPACK_PACKAGE_NAME lumina-player)
+set(CPACK_PACKAGE_VENDOR mdmakky)
+set(CPACK_PACKAGE_CONTACT "makky.cse@gmail.com")
+set(CPACK_RESOURCE_FILE_LICENSE ${CMAKE_CURRENT_SOURCE_DIR}/LICENSE)
+set(CPACK_GENERATOR TGZ)
+include(CPack)
 
 # ---------------------------------------------------------------------------
 # Tests

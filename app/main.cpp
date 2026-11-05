@@ -12,6 +12,7 @@
 #include <QDir>
 #include <QFileOpenEvent>
 #include <QGuiApplication>
+#include <QIcon>
 #include <QStandardPaths>
 #include <QSettings>
 #include <QQmlApplicationEngine>
@@ -61,6 +62,7 @@ int main(int argc, char *argv[])
     qputenv("QT_QUICK_CONTROLS_STYLE", "Basic");
 
     QGuiApplication app(argc, argv);
+    app.setWindowIcon(QIcon(QStringLiteral(":/qt/qml/Lumina/Player/icons/lumina.png")));
 
     Logger::install();
     qCInfo(lcCore) << "Lumina Player" << LUMINA_VERSION << "starting"
