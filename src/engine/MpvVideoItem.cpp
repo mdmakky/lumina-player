@@ -145,7 +145,8 @@ public:
                            m_size.width(), m_size.height(), /*internal_format=*/0};
         // Qt 6 samples the FBO with GL's bottom-up origin (mirrorVertically defaults
         // to false), which is exactly what mpv renders without flipping.
-        int flipY = 0;
+        // Debug/escape hatch if a platform ever renders upside down: LUMINA_FLIP_Y=1.
+        int flipY = qEnvironmentVariableIntValue("LUMINA_FLIP_Y") == 1 ? 1 : 0;
         mpv_render_param params[] = {
             {MPV_RENDER_PARAM_OPENGL_FBO, &fbo},
             {MPV_RENDER_PARAM_FLIP_Y, &flipY},
