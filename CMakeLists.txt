@@ -23,6 +23,7 @@ endif()
 # Newer Qt: make QML resources land under :/qt/qml/ (what main.cpp loads).
 if(COMMAND qt_policy)
     qt_policy(SET QTP0001 NEW)
+    qt_policy(SET QTP0004 NEW)
 endif()
 
 # ---------------------------------------------------------------------------

@@ -91,7 +91,16 @@ int main(int argc, char *argv[])
         }
     });
 
-    context.openCommandLineFiles(QGuiApplication::arguments().mid(1));
+    // Load only after the first frame is swapped: the mpv render context (VO)
+    // exists by then. Loading earlier lets short files hit EOF before any
+    // video output is up, so the playlist skips them.
+    auto *rootWindow = qobject_cast<QQuickWindow *>(engine.rootObjects().first());
+    auto *firstFrame = new QObject(&app);
+    QObject::connect(rootWindow, &QQuickWindow::frameSwapped, firstFrame, [&, firstFrame]() {
+        firstFrame->deleteLater();
+        QObject::disconnect(rootWindow, &QQuickWindow::frameSwapped, firstFrame, nullptr);
+        context.openCommandLineFiles(QGuiApplication::arguments().mid(1));
+    });
 
     if (selfTest)
         context.startPlaybackSelfTest();

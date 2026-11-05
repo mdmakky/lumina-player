@@ -37,7 +37,7 @@ MpvEngine::MpvEngine(QObject *parent)
 
     // Playback behaviour.
     mpv_set_option_string(m_mpv, "idle", "yes");
-    mpv_set_option_string(m_mpv, "keep-open", "always");
+    mpv_set_option_string(m_mpv, "keep-open", "yes");
     mpv_set_option_string(m_mpv, "hwdec", "auto-safe");
     mpv_set_option_string(m_mpv, "volume-max", "150");
     mpv_set_option_string(m_mpv, "audio-pitch-correction", "yes");
@@ -160,12 +160,15 @@ void MpvEngine::processEvents()
         }
         case MPV_EVENT_END_FILE: {
             auto *endFile = static_cast<mpv_event_end_file *>(event->data);
+            qCInfo(lcEngine) << "end-file reason" << endFile->reason << "pos" << m_position
+                             << "dur" << m_duration;
             if (endFile->reason == MPV_END_FILE_REASON_ERROR && endFile->error < 0) {
                 setMediaError(QStringLiteral("Playback failed: %1").arg(mpv_error_string(endFile->error)));
             }
             break;
         }
         case MPV_EVENT_START_FILE:
+            qCInfo(lcEngine) << "start-file";
             // New file started — clear any stale error state.
             setMediaError(QString());
             break;
