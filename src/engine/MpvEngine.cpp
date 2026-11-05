@@ -42,6 +42,16 @@ MpvEngine::MpvEngine(QObject *parent)
     mpv_set_option_string(m_mpv, "volume-max", "150");
     mpv_set_option_string(m_mpv, "audio-pitch-correction", "yes");
 
+    // Seek responsiveness: exact seeks, deep demuxer cache (keeps backward
+    // seeks in-memory), direct rendering, and A/V-synced display timing.
+    mpv_set_option_string(m_mpv, "hr-seek", "yes");
+    mpv_set_option_string(m_mpv, "cache", "yes");
+    mpv_set_option_string(m_mpv, "demuxer-max-bytes", "192MiB");
+    mpv_set_option_string(m_mpv, "demuxer-max-back-bytes", "96MiB");
+    mpv_set_option_string(m_mpv, "demuxer-readahead-secs", "30");
+    mpv_set_option_string(m_mpv, "vd-lavc-dr", "yes");
+    mpv_set_option_string(m_mpv, "video-sync", "audio");
+
     const int rc = mpv_initialize(m_mpv);
     if (rc < 0) {
         setMediaError(QStringLiteral("mpv initialization failed: %1").arg(mpv_error_string(rc)));
