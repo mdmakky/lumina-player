@@ -971,6 +971,7 @@ ApplicationWindow {
     SettingsDialog {
         id: settingsDialog
         objectName: "settingsDialog"
+        onEqualizerRequested: eqPopup.open()
     }
 
     LibraryView {
@@ -995,8 +996,8 @@ ApplicationWindow {
         const e = player.engine
         switch (id) {
         case "playPause": e.togglePlayPause(); break
-        case "seekBack": e.seekRelative(-5); break
-        case "seekForward": e.seekRelative(5); break
+        case "seekBack": e.seekRelative(-settingsDialog.seekStep); break
+        case "seekForward": e.seekRelative(settingsDialog.seekStep); break
         case "volumeUp": e.setVolume(Math.min(150, e.volume + 5)); break
         case "volumeDown": e.setVolume(Math.max(0, e.volume - 5)); break
         case "mute": e.setMuted(!e.muted); break

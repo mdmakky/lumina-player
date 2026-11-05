@@ -69,6 +69,13 @@ target_compile_definitions(lumina PRIVATE
 option(LUMINA_MAC_BUNDLE "Build a macOS .app bundle (default OFF: plain bin/lumina for dev/CI)" OFF)
 
 set_source_files_properties(resources/icons/app/lumina-256.png PROPERTIES QT_RESOURCE_ALIAS icons/lumina.png)
+set(LUMINA_SETTINGS_ICONS "")
+foreach(page general playback video audio subtitles appearance library shortcuts advanced about)
+    list(APPEND LUMINA_SETTINGS_ICONS resources/icons/s-${page}.svg resources/icons/s-${page}-a.svg)
+endforeach()
+set_source_files_properties(ui/Settings/SettingsState.qml PROPERTIES
+    QT_QML_SINGLETON_TYPE TRUE
+)
 set_source_files_properties(ui/Theme/Theme.qml PROPERTIES
     QT_QML_SINGLETON_TYPE TRUE
 )
@@ -93,6 +100,18 @@ qt_add_qml_module(lumina
         ui/Components/PlaylistPanel.qml
         ui/Components/StatsOverlay.qml
         ui/Settings/SettingsDialog.qml
+        ui/Settings/SettingsState.qml
+        ui/Settings/SettingsPage.qml
+        ui/Settings/SettingSection.qml
+        ui/Settings/SettingRow.qml
+        ui/Settings/SettingsButton.qml
+        ui/Settings/SegmentedControl.qml
+        ui/Settings/SwitchRow.qml
+        ui/Settings/StepperRow.qml
+        ui/Settings/SliderRow.qml
+        ui/Settings/ComboRow.qml
+        ui/Settings/ButtonRow.qml
+        ui/Settings/ShortcutsEditor.qml
         ui/Components/Toast.qml
         ui/Components/VideoAdjustPopup.qml
         ui/Components/EqualizerPopup.qml
@@ -120,6 +139,7 @@ qt_add_qml_module(lumina
         resources/icons/shuffle-dark.svg
         resources/icons/repeat-dark.svg
         resources/icons/repeat-one-dark.svg
+        ${LUMINA_SETTINGS_ICONS}
         resources/icons/app/lumina-256.png
 )
 
