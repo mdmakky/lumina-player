@@ -135,3 +135,5 @@ See `docs/TECHNICAL_DECISIONS.md` for the full record. Headlines:
 2. Milestone 4: subtitle track management UI (mpv handles rendering; we manage track lists/sync).
 3. Milestone 5: hardware acceleration manager (VAAPI first — AMD VAAPI present on dev machine), playback statistics OSD.
 4. Add integration test media generation (ffmpeg testsrc) — see `docs/TESTING.md`.
+
+Packaging: see `docs/PACKAGING.md`. `-DLUMINA_MAC_BUNDLE=ON` builds `bin/lumina.app` (default OFF keeps `build/mac/bin/lumina`, so tools/run-ui-test.sh is unchanged).
