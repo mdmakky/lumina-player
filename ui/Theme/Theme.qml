@@ -17,9 +17,9 @@ QtObject {
 
     // Overlay scrims (controls over video fade from transparent to these)
     readonly property color scrimClear: Qt.rgba(0, 0, 0, 0)
-    readonly property color scrimSoft: Qt.rgba(0, 0, 0, 0.45)
-    readonly property color scrimStrong: Qt.rgba(0, 0, 0, 0.78)
-    readonly property color panelOverlay: Qt.rgba(16 / 255, 17 / 255, 20 / 255, 0.88)
+    readonly property color scrimSoft: Qt.rgba(0, 0, 0, 0.55)
+    readonly property color scrimStrong: Qt.rgba(0, 0, 0, 0.92)
+    readonly property color panelOverlay: Qt.rgba(16 / 255, 17 / 255, 20 / 255, 0.95)
     readonly property color shadow: Qt.rgba(0, 0, 0, 0.5)
     readonly property color trackIdle: Qt.rgba(1, 1, 1, 0.22)
 

@@ -16,7 +16,7 @@ Menu {
     function ms(v) { return Math.round(v * 1000) + " ms" }
 
     background: Rectangle {
-        implicitWidth: 260
+        implicitWidth: 280
         color: Theme.elevated
         border.color: Theme.border
         radius: Theme.radius
@@ -26,12 +26,21 @@ Menu {
         font.family: Theme.fontFamily
         font.pixelSize: Theme.fontSizeMedium
         implicitHeight: Theme.controlHeight
+        indicator: Rectangle {
+            visible: parent.checked
+            x: 10
+            y: (parent.height - height) / 2
+            width: 6
+            height: 6
+            radius: 3
+            color: Theme.accent
+        }
         contentItem: Text {
             text: parent.text
             font: parent.font
-            color: parent.checked ? Theme.accent : Theme.primaryText
+            color: parent.checked ? Theme.accentHover : Theme.primaryText
             verticalAlignment: Text.AlignVCenter
-            leftPadding: 8
+            leftPadding: 24
         }
         background: Rectangle {
             color: parent.highlighted ? Theme.accentSoft : "transparent"
@@ -43,7 +52,7 @@ Menu {
         enabled: false
         font.family: Theme.fontFamily
         font.pixelSize: Theme.fontSizeSmall
-        contentItem: Text { text: parent.text; font: parent.font; color: Theme.secondaryText; leftPadding: 8 }
+        contentItem: Text { text: parent.text; font: parent.font; color: Theme.secondaryText; leftPadding: 24 }
         background: null
     }
 
@@ -59,8 +68,6 @@ Menu {
             onTriggered: menu.engine.setAudioTrack(modelData.id)
         }
     }
-    Entry { text: qsTr("Audio delay −100 ms"); onTriggered: menu.engine.setAudioDelay(menu.engine.audioDelay - 0.1) }
-    Entry { text: qsTr("Audio delay +100 ms (%1)").arg(menu.ms(menu.engine.audioDelay)); onTriggered: menu.engine.setAudioDelay(menu.engine.audioDelay + 0.1) }
 
     MenuSeparator { contentItem: Rectangle { implicitHeight: 1; color: Theme.border } }
 
@@ -84,8 +91,14 @@ Menu {
         }
     }
     Entry { text: qsTr("Load external file…"); onTriggered: subDialog.open() }
-    Entry { text: qsTr("Subtitle delay −100 ms"); onTriggered: menu.engine.setSubtitleDelay(menu.engine.subtitleDelay - 0.1) }
-    Entry { text: qsTr("Subtitle delay +100 ms (%1)").arg(menu.ms(menu.engine.subtitleDelay)); onTriggered: menu.engine.setSubtitleDelay(menu.engine.subtitleDelay + 0.1) }
+
+    MenuSeparator { contentItem: Rectangle { implicitHeight: 1; color: Theme.border } }
+
+    Heading { text: qsTr("SYNC   audio %1 · subs %2").arg(menu.ms(menu.engine.audioDelay)).arg(menu.ms(menu.engine.subtitleDelay)) }
+    Entry { text: qsTr("Audio earlier (−100 ms)"); onTriggered: menu.engine.setAudioDelay(menu.engine.audioDelay - 0.1) }
+    Entry { text: qsTr("Audio later (+100 ms)"); onTriggered: menu.engine.setAudioDelay(menu.engine.audioDelay + 0.1) }
+    Entry { text: qsTr("Subtitles earlier (−100 ms, G)"); onTriggered: menu.engine.setSubtitleDelay(menu.engine.subtitleDelay - 0.1) }
+    Entry { text: qsTr("Subtitles later (+100 ms, H)"); onTriggered: menu.engine.setSubtitleDelay(menu.engine.subtitleDelay + 0.1) }
 
     FileDialog {
         id: subDialog

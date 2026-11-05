@@ -249,12 +249,13 @@ ApplicationWindow {
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.top: parent.top
-        height: 80
+        height: 96
         opacity: root.chromeVisible && player.hasMedia ? 1 : 0
         visible: opacity > 0
         Behavior on opacity { NumberAnimation { duration: Theme.animationMedium } }
         gradient: Gradient {
             GradientStop { position: 0.0; color: Theme.scrimStrong }
+            GradientStop { position: 0.6; color: Theme.scrimSoft }
             GradientStop { position: 1.0; color: Theme.scrimClear }
         }
 
@@ -302,7 +303,7 @@ ApplicationWindow {
         anchors.right: parent.right
         anchors.rightMargin: Theme.spacingMedium
         anchors.bottom: parent.bottom
-        anchors.bottomMargin: 120
+        anchors.bottomMargin: 144
         radius: Theme.radiusLarge
         color: Theme.panelOverlay
         clip: true
@@ -315,12 +316,13 @@ ApplicationWindow {
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.bottom: parent.bottom
-        height: 112
+        height: 136
         opacity: root.chromeVisible && player.hasMedia ? 1 : 0
         visible: opacity > 0
         Behavior on opacity { NumberAnimation { duration: Theme.animationMedium } }
         gradient: Gradient {
             GradientStop { position: 0.0; color: Theme.scrimClear }
+            GradientStop { position: 0.45; color: Theme.scrimSoft }
             GradientStop { position: 1.0; color: Theme.scrimStrong }
         }
 
