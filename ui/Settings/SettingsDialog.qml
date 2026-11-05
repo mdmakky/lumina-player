@@ -72,7 +72,7 @@ Item {
     opacity: opened ? 1 : 0
     Behavior on opacity { NumberAnimation { duration: Theme.animationMedium } }
 
-    Shortcut { sequence: "Esc"; enabled: dlg.opened; onActivated: dlg.close() }
+    Shortcut { sequence: "Esc"; enabled: dlg.opened && !shortcuts.capturing; onActivated: dlg.close() }
 
     // Scrim: swallows clicks; clicking outside the panel closes.
     Rectangle {
@@ -219,7 +219,7 @@ Item {
                         font.weight: Font.DemiBold
                     }
                     Repeater {
-                        model: [qsTr("Playback"), qsTr("Subtitles"), qsTr("Interface")]
+                        model: [qsTr("Playback"), qsTr("Subtitles"), qsTr("Interface"), qsTr("Shortcuts")]
                         delegate: Button {
                             id: nav
                             required property int index
@@ -432,6 +432,219 @@ Item {
                         }
                     }
                     Item { Layout.fillHeight: true }
+                }
+
+                // Shortcuts
+                ColumnLayout {
+                    id: scPage
+                    spacing: Theme.spacingMedium
+
+                    property string capId: ""      // action being rebound
+                    property string pendingSeq: "" // candidate waiting on a conflict decision
+                    property string pendingWith: ""
+                    property string query: ""
+                    readonly property bool conflicted: pendingWith !== ""
+
+                    // Flat model: category header rows + matching action rows.
+                    readonly property var rows: {
+                        const q = query.trim().toLowerCase()
+                        const out = []
+                        let cat = ""
+                        for (const a of shortcuts.actions) {
+                            if (q && (a.name + " " + a.category + " " + a.key).toLowerCase().indexOf(q) < 0)
+                                continue
+                            if (a.category !== cat) { cat = a.category; out.push({ header: true, name: cat }) }
+                            out.push(a)
+                        }
+                        return out
+                    }
+
+                    function endCapture() { capId = ""; pendingSeq = ""; pendingWith = ""; shortcuts.capturing = false }
+                    function beginCapture(id) {
+                        capId = id; pendingSeq = ""; pendingWith = ""
+                        shortcuts.capturing = true
+                        captureKeys.forceActiveFocus()
+                    }
+                    function commit(swap) {
+                        if (swap) shortcuts.swap(capId, pendingSeq)
+                        else shortcuts.setSequence(capId, pendingSeq)
+                        endCapture()
+                    }
+                    Connections {
+                        target: dlg
+                        function onOpenedChanged() { if (!dlg.opened) scPage.endCapture() }
+                        function onCategoryChanged() { scPage.endCapture() }
+                    }
+
+                    RowLayout {
+                        Layout.fillWidth: true
+                        Section { text: qsTr("Shortcuts"); Layout.fillWidth: true }
+                        Pill {
+                            objectName: "shortcutsResetAll"
+                            text: qsTr("Reset all")
+                            focusPolicy: Qt.NoFocus
+                            onClicked: { scPage.endCapture(); shortcuts.resetAll() }
+                        }
+                    }
+
+                    TextField {
+                        id: scSearch
+                        objectName: "shortcutSearch"
+                        Layout.fillWidth: true
+                        placeholderText: qsTr("Search actions or keys")
+                        color: Theme.primaryText
+                        placeholderTextColor: Theme.secondaryText
+                        font.family: Theme.fontFamily
+                        font.pixelSize: Theme.fontSizeMedium
+                        background: Rectangle {
+                            radius: Theme.radius
+                            color: Theme.elevated
+                            border.width: scSearch.activeFocus ? 1 : 0
+                            border.color: Theme.focusRing
+                        }
+                        onTextChanged: scPage.query = text
+                        onActiveFocusChanged: if (activeFocus) scPage.endCapture()
+                    }
+
+                    ListView {
+                        id: scList
+                        objectName: "shortcutList"
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        clip: true
+                        model: scPage.rows
+                        boundsBehavior: Flickable.StopAtBounds
+                        ScrollBar.vertical: ScrollBar {}
+                        delegate: Item {
+                            id: row
+                            required property var modelData
+                            readonly property bool isHeader: modelData.header === true
+                            readonly property bool capturing: !isHeader && scPage.capId === modelData.id
+                            objectName: isHeader ? "" : "shortcutRow_" + modelData.id
+                            width: scList.width - 10
+                            height: isHeader ? 30 : 34
+
+                            Text {
+                                visible: row.isHeader
+                                anchors.left: parent.left
+                                anchors.bottom: parent.bottom
+                                anchors.bottomMargin: 4
+                                text: row.isHeader ? row.modelData.name.toUpperCase() : ""
+                                color: Theme.secondaryText
+                                font.family: Theme.fontFamily
+                                font.pixelSize: Theme.fontSizeSmall
+                                font.weight: Font.DemiBold
+                            }
+                            Rectangle {
+                                visible: !row.isHeader
+                                anchors.fill: parent
+                                radius: Theme.radius
+                                color: row.capturing ? Theme.accentSoft : rowMouse.containsMouse ? Theme.surfaceHover : "transparent"
+                                MouseArea {
+                                    id: rowMouse
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    onClicked: scPage.beginCapture(row.modelData.id)
+                                }
+                                RowLayout {
+                                    anchors.fill: parent
+                                    anchors.leftMargin: Theme.spacingMedium
+                                    anchors.rightMargin: Theme.spacingSmall
+                                    spacing: Theme.spacingMedium
+                                    Text {
+                                        Layout.fillWidth: true
+                                        text: row.isHeader ? "" : row.modelData.name
+                                        elide: Text.ElideRight
+                                        color: Theme.primaryText
+                                        font.family: Theme.fontFamily
+                                        font.pixelSize: Theme.fontSizeMedium
+                                    }
+                                    Pill {
+                                        objectName: row.isHeader ? "" : "shortcutReset_" + row.modelData.id
+                                        visible: !row.isHeader && row.modelData.key !== row.modelData.defaultKey
+                                        implicitHeight: 24
+                                        text: qsTr("Reset")
+                                        focusPolicy: Qt.NoFocus
+                                        onClicked: { scPage.endCapture(); shortcuts.reset(row.modelData.id) }
+                                    }
+                                    Rectangle {
+                                        Layout.preferredWidth: Math.max(78, keyText.implicitWidth + 20)
+                                        Layout.preferredHeight: 24
+                                        radius: Theme.radius
+                                        color: Theme.elevated
+                                        border.width: row.capturing ? 1 : 0
+                                        border.color: Theme.accent
+                                        Text {
+                                            id: keyText
+                                            anchors.centerIn: parent
+                                            text: row.isHeader ? ""
+                                                : row.capturing ? qsTr("Press keys…")
+                                                : row.modelData.key === "" ? qsTr("Unbound") : row.modelData.key
+                                            color: row.capturing ? Theme.accentHover
+                                                 : row.modelData.key === "" ? Theme.secondaryText : Theme.primaryText
+                                            font.family: Theme.fontFamily
+                                            font.pixelSize: Theme.fontSizeSmall
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // Capture / conflict status line.
+                    RowLayout {
+                        Layout.fillWidth: true
+                        visible: scPage.capId !== ""
+                        spacing: Theme.spacingMedium
+                        Text {
+                            objectName: "shortcutHint"
+                            Layout.fillWidth: true
+                            wrapMode: Text.WordWrap
+                            color: scPage.conflicted ? Theme.error : Theme.secondaryText
+                            font.family: Theme.fontFamily
+                            font.pixelSize: Theme.fontSizeSmall
+                            text: scPage.conflicted
+                                ? qsTr("%1 is already used by “%2”.").arg(scPage.pendingSeq).arg(shortcuts.nameOf(scPage.pendingWith))
+                                : qsTr("Press a key combination. Esc cancels, Backspace clears.")
+                        }
+                        Pill {
+                            objectName: "shortcutSwap"
+                            visible: scPage.conflicted
+                            text: qsTr("Swap")
+                            focusPolicy: Qt.NoFocus
+                            onClicked: scPage.commit(true)
+                        }
+                        Pill {
+                            objectName: "shortcutConflictCancel"
+                            visible: scPage.conflicted
+                            text: qsTr("Cancel")
+                            focusPolicy: Qt.NoFocus
+                            onClicked: scPage.endCapture()
+                        }
+                    }
+
+                    // Invisible key sink while rebinding.
+                    Item {
+                        id: captureKeys
+                        focus: false
+                        Keys.onShortcutOverride: (event) => event.accepted = scPage.capId !== ""
+                        Keys.onPressed: (event) => {
+                            if (scPage.capId === "") { event.accepted = false; return }
+                            event.accepted = true
+                            if (event.key === Qt.Key_Escape) { scPage.endCapture(); return }
+                            if (scPage.conflicted) return
+                            if (event.key === Qt.Key_Backspace && event.modifiers === Qt.NoModifier) {
+                                shortcuts.setSequence(scPage.capId, "")
+                                scPage.endCapture()
+                                return
+                            }
+                            const seq = shortcuts.fromKeyEvent(event.key, event.modifiers)
+                            if (seq === "") return
+                            const other = shortcuts.conflict(scPage.capId, seq)
+                            if (other !== "") { scPage.pendingSeq = seq; scPage.pendingWith = other }
+                            else { shortcuts.setSequence(scPage.capId, seq); scPage.endCapture() }
+                        }
+                    }
                 }
             }
         }

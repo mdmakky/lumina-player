@@ -42,6 +42,8 @@ qt_add_executable(lumina
     src/core/PlayerController.cpp
     src/core/PlaylistModel.h
     src/core/PlaylistModel.cpp
+    src/core/ShortcutManager.h
+    src/core/ShortcutManager.cpp
     src/storage/Database.h
     src/storage/Database.cpp
     src/storage/HistoryRepository.h
@@ -206,6 +208,14 @@ if(BUILD_TESTING)
     target_include_directories(tst_playlistmodel PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
     target_link_libraries(tst_playlistmodel PRIVATE Qt6::Core Qt6::Test)
     add_test(NAME PlaylistModel COMMAND tst_playlistmodel)
+    add_executable(tst_shortcutmanager
+        tests/unit/tst_ShortcutManager.cpp
+        src/core/ShortcutManager.cpp
+        src/core/ShortcutManager.h
+    )
+    target_include_directories(tst_shortcutmanager PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+    target_link_libraries(tst_shortcutmanager PRIVATE Qt6::Core Qt6::Gui Qt6::Test)
+    add_test(NAME ShortcutManager COMMAND tst_shortcutmanager)
     add_executable(tst_singleinstance
         tests/unit/tst_SingleInstance.cpp
         app/SingleInstance.cpp
