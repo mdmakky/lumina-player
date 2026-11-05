@@ -20,12 +20,6 @@ if(QT_KNOWN_POLICY_QTP0004)
     qt_policy(SET QTP0004 NEW)
 endif()
 
-# Newer Qt: make QML resources land under :/qt/qml/ (what main.cpp loads).
-if(COMMAND qt_policy)
-    qt_policy(SET QTP0001 NEW)
-    qt_policy(SET QTP0004 NEW)
-endif()
-
 # ---------------------------------------------------------------------------
 # Main application target
 # ---------------------------------------------------------------------------
@@ -51,12 +45,6 @@ qt_add_executable(lumina
     src/engine/MpvVideoItem.h
     src/engine/MpvVideoItem.cpp
 )
-
-# macOS filesystems are case-insensitive: the QML module dir "Lumina/" would
-# collide with the "lumina" binary, so put binaries in bin/ there.
-if(APPLE)
-    set_target_properties(lumina PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-endif()
 
 target_compile_definitions(lumina PRIVATE
     LUMINA_VERSION="${PROJECT_VERSION}"
