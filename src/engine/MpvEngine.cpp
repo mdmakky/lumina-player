@@ -413,7 +413,7 @@ void MpvEngine::setLoadingRemote(bool on)
 // Local files by path, everything else (http, rtmp, ...) by its full URL.
 static QString mpvTarget(const QUrl &url)
 {
-    return url.isLocalFile() ? url.toLocalFile() : url.toString();
+    return url.isLocalFile() ? url.toLocalFile() : url.toString(QUrl::FullyEncoded);
 }
 
 void MpvEngine::loadFile(const QUrl &url)

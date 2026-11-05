@@ -9,8 +9,11 @@
 #include "core/PlaylistModel.h"
 #include <QGuiApplication>
 #include <QImage>
+#include <QTcpServer>
+#include <QTcpSocket>
 #include <QQuickItem>
 #include <QQuickWindow>
+#include <QRegularExpression>
 #include <QSet>
 #include <QTest>
 #include <QTemporaryDir>
@@ -834,6 +837,110 @@ void UiTest::run()
                 shot("home-favorites");
             } else result("star adds favorite", false, "missing");
         } else qCInfo(lcCore) << "UITEST SKIP continue card flow (needs media >= 40s, e.g. /tmp/long.mp4)";
+
+        auto typeText = [&](const QString &t) { for (QChar c : t) QTest::keyClick(w, c.toLatin1(), {}, 5); };
+        // --- Open URL dialog + network playback (local python http.server) ---
+        pl->clear();
+        eng->stop();
+        waitFor([&] { return eng->idle(); });
+        QTest::qWait(400);
+        key(Qt::Key_U, Qt::ControlModifier);
+        result("Ctrl+U opens URL dialog", waitFor([&] { return vis("urlField"); }));
+        QTest::qWait(300);
+        typeText("not a url");
+        key(Qt::Key_Return);
+        result("invalid URL rejected", vis("urlField") && waitFor([&] { return vis("urlError"); }) && eng->idle());
+        shot("open-url-invalid");
+        key(Qt::Key_A, Qt::ControlModifier);
+        // Tiny in-process HTTP server with Range support (python's http.server can't seek, so mp4s with a trailing moov fail).
+        QTcpServer httpd;
+        const QString mediaPath = files.first();
+        QObject::connect(&httpd, &QTcpServer::newConnection, &httpd, [&] {
+            while (QTcpSocket *sock = httpd.nextPendingConnection()) {
+                QObject::connect(sock, &QTcpSocket::disconnected, sock, &QObject::deleteLater);
+                QObject::connect(sock, &QTcpSocket::readyRead, sock, [sock, mediaPath] {
+                    if (!sock->property("done").isNull() || !sock->peek(8192).contains("\r\n\r\n")) return;
+                    sock->setProperty("done", true);
+                    const QString req = QString::fromLatin1(sock->readAll());
+                    QFile f(mediaPath);
+                    f.open(QIODevice::ReadOnly);
+                    qint64 from = 0, to = f.size() - 1;
+                    bool ranged = false;
+                    const auto m = QRegularExpression("Range: bytes=(\\d+)-(\\d*)", QRegularExpression::CaseInsensitiveOption).match(req);
+                    if (m.hasMatch()) {
+                        ranged = true;
+                        from = m.captured(1).toLongLong();
+                        if (!m.captured(2).isEmpty()) to = qMin<qint64>(to, m.captured(2).toLongLong());
+                    }
+                    QByteArray head = ranged ? "HTTP/1.1 206 Partial Content\r\n" : "HTTP/1.1 200 OK\r\n";
+                    head += "Accept-Ranges: bytes\r\nContent-Type: video/mp4\r\nConnection: close\r\nContent-Length: "
+                            + QByteArray::number(to - from + 1) + "\r\n";
+                    if (ranged) head += "Content-Range: bytes " + QByteArray::number(from) + "-" + QByteArray::number(to)
+                                        + "/" + QByteArray::number(f.size()) + "\r\n";
+                    sock->write(head + "\r\n");
+                    if (!req.startsWith("HEAD")) { f.seek(from); sock->write(f.read(to - from + 1)); }
+                    sock->disconnectFromHost();
+                });
+            }
+        });
+        if (httpd.listen(QHostAddress::LocalHost, 0)) {
+            const QString port = QString::number(httpd.serverPort());
+            const QString url = QStringLiteral("http://127.0.0.1:%1/%2").arg(port, QFileInfo(files.first()).fileName());
+            typeText("  " + url + " ");
+            QTest::qWait(300);
+            shot("open-url-valid");
+            key(Qt::Key_Return);
+            result("URL dialog closes on open", waitFor([&] { return !vis("urlField"); }));
+            eng->play(); // engine may still be paused from the playlist tests
+            result("http URL plays", waitFor([&] { return !eng->idle() && eng->duration() > 1 && eng->position() > 0.5; }, 15000),
+                   eng->mediaError());
+            result("remote playlist entry titled by file name", pl->rowCount() == 1
+                   && pl->data(pl->index(0), PlaylistModel::TitleRole).toString() == QFileInfo(files.first()).fileName());
+            result("URL is in recent URLs", p->recentUrls().contains(url));
+            result("URL history row, no resume key collision", p->history()->rowCount() > 0);
+            QTest::qWait(800);
+            shot("network-playing");
+            eng->stop();
+            waitFor([&] { return eng->idle(); });
+        } else qCInfo(lcCore) << "UITEST SKIP http URL playback (cannot listen)";
+        httpd.close();
+
+        // --- per-file profile: adjust, reopen with engine reset in between, expect restore ---
+        p->setRememberFileSettings(true);
+        p->openFiles({QUrl::fromLocalFile(files.first())});
+        waitFor([&] { return !eng->idle() && eng->duration() > 1; }, 6000);
+        QTest::qWait(1800); // profile tracking arms ~1 s after load
+        eng->setVideoAdjust("brightness", 25);
+        eng->setSpeed(1.5);
+        eng->setAspect("4:3");
+        QTest::qWait(300);
+        p->saveResume();
+        pl->clear();
+        eng->stop();
+        waitFor([&] { return eng->idle(); });
+        eng->resetVideoAdjust();
+        eng->setSpeed(1.0);
+        eng->setAspect("auto");
+        QTest::qWait(300);
+        p->openFiles({QUrl::fromLocalFile(files.first())});
+        waitFor([&] { return !eng->idle() && eng->duration() > 1; }, 6000);
+        QTest::qWait(500);
+        result("profile restored after reopen",
+               eng->videoAdjust().value("brightness").toInt() == 25 && eng->speed() == 1.5 && eng->aspect() == "4:3",
+               QStringLiteral("b=%1 speed=%2 aspect=%3").arg(eng->videoAdjust().value("brightness").toInt()).arg(eng->speed()).arg(eng->aspect()));
+        shot("profile-restored");
+        p->resetFileSettings();
+        QTest::qWait(300);
+        result("Reset for this file restores defaults",
+               eng->videoAdjust().value("brightness").toInt() == 0 && eng->speed() == 1.0 && eng->aspect() == "auto");
+        pl->clear();
+        eng->stop();
+        waitFor([&] { return eng->idle(); });
+        p->openFiles({QUrl::fromLocalFile(files.first())});
+        waitFor([&] { return !eng->idle() && eng->duration() > 1; }, 6000);
+        QTest::qWait(500);
+        result("reset profile stays cleared on reopen", eng->videoAdjust().value("brightness").toInt() == 0 && eng->speed() == 1.0);
+        pause();
         qCInfo(lcCore) << "UITEST SUMMARY passes=" << passes << "fails=" << fails;
     }
     if (!envTheme.isEmpty()) setTheme("dark");

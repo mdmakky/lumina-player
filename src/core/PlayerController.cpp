@@ -267,7 +267,7 @@ void PlayerController::playIndex(int index)
         return;
     saveResume();
     const bool remote = Lumina::UrlUtils::isRemote(url);
-    m_currentPath = url.isLocalFile() ? url.toLocalFile() : (remote ? url.toString() : QString());
+    m_currentPath = url.isLocalFile() ? url.toLocalFile() : (remote ? url.toString(QUrl::FullyEncoded) : QString());
     m_resumeTarget = 0.0;
     m_profileArmed = false;
     m_profileDirty = false;
@@ -594,8 +594,9 @@ bool PlayerController::openUrl(const QString &text)
 
 void PlayerController::rememberUrl(const QUrl &url)
 {
-    m_recentUrls.removeAll(url.toString());
-    m_recentUrls.prepend(url.toString());
+    const QString s = url.toString(QUrl::FullyEncoded);
+    m_recentUrls.removeAll(s);
+    m_recentUrls.prepend(s);
     while (m_recentUrls.size() > 10)
         m_recentUrls.removeLast();
     setSetting(QStringLiteral("recentUrls"), m_recentUrls);

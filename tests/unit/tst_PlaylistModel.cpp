@@ -19,6 +19,19 @@ class TestPlaylistModel : public QObject
     }
 
 private slots:
+    void remoteTitles()
+    {
+        PlaylistModel m;
+        m.append({QUrl("http://h.com/v/My%20Clip.mp4?t=1")});
+        const auto title = [&] { return m.data(m.index(0), PlaylistModel::TitleRole).toString(); };
+        QCOMPARE(title(), QString("My Clip.mp4")); // last path segment, no file-existence checks
+        m.setCurrentTitle("ignored"); // no current entry yet
+        QCOMPARE(title(), QString("My Clip.mp4"));
+        m.setCurrentIndex(0);
+        m.setCurrentTitle("Real Title");
+        QCOMPARE(title(), QString("Real Title"));
+        QVERIFY(m.data(m.index(0), PlaylistModel::PathRole).toString().startsWith("http://h.com/v/"));
+    }
     void m3uRoundTrip()
     {
         PlaylistModel m;
