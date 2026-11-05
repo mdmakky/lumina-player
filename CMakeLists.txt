@@ -60,6 +60,11 @@ qt_add_executable(lumina
     src/engine/MpvEngine.cpp
     src/engine/MpvVideoItem.h
     src/engine/MpvVideoItem.cpp
+    src/engine/MpvThumbnailer.h
+    src/engine/MpvThumbnailer.cpp
+    src/media/ThumbnailCache.h
+    src/media/ThumbnailService.h
+    src/media/ThumbnailService.cpp
 )
 
 target_compile_definitions(lumina PRIVATE
@@ -266,4 +271,14 @@ if(BUILD_TESTING)
     target_include_directories(tst_libraryscanner PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
     target_link_libraries(tst_libraryscanner PRIVATE Qt6::Core Qt6::Sql Qt6::Test)
     add_test(NAME LibraryScanner COMMAND tst_libraryscanner)
+endif()
+
+if(BUILD_TESTING)
+    add_executable(tst_thumbnailservice
+        tests/unit/tst_ThumbnailService.cpp
+        src/engine/MpvThumbnailer.cpp
+    )
+    target_include_directories(tst_thumbnailservice PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+    target_link_libraries(tst_thumbnailservice PRIVATE Qt6::Core Qt6::Gui Qt6::Test PkgConfig::MPV)
+    add_test(NAME ThumbnailService COMMAND tst_thumbnailservice)
 endif()

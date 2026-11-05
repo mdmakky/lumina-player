@@ -15,6 +15,7 @@
 #include <functional>
 #include <QQmlContext>
 #include <QQmlEngine>
+#include <QQuickImageProvider>
 #include <QRandomGenerator>
 #include <QSharedPointer>
 #include <QTimer>
@@ -182,6 +183,7 @@ ApplicationContext::ApplicationContext(QObject *parent)
 void ApplicationContext::registerOnEngine(QQmlEngine *qmlEngine)
 {
     qmlEngine->rootContext()->setContextProperty(QStringLiteral("player"), m_player);
+    qmlEngine->addImageProvider(QStringLiteral("thumb"), m_player->thumbs()->createProvider());
     qmlEngine->rootContext()->setContextProperty(QStringLiteral("shortcuts"), new ShortcutManager(qmlEngine));
     qmlEngine->rootContext()->setContextProperty(QStringLiteral("timefmt"),
                                                  new Lumina::TimeUtils(qmlEngine));
