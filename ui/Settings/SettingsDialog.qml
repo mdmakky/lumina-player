@@ -898,6 +898,14 @@ Item {
                                     checked: dlg.verboseLog
                                     onToggled: (v) => dlg.setVerboseLog(v)
                                 }
+                                ButtonRow {
+                                    name: "openLogsAdvanced"
+                                    title: qsTr("Log files")
+                                    description: player.logsPath
+                                    keywords: "log folder diagnostics report bug"
+                                    buttonText: qsTr("Open logs folder")
+                                    onClicked: player.openLogsFolder()
+                                }
                             }
                             SettingSection {
                                 title: qsTr("Engine overrides")
@@ -1019,6 +1027,14 @@ Item {
                                     title: qsTr("Operating system")
                                     keywords: "platform cpu architecture"
                                     InfoValue { text: dlg.about.os || "" }
+                                }
+                                ButtonRow {
+                                    name: "openLogsAbout"
+                                    title: qsTr("Log files")
+                                    description: qsTr("Rotating logs, useful when reporting a problem.")
+                                    keywords: "log folder diagnostics report bug"
+                                    buttonText: qsTr("Open logs folder")
+                                    onClicked: player.openLogsFolder()
                                 }
                             }
                         }
