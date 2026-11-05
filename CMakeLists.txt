@@ -75,6 +75,7 @@ qt_add_qml_module(lumina
         ui/Components/ThemedMenuItem.qml
         ui/Components/PlaylistPanel.qml
         ui/Components/StatsOverlay.qml
+        ui/Settings/SettingsDialog.qml
     RESOURCES
         resources/icons/play.svg
         resources/icons/pause.svg
@@ -89,6 +90,7 @@ qt_add_qml_module(lumina
         resources/icons/playlist.svg
         resources/icons/chapters.svg
         resources/icons/subtitles.svg
+        resources/icons/settings.svg
 )
 
 target_include_directories(lumina PRIVATE

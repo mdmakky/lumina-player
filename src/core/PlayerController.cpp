@@ -38,7 +38,17 @@ PlayerController::PlayerController(QObject *parent)
     // Restore persisted state; keep volume/mute in sync from here on.
     QSettings settings;
     m_recentFiles = settings.value(QStringLiteral("recentFiles")).toStringList();
-    m_engine->setVolume(settings.value(QStringLiteral("playback/volume"), 100).toInt());
+    m_engine->setVolume(settings.value(QStringLiteral("playback/defaultVolume"),
+                                       settings.value(QStringLiteral("playback/volume"), 100)).toInt());
+    m_engine->setHwdec(settings.value(QStringLiteral("playback/hwdec"), QStringLiteral("auto-safe")).toString());
+    if (settings.contains(QStringLiteral("subtitles/fontSize")))
+        m_engine->setSubtitleFontSize(settings.value(QStringLiteral("subtitles/fontSize")).toInt());
+    if (settings.contains(QStringLiteral("subtitles/color")))
+        m_engine->setSubtitleColor(settings.value(QStringLiteral("subtitles/color")).toString());
+    if (settings.contains(QStringLiteral("subtitles/borderSize")))
+        m_engine->setSubtitleBorderSize(settings.value(QStringLiteral("subtitles/borderSize")).toDouble());
+    if (settings.contains(QStringLiteral("subtitles/position")))
+        m_engine->setSubtitlePosition(settings.value(QStringLiteral("subtitles/position")).toInt());
     m_engine->setMuted(settings.value(QStringLiteral("playback/muted"), false).toBool());
     connect(m_engine, &MpvEngine::volumeChanged, this, [this] {
         setSetting(QStringLiteral("playback/volume"), m_engine->volume());
@@ -94,7 +104,8 @@ void PlayerController::playIndex(int index)
         return;
     saveResume();
     m_currentPath = url.isLocalFile() ? url.toLocalFile() : QString();
-    m_resumeTarget = (!m_currentPath.isEmpty() && !qEnvironmentVariableIsSet("LUMINA_PLAYBACK_TEST"))
+    m_resumeTarget = (!m_currentPath.isEmpty() && !qEnvironmentVariableIsSet("LUMINA_PLAYBACK_TEST")
+                      && setting(QStringLiteral("playback/resume"), true).toBool())
         ? setting(resumeKey(m_currentPath), 0.0).toDouble() : 0.0;
     m_playlist->setCurrentIndex(index);
     qCInfo(lcCore) << "Playing playlist entry" << index << url.toString();
@@ -156,7 +167,8 @@ QString PlayerController::resumeKey(const QString &path)
 
 void PlayerController::saveResume()
 {
-    if (m_currentPath.isEmpty() || m_engine->idle() || qEnvironmentVariableIsSet("LUMINA_PLAYBACK_TEST"))
+    if (m_currentPath.isEmpty() || m_engine->idle() || qEnvironmentVariableIsSet("LUMINA_PLAYBACK_TEST")
+        || !setting(QStringLiteral("playback/resume"), true).toBool())
         return;
     const double pos = m_engine->position(), dur = m_engine->duration();
     QSettings s;
