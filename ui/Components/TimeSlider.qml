@@ -137,8 +137,9 @@ Slider {
         function onAvailableChanged() { control.thumbUrl = ""; control.wantThumb() }
     }
 
-    ToolTip {
+    ThemedToolTip {
         objectName: "timelineTip"
+        delay: 0
         parent: control
         visible: control.hovered || control.dragging
         // keep the whole tip inside the window
@@ -146,11 +147,6 @@ Slider {
                     Math.min(control.tipX - width / 2,
                              control.Window.width - control.mapToItem(null, 0, 0).x - width - 4))
         y: -height - 8
-        background: Rectangle {
-            color: Theme.elevated
-            border.color: Theme.border
-            radius: Theme.radiusSmall
-        }
         contentItem: Column {
             spacing: 4
             Item {
