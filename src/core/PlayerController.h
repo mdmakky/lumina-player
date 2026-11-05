@@ -2,6 +2,7 @@
 
 #include <QObject>
 #include <QStringList>
+#include <QVariant>
 #include <QVariantList>
 
 #include "engine/MpvEngine.h"
@@ -28,6 +29,10 @@ public slots:
     // Accepts a JS array of URLs (from file dialogs or drag & drop).
     void openFiles(const QVariantList &urls);
     void clearRecentFiles();
+
+    // Generic persisted UI settings (QSettings-backed), e.g. window geometry.
+    QVariant setting(const QString &key, const QVariant &fallback = {}) const;
+    void setSetting(const QString &key, const QVariant &value);
 
 signals:
     void hasMediaChanged();

@@ -16,6 +16,23 @@ ApplicationWindow {
     title: player.hasMedia && player.engine.mediaTitle !== ""
            ? player.engine.mediaTitle + " — Lumina" : "Lumina Player"
 
+    // --- Window state persistence -------------------------------------------
+    Component.onCompleted: {
+        const g = player.setting("window/geometry", null)
+        if (g && g.width >= minimumWidth && g.height >= minimumHeight) {
+            x = g.x; y = g.y; width = g.width; height = g.height
+        }
+        if (player.setting("window/maximized", false) === true || player.setting("window/maximized", false) === "true")
+            showMaximized()
+    }
+    onClosing: {
+        if (visibility === Window.FullScreen)
+            return
+        player.setSetting("window/maximized", visibility === Window.Maximized)
+        if (visibility === Window.Windowed)
+            player.setSetting("window/geometry", { x: x, y: y, width: width, height: height })
+    }
+
     // --- UI state ---------------------------------------------------------
     property bool chromeVisible: true
     property bool pointerInChrome: false
