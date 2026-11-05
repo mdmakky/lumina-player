@@ -278,7 +278,9 @@ void MpvEngine::processEvents()
                     else
                         setMediaError(tr("Could not open stream: %1").arg(mpv_error_string(endFile->error)));
                 } else {
-                    setMediaError(tr("Playback failed: %1").arg(mpv_error_string(endFile->error)));
+                    setMediaError(endFile->error == MPV_ERROR_LOADING_FAILED
+                        ? tr("Could not open this file. It may have been moved or deleted, or is not a supported media file.")
+                        : tr("Playback failed: %1").arg(mpv_error_string(endFile->error)));
                 }
             }
             break;
@@ -692,9 +694,9 @@ void MpvEngine::clearLoop()
 
 void MpvEngine::setAspect(const QString &ratio)
 {
-    // "-1" restores the file's own aspect.
+    // "no" restores the file's own aspect ("-1" is deprecated since mpv 0.41).
     if (command({QStringLiteral("set"), QStringLiteral("video-aspect-override"),
-                 ratio == QLatin1String("auto") ? QStringLiteral("-1") : ratio})) {
+                 ratio == QLatin1String("auto") ? QStringLiteral("no") : ratio})) {
         m_aspect = ratio;
         emit videoOptionsChanged();
     }

@@ -535,20 +535,30 @@ ApplicationWindow {
 
     // --- Media error banner ----------------------------------------------
     Rectangle {
+        z: 50
         visible: player.engine.mediaError !== ""
         anchors.top: parent.top
-        anchors.topMargin: 72
+        anchors.topMargin: player.hasMedia ? 72 : 14
         anchors.horizontalCenter: parent.horizontalCenter
-        width: errorText.implicitWidth + 32
+        width: Math.min(errorMetrics.advanceWidth, Math.min(root.width - 96, 640)) + 32
         height: errorText.implicitHeight + 16
         color: Theme.panelOverlay
         border.color: Theme.error
         radius: Theme.radius
 
+        TextMetrics {
+            id: errorMetrics
+            font: errorText.font
+            text: player.engine.mediaError
+        }
+
         Text {
             id: errorText
             anchors.centerIn: parent
+            width: parent.width - 32
             text: player.engine.mediaError
+            wrapMode: Text.WordWrap
+            horizontalAlignment: Text.AlignHCenter
             color: Theme.error
             font.family: Theme.fontFamily
             font.pixelSize: Theme.fontSizeMedium
