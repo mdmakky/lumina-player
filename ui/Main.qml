@@ -574,6 +574,8 @@ ApplicationWindow {
     Shortcut { sequence: "P";            onActivated: root.playlistOpen = !root.playlistOpen }
     Shortcut { sequence: "Ctrl+Right";   enabled: player.hasMedia; onActivated: player.next() }
     Shortcut { sequence: "Ctrl+Left";    enabled: player.hasMedia; onActivated: player.previous() }
+    Shortcut { sequence: "Shift+S";      onActivated: player.shuffle = !player.shuffle }
+    Shortcut { sequence: "R";            onActivated: player.repeatMode = (player.repeatMode + 1) % 3 }
     Shortcut { sequence: "Ctrl+O";       onActivated: fileDialog.open() }
     Shortcut { sequence: "Esc";          enabled: root.visibility === Window.FullScreen; onActivated: root.showNormal() }
 }
