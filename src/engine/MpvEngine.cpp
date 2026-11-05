@@ -37,7 +37,7 @@ MpvEngine::MpvEngine(QObject *parent)
 
     m_mpv = mpv_create();
     if (!m_mpv) {
-        setMediaError(QStringLiteral("Failed to create mpv handle"));
+        setMediaError(tr("Failed to create mpv handle"));
         return;
     }
 
@@ -113,7 +113,7 @@ MpvEngine::MpvEngine(QObject *parent)
 
     const int rc = mpv_initialize(m_mpv);
     if (rc < 0) {
-        setMediaError(QStringLiteral("mpv initialization failed: %1").arg(mpv_error_string(rc)));
+        setMediaError(tr("mpv initialization failed: %1").arg(mpv_error_string(rc)));
         mpv_terminate_destroy(m_mpv);
         m_mpv = nullptr;
         return;
@@ -263,13 +263,13 @@ void MpvEngine::processEvents()
             if (endFile->reason == MPV_END_FILE_REASON_ERROR && endFile->error < 0) {
                 if (Lumina::UrlUtils::isRemote(m_remoteUrl) && m_playingRemote) {
                     if (!m_ytdl && !Lumina::UrlUtils::looksLikeDirectMedia(m_remoteUrl))
-                        setMediaError(QStringLiteral("This looks like a web page, not a media file. Install yt-dlp to play it."));
+                        setMediaError(tr("This looks like a web page, not a media file. Install yt-dlp to play it."));
                     else if (m_ytdl && !Lumina::UrlUtils::looksLikeDirectMedia(m_remoteUrl))
-                        setMediaError(QStringLiteral("yt-dlp could not extract a playable video from this page."));
+                        setMediaError(tr("yt-dlp could not extract a playable video from this page."));
                     else
-                        setMediaError(QStringLiteral("Could not open stream: %1").arg(mpv_error_string(endFile->error)));
+                        setMediaError(tr("Could not open stream: %1").arg(mpv_error_string(endFile->error)));
                 } else {
-                    setMediaError(QStringLiteral("Playback failed: %1").arg(mpv_error_string(endFile->error)));
+                    setMediaError(tr("Playback failed: %1").arg(mpv_error_string(endFile->error)));
                 }
             }
             break;
@@ -323,7 +323,7 @@ bool MpvEngine::command(const QStringList &args)
     if (rc < 0) {
         qCWarning(lcEngine) << "mpv command failed:" << args.join(u' ')
                             << "-" << mpv_error_string(rc);
-        setMediaError(QStringLiteral("Command failed: %1").arg(mpv_error_string(rc)));
+        setMediaError(tr("Command failed: %1").arg(mpv_error_string(rc)));
         return false;
     }
     return true;
@@ -420,7 +420,7 @@ void MpvEngine::loadFile(const QUrl &url)
 {
     const QString path = mpvTarget(url);
     if (path.isEmpty()) {
-        setMediaError(QStringLiteral("Cannot open an empty path"));
+        setMediaError(tr("Cannot open an empty path"));
         return;
     }
     m_remoteUrl = url;

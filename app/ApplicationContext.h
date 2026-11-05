@@ -1,9 +1,11 @@
 #pragma once
 
 #include <QObject>
+#include <QTranslator>
 
 class QQmlEngine;
 class PlayerController;
+class ShortcutManager;
 
 // Owns application-level singletons and wires the C++ core to the QML engine.
 // Constructed once in main() before the QML engine loads the UI.
@@ -27,6 +29,21 @@ public:
 
     PlayerController *player() const { return m_player; }
 
+    // UI language: "system" (default), "en" or "bn". Persisted; switching is
+    // live (QQmlEngine::retranslate), no restart. LUMINA_LANG=<code> overrides
+    // "system" (self-tests force English with it).
+    Q_PROPERTY(QString language READ language NOTIFY languageChanged)
+    QString language() const;
+    Q_INVOKABLE void setLanguage(const QString &code);
+
+signals:
+    void languageChanged();
+
 private:
+    void applyLanguage(const QString &code);
+
     PlayerController *m_player = nullptr;
+    QQmlEngine *m_engine = nullptr;
+    ShortcutManager *m_shortcuts = nullptr;
+    QTranslator m_translator;
 };

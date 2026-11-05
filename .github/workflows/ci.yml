@@ -20,7 +20,9 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
             ninja-build cmake g++ pkg-config \
+            qt6-tools-dev qt6-tools-dev-tools qt6-l10n-tools \
             qt6-base-dev qt6-declarative-dev qt6-declarative-dev-tools \
+            libqt6dbus6 qt6-base-dev-tools \
             qml6-module-qtquick qml6-module-qtquick-controls \
             qml6-module-qtquick-dialogs qml6-module-qtquick-layouts \
             qml6-module-qtquick-templates qml6-module-qtquick-window \
@@ -66,3 +68,54 @@ jobs:
 
       - name: Test
         run: ctest --test-dir build --output-on-failure
+
+  # EXPERIMENTAL: never run on Windows by the author. MSYS2 package names below are
+  # from memory (qt6-*/mpv/toolchain in the MINGW64 repo); adjust if the job fails.
+  build-windows:
+    name: Build & Test (Windows, MSYS2 MinGW64)
+    runs-on: windows-latest
+    continue-on-error: true
+    env:
+      QT_QPA_PLATFORM: offscreen
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: >-
+            mingw-w64-x86_64-toolchain
+            mingw-w64-x86_64-cmake
+            mingw-w64-x86_64-ninja
+            mingw-w64-x86_64-pkgconf
+            mingw-w64-x86_64-qt6-base
+            mingw-w64-x86_64-qt6-declarative
+            mingw-w64-x86_64-qt6-svg
+            mingw-w64-x86_64-qt6-tools
+            mingw-w64-x86_64-mpv
+
+      - name: Configure
+        run: cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
+
+      - name: Build
+        run: cmake --build build
+
+      - name: Test
+        run: ctest --test-dir build --output-on-failure
+
+      - name: Stage with windeployqt
+        run: |
+          mkdir -p dist
+          cp build/bin/lumina.exe dist/
+          windeployqt6 --qmldir ui --no-translations dist/lumina.exe || windeployqt --qmldir ui dist/lumina.exe
+          # Bundle libmpv and its MinGW dependencies next to the exe.
+          ldd dist/lumina.exe | awk '/mingw64/ {print $3}' | xargs -I{} cp -n {} dist/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: lumina-windows-mingw64
+          path: dist

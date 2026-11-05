@@ -10,6 +10,10 @@ QString norm(const QString &s) { return QKeySequence(s, QKeySequence::PortableTe
 QString settingsKey(const QString &id) { return QStringLiteral("shortcuts/") + id; }
 }
 
+// Names are kept as English source text and translated on read, so a live
+// language switch only needs changed() (see retranslate()).
+QString ShortcutManager::trSrc(const QString &src) { return QCoreApplication::translate("Shortcuts", src.toUtf8().constData()); }
+
 ShortcutManager::ShortcutManager(QObject *parent) : QObject(parent)
 {
     // id, name, category, default, needs media
@@ -54,8 +58,8 @@ ShortcutManager::ShortcutManager(QObject *parent) : QObject(parent)
     };
     QSettings s;
     for (const auto &t : table) {
-        Action a{QString::fromLatin1(t.id), QCoreApplication::translate("Shortcuts", t.name),
-                 QCoreApplication::translate("Shortcuts", t.cat), norm(QString::fromLatin1(t.key)), {}, t.media};
+        Action a{QString::fromLatin1(t.id), QString::fromLatin1(t.name),
+                 QString::fromLatin1(t.cat), norm(QString::fromLatin1(t.key)), {}, t.media};
         a.key = s.contains(settingsKey(a.id)) ? norm(s.value(settingsKey(a.id)).toString()) : a.defKey;
         m_actions.append(a);
     }
@@ -76,7 +80,7 @@ QVariantList ShortcutManager::actions() const
 {
     QVariantList l;
     for (const auto &a : m_actions)
-        l << QVariantMap{{"id", a.id}, {"name", a.name}, {"category", a.category}, {"defaultKey", a.defKey},
+        l << QVariantMap{{"id", a.id}, {"name", trSrc(a.name)}, {"category", trSrc(a.category)}, {"defaultKey", a.defKey},
                          {"key", a.key}, {"media", a.media}};
     return l;
 }
@@ -90,7 +94,7 @@ void ShortcutManager::setCapturing(bool c)
 
 QString ShortcutManager::sequence(const QString &id) const { auto *a = find(id); return a ? a->key : QString(); }
 QString ShortcutManager::defaultSequence(const QString &id) const { auto *a = find(id); return a ? a->defKey : QString(); }
-QString ShortcutManager::nameOf(const QString &id) const { auto *a = find(id); return a ? a->name : QString(); }
+QString ShortcutManager::nameOf(const QString &id) const { auto *a = find(id); return a ? trSrc(a->name) : QString(); }
 
 QString ShortcutManager::conflict(const QString &id, const QString &seq) const
 {

@@ -7,8 +7,33 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 find_package(Qt6 6.4 REQUIRED COMPONENTS Core Gui Network Quick Sql Test)
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(MPV REQUIRED IMPORTED_TARGET mpv)
+find_package(Qt6 6.4 OPTIONAL_COMPONENTS LinguistTools)
+if(UNIX AND NOT APPLE)
+    find_package(Qt6 6.4 REQUIRED COMPONENTS DBus)
+endif()
+
+# libmpv: pkg-config where available (Linux, macOS, MSYS2); otherwise an
+# mpv-dev SDK layout (include/mpv/client.h + lib/mpv.lib|libmpv.dll.a), found
+# via -DLIBMPV_ROOT=<dir> (MSVC / shinchiro builds).
+find_package(PkgConfig QUIET)
+if(PkgConfig_FOUND)
+    pkg_check_modules(MPV IMPORTED_TARGET mpv)
+endif()
+if(TARGET PkgConfig::MPV)
+    set(LUMINA_MPV_TARGET PkgConfig::MPV)
+else()
+    find_path(MPV_INCLUDE_DIR mpv/client.h HINTS ${LIBMPV_ROOT} ENV LIBMPV_ROOT
+              PATH_SUFFIXES include)
+    find_library(MPV_LIBRARY NAMES mpv libmpv mpv-2 HINTS ${LIBMPV_ROOT} ENV LIBMPV_ROOT
+                 PATH_SUFFIXES lib lib/x64 .)
+    if(NOT MPV_INCLUDE_DIR OR NOT MPV_LIBRARY)
+        message(FATAL_ERROR "libmpv not found. Install it (pkg-config 'mpv') or pass -DLIBMPV_ROOT=<mpv-dev dir>.")
+    endif()
+    add_library(lumina_mpv INTERFACE)
+    target_include_directories(lumina_mpv INTERFACE ${MPV_INCLUDE_DIR})
+    target_link_libraries(lumina_mpv INTERFACE ${MPV_LIBRARY})
+    set(LUMINA_MPV_TARGET lumina_mpv)
+endif()
 
 qt_standard_project_setup(REQUIRES 6.4)
 # Resources under :/qt/qml/<URI> (the paths main.cpp and QML icons use).
@@ -62,7 +87,22 @@ qt_add_executable(lumina
     src/engine/MpvEngine.cpp
     src/engine/MpvVideoItem.h
     src/engine/MpvVideoItem.cpp
+    src/platform/PlatformIntegration.h
+    src/platform/PlatformIntegration.cpp
+    src/platform/Mpris.h
+    src/platform/Mpris.cpp
 )
+
+if(UNIX AND NOT APPLE)
+    target_sources(lumina PRIVATE src/platform/MprisIntegration.h src/platform/MprisIntegration.cpp)
+    target_link_libraries(lumina PRIVATE Qt6::DBus)
+elseif(APPLE)
+    enable_language(OBJCXX)
+    target_sources(lumina PRIVATE src/platform/MacIntegration.mm)
+    set_source_files_properties(src/platform/MacIntegration.mm PROPERTIES COMPILE_OPTIONS -fobjc-arc)
+    target_link_libraries(lumina PRIVATE "-framework IOKit" "-framework CoreFoundation"
+                                         "-framework Foundation" "-framework MediaPlayer")
+endif()
 
 target_compile_definitions(lumina PRIVATE
     LUMINA_VERSION="${PROJECT_VERSION}"
@@ -146,6 +186,33 @@ qt_add_qml_module(lumina
         resources/icons/app/lumina-256.png
 )
 
+# Translations: lumina_en.ts is the English source (plural forms), lumina_bn.ts Bengali.
+# `cmake --build <dir> --target update_translations` refreshes the .ts files.
+if(Qt6LinguistTools_FOUND)
+    file(GLOB LUMINA_TR_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/ui/*.qml ${CMAKE_CURRENT_SOURCE_DIR}/ui/*/*.qml
+         ${CMAKE_CURRENT_SOURCE_DIR}/app/*.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/*/*.cpp)
+    qt_add_translations(lumina
+        TS_FILES translations/lumina_en.ts translations/lumina_bn.ts
+        SOURCES ${LUMINA_TR_SOURCES}
+        LUPDATE_OPTIONS -no-obsolete
+        RESOURCE_PREFIX /i18n)
+else()
+    message(WARNING "Qt6 LinguistTools not found: building without translations (UI stays English)")
+endif()
+
+if(WIN32)
+    target_sources(lumina PRIVATE
+        src/platform/windows/SleepInhibitor_win.h
+        src/platform/windows/SleepInhibitor_win.cpp)
+    # Version resource + app icon (lumina.ico = PNG-embedded, built from lumina-*.png).
+    set(LUMINA_ICO ${CMAKE_CURRENT_SOURCE_DIR}/resources/icons/app/lumina.ico)
+    string(REPLACE "." "," LUMINA_RC_VER "${PROJECT_VERSION}.0")
+    configure_file(packaging/windows/lumina.rc.in ${CMAKE_BINARY_DIR}/lumina.rc @ONLY)
+    target_sources(lumina PRIVATE ${CMAKE_BINARY_DIR}/lumina.rc)
+    set_target_properties(lumina PROPERTIES WIN32_EXECUTABLE TRUE) # no console window
+    target_compile_definitions(lumina PRIVATE NOMINMAX WIN32_LEAN_AND_MEAN)
+endif()
+
 if(APPLE AND LUMINA_MAC_BUNDLE)
     set(LUMINA_ICNS ${CMAKE_CURRENT_SOURCE_DIR}/resources/icons/app/lumina.icns)
     set_source_files_properties(${LUMINA_ICNS} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
@@ -168,6 +235,7 @@ target_include_directories(lumina PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src/storage
     ${CMAKE_CURRENT_SOURCE_DIR}/src/services
     ${CMAKE_CURRENT_SOURCE_DIR}/src/utilities
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/platform
     ${CMAKE_CURRENT_SOURCE_DIR}/app
 )
 
@@ -178,7 +246,7 @@ target_link_libraries(lumina PRIVATE
     Qt6::Quick
     Qt6::Sql
     Qt6::Test # UiTest driver (synthetic mouse/key events); inert unless env vars set
-    PkgConfig::MPV
+    ${LUMINA_MPV_TARGET}
 )
 
 include(GNUInstallDirs)
@@ -186,6 +254,17 @@ install(TARGETS lumina
     BUNDLE  DESTINATION .
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
+
+if(WIN32)
+    # Runtime libmpv DLL (mpv-dev SDK ships it next to the import lib; MSYS2 has it in bin/).
+    find_file(MPV_RUNTIME_DLL NAMES libmpv-2.dll mpv-2.dll libmpv.dll mpv.dll
+              HINTS ${LIBMPV_ROOT} ENV LIBMPV_ROOT PATH_SUFFIXES . bin lib lib/x64)
+    if(MPV_RUNTIME_DLL)
+        install(FILES ${MPV_RUNTIME_DLL} DESTINATION ${CMAKE_INSTALL_BINDIR})
+    else()
+        message(STATUS "libmpv runtime DLL not found; copy it next to lumina.exe manually")
+    endif()
+endif()
 
 if(UNIX AND NOT APPLE)
     install(FILES packaging/linux/io.github.mdmakky.Lumina.desktop
@@ -256,6 +335,11 @@ if(BUILD_TESTING)
     target_link_libraries(tst_singleinstance PRIVATE Qt6::Core Qt6::Network Qt6::Test)
     add_test(NAME SingleInstance COMMAND tst_singleinstance)
 
+    add_executable(tst_translations tests/unit/tst_Translations.cpp)
+    target_compile_definitions(tst_translations PRIVATE LUMINA_TS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/translations")
+    target_link_libraries(tst_translations PRIVATE Qt6::Core Qt6::Test)
+    add_test(NAME Translations COMMAND tst_translations)
+
     add_executable(tst_historyrepository
         tests/unit/tst_HistoryRepository.cpp
         src/storage/Database.cpp
@@ -278,4 +362,12 @@ if(BUILD_TESTING)
     target_include_directories(tst_libraryscanner PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
     target_link_libraries(tst_libraryscanner PRIVATE Qt6::Core Qt6::Sql Qt6::Test)
     add_test(NAME LibraryScanner COMMAND tst_libraryscanner)
+
+    add_executable(tst_mpris
+        tests/unit/tst_Mpris.cpp
+        src/platform/Mpris.cpp
+    )
+    target_include_directories(tst_mpris PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+    target_link_libraries(tst_mpris PRIVATE Qt6::Core Qt6::Test)
+    add_test(NAME Mpris COMMAND tst_mpris)
 endif()

@@ -9,11 +9,11 @@ Popup {
 
     readonly property var bands: ["31", "62", "125", "250", "500", "1k", "2k", "4k", "8k", "16k"]
     readonly property var presets: [
-        { name: "Flat",       gains: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
-        { name: "Bass boost", gains: [6, 5, 4, 2, 0, 0, 0, 0, 0, 0] },
-        { name: "Vocal",      gains: [-2, -2, -1, 1, 3, 4, 3, 1, 0, -1] },
-        { name: "Treble",     gains: [0, 0, 0, 0, 0, 1, 3, 5, 6, 6] },
-        { name: "Loudness",   gains: [5, 4, 1, 0, -1, -1, 0, 2, 4, 5] }
+        { name: "Flat", label: qsTr("Flat"),       gains: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+        { name: "Bass boost", label: qsTr("Bass boost"), gains: [6, 5, 4, 2, 0, 0, 0, 0, 0, 0] },
+        { name: "Vocal", label: qsTr("Vocal"),      gains: [-2, -2, -1, 1, 3, 4, 3, 1, 0, -1] },
+        { name: "Treble", label: qsTr("Treble"),     gains: [0, 0, 0, 0, 0, 1, 3, 5, 6, 6] },
+        { name: "Loudness", label: qsTr("Loudness"),   gains: [5, 4, 1, 0, -1, -1, 0, 2, 4, 5] }
     ]
     function matches(g) {
         const cur = player.engine.eqGains
@@ -71,7 +71,7 @@ Popup {
                     required property var modelData
                     objectName: "eqPreset_" + modelData.name
                     readonly property bool on: popup.matches(modelData.gains)
-                    text: modelData.name
+                    text: modelData.label
                     font.family: Theme.fontFamily
                     font.pixelSize: Theme.fontSizeSmall
                     onClicked: { player.engine.setEqualizer(modelData.gains); player.engine.eqEnabled = true }
