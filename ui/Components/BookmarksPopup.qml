@@ -4,17 +4,12 @@ import QtQuick.Layouts
 import Lumina.Player
 
 // Bookmarks of the current file: click a row to seek, x to delete.
-Popup {
+PopupPanel {
     id: popup
 
     focus: true
     padding: Theme.spacingLarge
-    background: Rectangle {
-        implicitWidth: 300
-        color: Theme.panelOverlay
-        border.color: Theme.border
-        radius: Theme.radius
-    }
+    panelWidth: 300
 
     contentItem: ColumnLayout {
         spacing: Theme.spacingSmall

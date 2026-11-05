@@ -65,6 +65,8 @@ qt_add_executable(lumina
     src/utilities/TimeUtils.cpp
     src/utilities/UrlUtils.h
     src/utilities/UrlUtils.cpp
+    src/utilities/TrackLabels.h
+    src/utilities/TrackLabels.cpp
     src/core/PlayerController.h
     src/core/PlayerController.cpp
     src/core/PlaylistModel.h
@@ -144,6 +146,13 @@ qt_add_qml_module(lumina
         ui/Components/VolumeSlider.qml
         ui/Components/TrackMenu.qml
         ui/Components/ThemedMenuItem.qml
+        ui/Components/PopupPanel.qml
+        ui/Components/MenuRow.qml
+        ui/Components/MenuChip.qml
+        ui/Components/MenuSectionHeader.qml
+        ui/Components/PanelSeparator.qml
+        ui/Components/DelayStepper.qml
+        ui/Components/ThemedToolTip.qml
         ui/Components/PlaylistPanel.qml
         ui/Components/StatsOverlay.qml
         ui/Settings/SettingsDialog.qml
@@ -174,6 +183,7 @@ qt_add_qml_module(lumina
         resources/icons/fullscreen.svg
         resources/icons/fullscreen-exit.svg
         resources/icons/folder-open.svg
+        resources/icons/folder-open-dark.svg
         resources/icons/skip-next.svg
         resources/icons/skip-previous.svg
         resources/icons/playlist.svg
@@ -314,6 +324,14 @@ if(BUILD_TESTING)
     target_include_directories(tst_urlutils PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
     target_link_libraries(tst_urlutils PRIVATE Qt6::Core Qt6::Test)
     add_test(NAME UrlUtils COMMAND tst_urlutils)
+
+    add_executable(tst_tracklabels
+        tests/unit/tst_TrackLabels.cpp
+        src/utilities/TrackLabels.cpp
+    )
+    target_include_directories(tst_tracklabels PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+    target_link_libraries(tst_tracklabels PRIVATE Qt6::Core Qt6::Test)
+    add_test(NAME TrackLabels COMMAND tst_tracklabels)
 
     add_executable(tst_playlistmodel
         tests/unit/tst_PlaylistModel.cpp

@@ -290,18 +290,11 @@ Item {
                             Keys.onDownPressed: if (index < dlg.pages.length - 1) { dlg.gotoPage(index + 1); navRepeater.itemAt(index + 1).forceActiveFocus() }
                             Accessible.role: Accessible.PageTab
                             Accessible.name: modelData.label
-                            ToolTip {
+                            ThemedToolTip {
                                 visible: panel.compact && nav.hovered
                                 delay: 400
                                 text: nav.modelData.label
                                 x: nav.width + 6
-                                contentItem: Text {
-                                    text: nav.modelData.label
-                                    color: Theme.primaryText
-                                    font.family: Theme.fontFamily
-                                    font.pixelSize: Theme.fontSizeSmall
-                                }
-                                background: Rectangle { color: Theme.elevated; border.color: Theme.border; radius: Theme.radiusSmall }
                             }
                             background: Rectangle {
                                 radius: Theme.radius

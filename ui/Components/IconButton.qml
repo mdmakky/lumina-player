@@ -60,20 +60,8 @@ Button {
     Accessible.role: Accessible.Button
     Accessible.name: control.tip !== "" ? control.tip : control.label
 
-    ToolTip {
+    ThemedToolTip {
         visible: control.tip !== "" && control.hovered
-        delay: 500
         text: control.tip
-        contentItem: Text {
-            text: control.tip
-            color: Theme.primaryText
-            font.family: Theme.fontFamily
-            font.pixelSize: Theme.fontSizeSmall
-        }
-        background: Rectangle {
-            color: Theme.elevated
-            border.color: Theme.border
-            radius: Theme.radiusSmall
-        }
     }
 }

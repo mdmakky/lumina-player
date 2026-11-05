@@ -4,16 +4,11 @@ import QtQuick.Layouts
 import Lumina.Player
 
 // Brightness / contrast / saturation / gamma / hue sliders (-100..100).
-Popup {
+PopupPanel {
     id: popup
 
     padding: Theme.spacingLarge
-    background: Rectangle {
-        implicitWidth: 280
-        color: Theme.panelOverlay
-        border.color: Theme.border
-        radius: Theme.radius
-    }
+    panelWidth: 300
 
     contentItem: ColumnLayout {
         spacing: Theme.spacingSmall

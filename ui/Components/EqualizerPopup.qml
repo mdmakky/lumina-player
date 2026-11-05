@@ -4,7 +4,7 @@ import QtQuick.Layouts
 import Lumina.Player
 
 // 10-band graphic equalizer (+/-12 dB) with presets; state lives in the engine.
-Popup {
+PopupPanel {
     id: popup
 
     readonly property var bands: ["31", "62", "125", "250", "500", "1k", "2k", "4k", "8k", "16k"]
@@ -24,11 +24,7 @@ Popup {
 
     focus: true
     padding: Theme.spacingLarge
-    background: Rectangle {
-        color: Theme.panelOverlay
-        border.color: Theme.border
-        radius: Theme.radius
-    }
+    panelWidth: 0
 
     contentItem: ColumnLayout {
         spacing: Theme.spacingMedium

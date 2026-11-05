@@ -806,7 +806,7 @@ ApplicationWindow {
                         objectName: "moreButton"
                         iconSource: root.iconBase + "more.svg"
                         tip: qsTr("More")
-                        onClicked: moreMenu.popup(this, 0, -moreMenu.height - 8)
+                        onClicked: moreMenu.openAbove(this)
                     }
 
                     IconButton {
@@ -821,20 +821,20 @@ ApplicationWindow {
                         objectName: "tracksButton"
                         iconSource: root.iconBase + "subtitles.svg"
                         tip: qsTr("Audio & subtitles")
-                        onClicked: trackMenu.popup(this, 0, -trackMenu.height - 8)
+                        onClicked: trackMenu.openAbove(this)
                     }
                     IconButton {
                         objectName: "chaptersButton"
                         iconSource: root.iconBase + "chapters.svg"
                         tip: qsTr("Chapters (PgUp/PgDn)")
                         visible: player.engine.chapters.length > 0
-                        onClicked: chapterMenu.popup(this, 0, -chapterMenu.height - 8)
+                        onClicked: chapterMenu.openAbove(this)
                     }
                     IconButton {
                         objectName: "speedButton"
                         label: player.engine.speed.toFixed(2).replace(/0$/, "").replace(/\.$/, "") + "×"
                         tip: qsTr("Speed (X / C / Z)")
-                        onClicked: speedMenu.popup(this, 0, -speedMenu.height - 8)
+                        onClicked: speedMenu.openAbove(this)
                     }
                 }
             }
@@ -842,134 +842,139 @@ ApplicationWindow {
     }
 
     // --- Menus ---------------------------------------------------------------
-    component ThemedMenu: Menu {
-        padding: 6
-        topMargin: 8      // keep tall menus off the window edges (scrolls when it does not fit)
-        bottomMargin: 8
+    component ThemedPanel: PopupPanel {
         onAboutToShow: root.menuOpen = true
         onClosed: root.menuOpen = false
-        background: Rectangle {
-            implicitWidth: 180
-            color: Theme.panelOverlay
-            border.color: Theme.border
-            radius: Theme.radius
-        }
     }
 
-    ThemedMenu {
+    ThemedPanel {
         id: speedMenu
         objectName: "speedMenu"
+        panelWidth: 180
         Repeater {
             model: [0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0]
-            delegate: ThemedMenuItem {
+            delegate: MenuRow {
                 required property var modelData
                 objectName: "speedItem_" + modelData
                 text: modelData.toFixed(2).replace(/0$/, "").replace(/\.$/, "") + "×"
-                checkable: true
-                checked: Math.abs(player.engine.speed - modelData) < 0.001
+                mark: "radio"
+                selected: Math.abs(player.engine.speed - modelData) < 0.001
                 onTriggered: player.engine.setSpeed(modelData)
             }
         }
     }
 
-    ThemedMenu {
+    ThemedPanel {
         id: chapterMenu
         objectName: "chapterMenu"
+        panelWidth: 300
         Repeater {
             model: player.engine.chapters
-            delegate: ThemedMenuItem {
+            delegate: MenuRow {
                 required property var modelData
                 required property int index
                 objectName: "chapterItem_" + index
                 text: (modelData.title || qsTr("Chapter %1").arg(index + 1))
-                      + "   " + timefmt.formatDuration(modelData.time)
+                hint: timefmt.formatDuration(modelData.time)
                 onTriggered: player.engine.seekChapter(index)
             }
         }
     }
 
-    ThemedMenu {
+    ThemedPanel {
         id: moreMenu
         objectName: "moreMenu"
-        component Heading: ThemedMenuItem {
-            enabled: false
-            implicitHeight: 26
-            font.pixelSize: Theme.fontSizeSmall
-        }
-        Heading { text: qsTr("ASPECT RATIO") }
-        Repeater {
-            model: ["auto", "16:9", "4:3", "21:9", "1:1"]
-            delegate: ThemedMenuItem {
-                required property string modelData
-                objectName: "aspectItem_" + modelData
-                text: modelData === "auto" ? qsTr("Auto") : modelData
-                checkable: true
-                checked: player.engine.aspect === modelData
-                onTriggered: player.engine.setAspect(modelData)
+        panelWidth: 300
+        MenuSectionHeader { text: qsTr("ASPECT RATIO") }
+        Flow {
+            Layout.fillWidth: true
+            Layout.leftMargin: 4
+            Layout.bottomMargin: 4
+            spacing: 6
+            Repeater {
+                model: ["auto", "16:9", "4:3", "21:9", "1:1"]
+                delegate: MenuChip {
+                    required property string modelData
+                    objectName: "aspectItem_" + modelData
+                    text: modelData === "auto" ? qsTr("Auto") : modelData
+                    selected: player.engine.aspect === modelData
+                    onTriggered: player.engine.setAspect(modelData)
+                }
             }
         }
-        MenuSeparator { contentItem: Rectangle { implicitHeight: 1; color: Theme.border } }
-        Heading { text: qsTr("ROTATE") }
-        Repeater {
-            model: [0, 90, 180, 270]
-            delegate: ThemedMenuItem {
-                required property int modelData
-                objectName: "rotateItem_" + modelData
-                text: modelData + "°"
-                checkable: true
-                checked: player.engine.rotate === modelData
-                onTriggered: player.engine.setRotate(modelData)
+        MenuSectionHeader { text: qsTr("ROTATE") }
+        Flow {
+            Layout.fillWidth: true
+            Layout.leftMargin: 4
+            Layout.bottomMargin: 4
+            spacing: 6
+            Repeater {
+                model: [0, 90, 180, 270]
+                delegate: MenuChip {
+                    required property int modelData
+                    objectName: "rotateItem_" + modelData
+                    text: modelData + "°"
+                    selected: player.engine.rotate === modelData
+                    onTriggered: player.engine.setRotate(modelData)
+                }
             }
         }
-        MenuSeparator { contentItem: Rectangle { implicitHeight: 1; color: Theme.border } }
-        ThemedMenuItem {
+        PanelSeparator {}
+        MenuRow {
             objectName: "deinterlaceItem"
             text: qsTr("Deinterlace")
-            checkable: true
-            checked: player.engine.deinterlace
+            mark: "check"
+            selected: player.engine.deinterlace
             onTriggered: player.engine.setDeinterlace(!player.engine.deinterlace)
         }
-        ThemedMenuItem {
+        MenuRow {
+            objectName: "onTopItem"
+            text: qsTr("Always on top")
+            hint: "T"
+            mark: "check"
+            selected: (root.flags & Qt.WindowStaysOnTopHint) !== 0
+            onTriggered: root.flags = root.flags ^ Qt.WindowStaysOnTopHint
+        }
+        MenuRow {
+            objectName: "miniItem"
+            text: qsTr("Mini player")
+            hint: "Ctrl+M"
+            mark: "check"
+            selected: root.miniMode
+            onTriggered: root.toggleMini()
+        }
+        PanelSeparator {}
+        MenuRow {
             objectName: "adjustItem"
             text: qsTr("Video adjustments…")
             onTriggered: adjustPopup.open()
         }
-        ThemedMenuItem {
+        MenuRow {
             objectName: "equalizerItem"
             text: qsTr("Equalizer…")
             onTriggered: eqPopup.open()
         }
-        ThemedMenuItem {
+        MenuRow {
             objectName: "bookmarksItem"
-            text: qsTr("Bookmarks… (B to add)")
+            text: qsTr("Bookmarks…")
+            hint: "B"
             enabled: player.hasMedia
             onTriggered: bookmarksPopup.open()
         }
-        ThemedMenuItem {
-            objectName: "onTopItem"
-            text: qsTr("Always on top (T)")
-            checkable: true
-            checked: (root.flags & Qt.WindowStaysOnTopHint) !== 0
-            onTriggered: root.flags = root.flags ^ Qt.WindowStaysOnTopHint
-        }
-        ThemedMenuItem {
-            objectName: "miniItem"
-            text: qsTr("Mini player (Ctrl+M)")
-            checkable: true
-            checked: root.miniMode
-            onTriggered: root.toggleMini()
-        }
-        ThemedMenuItem {
+        PanelSeparator {}
+        MenuRow {
             objectName: "screenshotItem"
-            text: qsTr("Screenshot (Ctrl+S)")
+            text: qsTr("Screenshot")
+            hint: "Ctrl+S"
             onTriggered: player.takeScreenshot()
         }
-        ThemedMenuItem {
+        MenuRow {
             objectName: "openUrlItem"
-            text: qsTr("Open URL… (Ctrl+U)")
+            text: qsTr("Open URL…")
+            hint: "Ctrl+U"
             onTriggered: openUrlDialog.open()
         }
-        ThemedMenuItem {
+        MenuRow {
             objectName: "resetFileItem"
             text: qsTr("Reset for this file")
             enabled: player.hasMedia
