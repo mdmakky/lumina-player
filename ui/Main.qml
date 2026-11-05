@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls.Basic
 import QtQuick.Dialogs
 import QtQuick.Layouts
+import QtQml.Models
 import Lumina.Player
 
 ApplicationWindow {
@@ -944,7 +945,7 @@ ApplicationWindow {
             return root.visibility === Window.FullScreen && !settingsDialog.opened && !libraryView.opened
         return true
     }
-    Repeater {
+    Instantiator { // not Repeater: Shortcut is not an Item
         model: shortcuts.actions
         delegate: Shortcut {
             required property var modelData

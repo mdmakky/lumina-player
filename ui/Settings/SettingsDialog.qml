@@ -569,10 +569,10 @@ Item {
                     Item {
                         id: captureKeys
                         focus: false
-                        Keys.onShortcutOverride: (event) => event.accepted = true
+                        Keys.onShortcutOverride: (event) => event.accepted = scPage.capId !== ""
                         Keys.onPressed: (event) => {
+                            if (scPage.capId === "") { event.accepted = false; return }
                             event.accepted = true
-                            if (scPage.capId === "") return
                             if (event.key === Qt.Key_Escape) { scPage.endCapture(); return }
                             if (scPage.conflicted) return
                             if (event.key === Qt.Key_Backspace && event.modifiers === Qt.NoModifier) {
