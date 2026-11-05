@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-find_package(Qt6 6.4 REQUIRED COMPONENTS Core Gui Quick Test)
+find_package(Qt6 6.4 REQUIRED COMPONENTS Core Gui Network Quick Test)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(MPV REQUIRED IMPORTED_TARGET mpv)
 
@@ -20,6 +20,11 @@ if(QT_KNOWN_POLICY_QTP0004)
     qt_policy(SET QTP0004 NEW)
 endif()
 
+# Newer Qt: make QML resources land under :/qt/qml/ (what main.cpp loads).
+if(COMMAND qt_policy)
+    qt_policy(SET QTP0001 NEW)
+endif()
+
 # ---------------------------------------------------------------------------
 # Main application target
 # ---------------------------------------------------------------------------
@@ -27,6 +32,8 @@ qt_add_executable(lumina
     app/main.cpp
     app/ApplicationContext.h
     app/ApplicationContext.cpp
+    app/SingleInstance.h
+    app/SingleInstance.cpp
     src/utilities/Logger.h
     src/utilities/Logger.cpp
     src/utilities/TimeUtils.h
@@ -100,6 +107,7 @@ target_include_directories(lumina PRIVATE
 target_link_libraries(lumina PRIVATE
     Qt6::Core
     Qt6::Gui
+    Qt6::Network
     Qt6::Quick
     PkgConfig::MPV
 )
@@ -131,4 +139,11 @@ if(BUILD_TESTING)
     target_include_directories(tst_playlistmodel PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
     target_link_libraries(tst_playlistmodel PRIVATE Qt6::Core Qt6::Test)
     add_test(NAME PlaylistModel COMMAND tst_playlistmodel)
+    add_executable(tst_singleinstance
+        tests/unit/tst_SingleInstance.cpp
+        app/SingleInstance.cpp
+    )
+    target_include_directories(tst_singleinstance PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/app)
+    target_link_libraries(tst_singleinstance PRIVATE Qt6::Core Qt6::Network Qt6::Test)
+    add_test(NAME SingleInstance COMMAND tst_singleinstance)
 endif()
