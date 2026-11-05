@@ -7,6 +7,7 @@
 #include <QCoreApplication>
 #include <QCryptographicHash>
 #include <QDateTime>
+#include <QDesktopServices>
 #include <QDir>
 #include <QFileInfo>
 #include <QSettings>
@@ -301,6 +302,14 @@ QString PlayerController::screenshotDir() const
 void PlayerController::setVerboseLogging(bool on)
 {
     Logger::setVerbose(on);
+}
+
+QString PlayerController::logsPath() const { return Logger::logsPath(); }
+
+void PlayerController::openLogsFolder() const
+{
+    QDir().mkpath(Logger::logsPath());
+    QDesktopServices::openUrl(QUrl::fromLocalFile(Logger::logsPath()));
 }
 
 QVariantMap PlayerController::aboutInfo() const
