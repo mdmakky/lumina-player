@@ -1,0 +1,33 @@
+# Build
+build/
+build-*/
+out/
+*.user
+*.autosave
+
+# IDE
+.vscode/
+.idea/
+compile_commands.json
+.cache/
+
+# CMake
+CMakeLists.txt.user*
+
+# Compiled
+*.o
+*.a
+*.so
+*.dylib
+*.dll
+*.exe
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local test media (generated, never commit)
+tests/media/
+*.mp4
+*.mkv
+!resources/**
