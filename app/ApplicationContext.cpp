@@ -5,11 +5,172 @@
 #include "utilities/TimeUtils.h"
 
 #include <QCoreApplication>
+#include <QElapsedTimer>
+#include <QFile>
+#include <QTextStream>
+#include <QVector>
+#include <algorithm>
+#include <cmath>
+#include <functional>
 #include <QQmlContext>
 #include <QQmlEngine>
 #include <QRandomGenerator>
 #include <QSharedPointer>
 #include <QTimer>
+
+namespace {
+double percentile(QVector<double> v, double p)
+{
+    if (v.isEmpty())
+        return 0.0;
+    std::sort(v.begin(), v.end());
+    return v.at(qMax(0, int(std::ceil(p * v.size())) - 1));
+}
+
+double droppedNow(MpvEngine *engine)
+{
+    engine->setStatsEnabled(false);
+    engine->setStatsEnabled(true); // enabling refreshes immediately
+    const QVariantMap m = engine->stats();
+    return m.value(QStringLiteral("droppedFrames")).toDouble()
+           + m.value(QStringLiteral("decoderDroppedFrames")).toDouble();
+}
+
+// LUMINA_SEEK_BENCH=1: N exact seeks, N keyframe seeks (each awaited), then a
+// spam burst. Latency = seek command -> MPV_EVENT_PLAYBACK_RESTART.
+void runSeekBench(MpvEngine *engine)
+{
+    struct State {
+        int n = 40, i = 0, mode = 0, gen = 0, restarts = 0;
+        QVector<double> lat[2];
+        QVector<double> targets[2];
+        int timeouts = 0;
+        QElapsedTimer clock;
+        double drops0 = 0, dropsEnd[2] = {0, 0}, spamDrops = 0;
+        qint64 lastRestartMs = 0;
+        bool waiting = false;
+        std::function<void()> next;
+    };
+    auto st = QSharedPointer<State>::create();
+    const int n = qEnvironmentVariableIntValue("LUMINA_SEEK_BENCH_N");
+    if (n > 0)
+        st->n = n;
+
+    auto finish = [engine, st]() {
+        const QString csvPath = qEnvironmentVariable("LUMINA_SEEK_BENCH_CSV");
+        if (!csvPath.isEmpty()) {
+            QFile f(csvPath);
+            if (f.open(QIODevice::WriteOnly | QIODevice::Text)) {
+                QTextStream out(&f);
+                out << "mode,index,target_s,latency_ms\n";
+                static const char *names[] = {"exact", "keyframe"};
+                for (int m = 0; m < 2; ++m)
+                    for (int k = 0; k < st->lat[m].size(); ++k)
+                        out << names[m] << ',' << k << ',' << st->targets[m][k] << ',' << st->lat[m][k] << '\n';
+            }
+        }
+        const auto fmt = [](double v) { return QString::number(v, 'f', 1); };
+        const QVariantMap sm = engine->stats();
+        QString line = QStringLiteral("SEEKBENCH n=%1 hwdec=%2 codec=%3").arg(st->n)
+                           .arg(sm.value(QStringLiteral("hwdec")).toString(), sm.value(QStringLiteral("codec")).toString());
+        static const char *names[] = {"exact", "keyframe"};
+        for (int m = 0; m < 2; ++m)
+            line += QStringLiteral(" %1[p50=%2 p95=%3 max=%4 drops=%5]").arg(QLatin1String(names[m]))
+                        .arg(fmt(percentile(st->lat[m], 0.5)), fmt(percentile(st->lat[m], 0.95)),
+                             fmt(*std::max_element(st->lat[m].begin(), st->lat[m].end())))
+                        .arg(st->dropsEnd[m]);
+        line += QStringLiteral(" spam[settle_ms=%1 restarts=%2 drops=%3] timeouts=%4 (latencies in ms)")
+                    .arg(st->lastRestartMs).arg(st->restarts).arg(st->spamDrops).arg(st->timeouts);
+        qCInfo(lcCore).noquote() << line;
+        const bool ok = engine->mediaError().isEmpty() && st->timeouts == 0
+                        && percentile(st->lat[0], 0.95) < 3000 && percentile(st->lat[1], 0.95) < 3000;
+        qCInfo(lcCore) << "Playback self test" << (ok ? "PASSED" : "FAILED");
+        QCoreApplication::exit(ok ? 0 : 1);
+    };
+
+    // Phase 3: burst of 3*n rapid exact seeks 10 ms apart; settle = time of the
+    // last restart (waits for 1.5 s of quiet).
+    auto spam = [engine, st, finish]() {
+        const int total = st->n * 3;
+        st->restarts = 0;
+        st->lastRestartMs = 0;
+        st->clock.restart();
+        const double d0 = droppedNow(engine);
+        for (int k = 0; k < total; ++k)
+            QTimer::singleShot(k * 10, engine, [engine]() {
+                engine->seek(1.0 + QRandomGenerator::global()->generateDouble() * (engine->duration() - 6.0));
+            });
+        // Done once restarts have been quiet for 1.5 s (hard cap 100 s).
+        auto *quiet = new QTimer(engine);
+        quiet->setInterval(100);
+        QObject::connect(quiet, &QTimer::timeout, engine, [=]() {
+            const qint64 now = st->clock.elapsed();
+            if (now < total * 10 + 200 || (now < 100000 && (st->restarts == 0 || now - st->lastRestartMs < 1500)))
+                return;
+            quiet->stop();
+            st->spamDrops = qMax(0.0, droppedNow(engine) - d0);
+            finish();
+        });
+        quiet->start();
+    };
+
+    QObject::connect(engine, &MpvEngine::seekFinished, engine, [st]() {
+        if (st->mode == 2) {
+            ++st->restarts;
+            st->lastRestartMs = st->clock.elapsed();
+            return;
+        }
+        if (!st->waiting)
+            return;
+        st->waiting = false;
+        ++st->gen;
+        const double ms = st->clock.nsecsElapsed() / 1e6;
+        st->lat[st->mode].append(ms);
+        QTimer::singleShot(150, st->next);
+    });
+
+    st->next = [engine, st, spam]() {
+        if (st->i >= st->n) {
+            st->dropsEnd[st->mode] = qMax(0.0, droppedNow(engine) - st->drops0);
+            st->i = 0;
+            st->drops0 = droppedNow(engine);
+            if (++st->mode == 2) {
+                spam();
+                return;
+            }
+        }
+        ++st->i;
+        const double target = 1.0 + QRandomGenerator::global()->generateDouble() * (engine->duration() - 6.0);
+        st->targets[st->mode].append(target);
+        const int gen = ++st->gen;
+        st->waiting = true;
+        st->clock.restart();
+        engine->seek(target, st->mode == 0);
+        QTimer::singleShot(5000, engine, [st, gen]() {
+            if (st->waiting && st->gen == gen) { // no restart: count and move on
+                st->waiting = false;
+                ++st->timeouts;
+                st->lat[st->mode].append(5000.0);
+                st->next();
+            }
+        });
+    };
+
+    auto *poll = new QTimer(engine);
+    poll->setInterval(200);
+    QObject::connect(poll, &QTimer::timeout, engine, [engine, st, poll]() {
+        if (engine->idle() || engine->duration() < 10.0)
+            return;
+        poll->stop();
+        poll->deleteLater();
+        QTimer::singleShot(1000, engine, [engine, st]() {
+            st->drops0 = droppedNow(engine);
+            st->next();
+        });
+    });
+    poll->start();
+}
+} // namespace
 
 ApplicationContext::ApplicationContext(QObject *parent)
     : QObject(parent)
@@ -48,6 +209,10 @@ void ApplicationContext::startPlaybackSelfTest()
     }
 
     qCInfo(lcCore) << "Playback self test started";
+    if (qEnvironmentVariableIntValue("LUMINA_SEEK_BENCH") == 1) {
+        runSeekBench(engine);
+        return;
+    }
     if (qEnvironmentVariableIntValue("LUMINA_SEEK_STRESS") == 1) {
         // 50 random absolute seeks at 50 ms intervals, then verdict.
         auto *stress = new QTimer(this);
