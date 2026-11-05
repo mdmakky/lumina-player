@@ -46,6 +46,19 @@ Popup {
                 objectName: "eqSwitch"
                 checked: player.engine.eqEnabled
                 onToggled: player.engine.eqEnabled = checked
+                id: eqSw
+                indicator: Rectangle {
+                    implicitWidth: 40; implicitHeight: 22
+                    x: eqSw.leftPadding; y: parent.height / 2 - height / 2
+                    radius: height / 2
+                    color: eqSw.checked ? Theme.accent : Theme.trackIdle
+                    Rectangle {
+                        x: eqSw.checked ? parent.width - width - 3 : 3
+                        y: 3; width: 16; height: 16; radius: 8
+                        color: Theme.accentText
+                        Behavior on x { NumberAnimation { duration: Theme.animationFast } }
+                    }
+                }
             }
         }
 
