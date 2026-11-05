@@ -690,6 +690,8 @@ ApplicationWindow {
     // --- Menus ---------------------------------------------------------------
     component ThemedMenu: Menu {
         padding: 6
+        topMargin: 8      // keep tall menus off the window edges (scrolls when it does not fit)
+        bottomMargin: 8
         onAboutToShow: root.menuOpen = true
         onClosed: root.menuOpen = false
         background: Rectangle {

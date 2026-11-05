@@ -54,6 +54,10 @@ Button {
 
     opacity: enabled ? 1.0 : 0.35
 
+    // Icon-only buttons have no text; expose the tooltip/label to screen readers.
+    Accessible.role: Accessible.Button
+    Accessible.name: control.tip !== "" ? control.tip : control.label
+
     ToolTip {
         visible: control.tip !== "" && control.hovered
         delay: 500
