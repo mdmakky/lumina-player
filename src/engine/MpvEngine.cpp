@@ -1,4 +1,5 @@
 #include "MpvEngine.h"
+#include "utilities/TrackLabels.h"
 
 #include "utilities/Logger.h"
 #include "utilities/UrlUtils.h"
@@ -371,6 +372,8 @@ void MpvEngine::refreshTrackLists()
             m_subtitleTracks.append(track);
     }
 
+    m_audioTracks = Lumina::TrackLabels::describeTracks(m_audioTracks, true);
+    m_subtitleTracks = Lumina::TrackLabels::describeTracks(m_subtitleTracks, false);
     emit tracksChanged();
 }
 
