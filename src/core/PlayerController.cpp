@@ -11,6 +11,7 @@
 #include <QFileInfo>
 #include <QSettings>
 #include <QStandardPaths>
+#include <QSysInfo>
 #include <QTimer>
 #include <QUrl>
 
@@ -20,7 +21,8 @@ PlayerController::PlayerController(QObject *parent)
     , m_playlist(new PlaylistModel(this))
 {
     connect(m_engine, &MpvEngine::endOfFile, this, [this]() {
-        if (m_playlist->currentIndex() >= 0) // -1: current entry was removed; don't restart the queue
+        if (m_playlist->currentIndex() >= 0 // -1: current entry was removed; don't restart the queue
+            && setting(QStringLiteral("playback/autoNext"), true).toBool())
             advance(true);
     });
     connect(m_engine, &MpvEngine::idleChanged, this, &PlayerController::hasMediaChanged);
@@ -84,6 +86,27 @@ PlayerController::PlayerController(QObject *parent)
         m_engine->setSubtitleBorderSize(settings.value(QStringLiteral("subtitles/borderSize")).toDouble());
     if (settings.contains(QStringLiteral("subtitles/position")))
         m_engine->setSubtitlePosition(settings.value(QStringLiteral("subtitles/position")).toInt());
+    m_engine->setSubtitleLanguages(settings.value(QStringLiteral("subtitles/languages"), QStringLiteral("bn,ben,en,eng")).toString());
+    if (settings.contains(QStringLiteral("playback/defaultSpeed")))
+        m_engine->setSpeed(settings.value(QStringLiteral("playback/defaultSpeed")).toDouble());
+    if (settings.contains(QStringLiteral("video/aspect")))
+        m_engine->setAspect(settings.value(QStringLiteral("video/aspect")).toString());
+    if (settings.value(QStringLiteral("video/deinterlace"), false).toBool())
+        m_engine->setDeinterlace(true);
+    if (settings.contains(QStringLiteral("advanced/cacheMiB")))
+        m_engine->setCacheSize(settings.value(QStringLiteral("advanced/cacheMiB")).toInt());
+    if (settings.contains(QStringLiteral("advanced/readahead")))
+        m_engine->setReadahead(settings.value(QStringLiteral("advanced/readahead")).toInt());
+    setVerboseLogging(settings.value(QStringLiteral("advanced/verboseLog"), false).toBool());
+    // Power-user overrides, one "name=value" per line; bad lines are logged and skipped.
+    for (const QString &line : settings.value(QStringLiteral("advanced/mpvOptions")).toString().split(QLatin1Char('\n'), Qt::SkipEmptyParts)) {
+        const int eq = line.indexOf(QLatin1Char('='));
+        if (eq <= 0)
+            continue;
+        const QString err = m_engine->setMpvOption(line.left(eq).trimmed(), line.mid(eq + 1).trimmed());
+        if (!err.isEmpty())
+            qCWarning(lcCore) << "mpv override" << line << "failed:" << err;
+    }
     m_engine->setMuted(settings.value(QStringLiteral("playback/muted"), false).toBool());
     m_engine->setEqualizer(settings.value(QStringLiteral("eq/gains"), QVariantList(10, 0.0)).toList());
     m_engine->setEqEnabled(settings.value(QStringLiteral("eq/enabled"), false).toBool());
@@ -268,13 +291,39 @@ void PlayerController::setRepeatMode(int mode)
     emit repeatModeChanged();
 }
 
+QString PlayerController::screenshotDir() const
+{
+    const QString custom = setting(QStringLiteral("video/screenshotDir")).toString();
+    return custom.isEmpty() ? QStandardPaths::writableLocation(QStandardPaths::PicturesLocation) + QStringLiteral("/Lumina")
+                            : custom;
+}
+
+void PlayerController::setVerboseLogging(bool on)
+{
+    Logger::setVerbose(on);
+}
+
+QVariantMap PlayerController::aboutInfo() const
+{
+    const QString mpvVer = m_engine->mpvProperty(QStringLiteral("mpv-version")).toString();
+    return {
+        {QStringLiteral("version"), QCoreApplication::applicationVersion()},
+        {QStringLiteral("qt"), QString::fromLatin1(qVersion())},
+        {QStringLiteral("mpv"), mpvVer.isEmpty() ? tr("unknown") : mpvVer},
+        {QStringLiteral("ffmpeg"), m_engine->mpvProperty(QStringLiteral("ffmpeg-version")).toString()},
+        {QStringLiteral("decoder"), m_engine->mpvProperty(QStringLiteral("hwdec-current")).toString()},
+        {QStringLiteral("renderer"), m_engine->rendererInfo()},
+        {QStringLiteral("os"), QSysInfo::prettyProductName() + QLatin1Char(' ') + QSysInfo::currentCpuArchitecture()},
+    };
+}
+
 QString PlayerController::takeScreenshot()
 {
-    const QString dir = QStandardPaths::writableLocation(QStandardPaths::PicturesLocation)
-                        + QStringLiteral("/Lumina");
+    const QString dir = screenshotDir();
+    const QString ext = setting(QStringLiteral("video/screenshotFormat"), QStringLiteral("png")).toString() == QLatin1String("jpg")
+                            ? QStringLiteral(".jpg") : QStringLiteral(".png");
     const QString path = dir + QStringLiteral("/Lumina-")
-                         + QDateTime::currentDateTime().toString(QStringLiteral("yyyyMMdd-HHmmss-zzz"))
-                         + QStringLiteral(".png");
+                         + QDateTime::currentDateTime().toString(QStringLiteral("yyyyMMdd-HHmmss-zzz")) + ext;
     if (!QDir().mkpath(dir) || !m_engine->screenshot(path)) {
         emit toast(tr("Screenshot failed"));
         return {};

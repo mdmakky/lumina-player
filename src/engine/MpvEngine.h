@@ -150,6 +150,17 @@ public:
     Q_INVOKABLE void setSubtitleBorderSize(double size);
     Q_INVOKABLE void setSubtitlePosition(int percent);
     Q_INVOKABLE void setEqualizer(const QVariantList &gains); // 10 values, dB
+    // Preferred subtitle languages, e.g. "bn,ben,en,eng" (used when a file is loaded).
+    Q_INVOKABLE void setSubtitleLanguages(const QString &langs);
+    // Demuxer cache: total size in MiB (half is kept for backward seeks) and read-ahead seconds.
+    Q_INVOKABLE void setCacheSize(int mib);
+    Q_INVOKABLE void setReadahead(int seconds);
+    // Advanced override: sets any mpv property; returns "" on success or mpv's error text.
+    Q_INVOKABLE QString setMpvOption(const QString &name, const QString &value);
+    Q_INVOKABLE QVariant mpvProperty(const QString &name) const { return getProp(name.toUtf8().constData()); }
+    // Human-readable scene-graph renderer (set once the GL context exists).
+    QString rendererInfo() const { return m_rendererInfo; }
+    void setRendererInfo(const QString &info) { m_rendererInfo = info; }
     void setEqEnabled(bool on);
     bool eqEnabled() const { return m_eqEnabled; }
     QVariantList eqGains() const { return m_eqGains; }
@@ -197,6 +208,7 @@ private:
     void applyEq();
     bool m_eqEnabled = false;
     QVariantList m_eqGains = QVariantList(10, 0.0);
+    QString m_rendererInfo;
 
     static QVariant nodeToVariant(const mpv_node &node);
     void refreshTrackLists();

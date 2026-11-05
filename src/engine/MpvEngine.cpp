@@ -651,6 +651,34 @@ void MpvEngine::setHwdec(const QString &mode)
     mpv_set_property_string(m_mpv, "hwdec", v.constData());
 }
 
+void MpvEngine::setSubtitleLanguages(const QString &langs)
+{
+    if (m_mpv && !langs.isEmpty())
+        mpv_set_property_string(m_mpv, "slang", langs.toUtf8().constData());
+}
+
+void MpvEngine::setCacheSize(int mib)
+{
+    if (!m_mpv || mib < 16)
+        return;
+    mpv_set_property_string(m_mpv, "demuxer-max-bytes", QByteArray::number(mib).append("MiB").constData());
+    mpv_set_property_string(m_mpv, "demuxer-max-back-bytes", QByteArray::number(mib / 2).append("MiB").constData());
+}
+
+void MpvEngine::setReadahead(int seconds)
+{
+    if (m_mpv && seconds > 0)
+        mpv_set_property_string(m_mpv, "demuxer-readahead-secs", QByteArray::number(seconds).constData());
+}
+
+QString MpvEngine::setMpvOption(const QString &name, const QString &value)
+{
+    if (!m_mpv)
+        return tr("Engine unavailable");
+    const int rc = mpv_set_property_string(m_mpv, name.toUtf8().constData(), value.toUtf8().constData());
+    return rc < 0 ? QString::fromUtf8(mpv_error_string(rc)) : QString();
+}
+
 void MpvEngine::setSubtitleFontSize(int size)
 {
     if (m_mpv && size > 0)

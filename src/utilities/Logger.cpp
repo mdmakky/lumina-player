@@ -23,14 +23,18 @@ void messageHandler(QtMsgType type, const QMessageLogContext &context, const QSt
 
 namespace Logger {
 
+void setVerbose(bool on)
+{
+    QLoggingCategory::setFilterRules(on || qEnvironmentVariableIsSet("LUMINA_DEBUG")
+        ? QStringLiteral("lumina.*=true")
+        : QStringLiteral("lumina.*.info=true\nlumina.*.debug=false"));
+}
+
 void install()
 {
     // Qt 6 disables info/debug for custom categories by default — turn info on
     // for ours, keep debug opt-in (LUMINA_DEBUG=1).
-    const QString rules = qEnvironmentVariableIsSet("LUMINA_DEBUG")
-        ? QStringLiteral("lumina.*=true")
-        : QStringLiteral("lumina.*.info=true\nlumina.*.debug=false");
-    QLoggingCategory::setFilterRules(rules);
+    setVerbose(false);
 
     qSetMessagePattern(
         "[%{time hh:mm:ss.zzz}] %{if-debug}D%{endif}%{if-info}I%{endif}"

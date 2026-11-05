@@ -10,5 +10,7 @@ namespace Logger {
 
 // Installs the application-wide message pattern. Call once at startup.
 void install();
+// Debug-level logging for the lumina.* categories (LUMINA_DEBUG=1 keeps it on regardless).
+void setVerbose(bool on);
 
 } // namespace Logger

@@ -88,6 +88,11 @@ public slots:
     void clearRecentFiles();
     // Saves a PNG of the current frame to Pictures/Lumina; returns the path ("" on failure).
     QString takeScreenshot();
+    // Screenshot target folder (setting "video/screenshotDir", default Pictures/Lumina).
+    Q_INVOKABLE QString screenshotDir() const;
+    // Version/environment strings for Settings > About.
+    Q_INVOKABLE QVariantMap aboutInfo() const;
+    Q_INVOKABLE void setVerboseLogging(bool on);
     void toggleFavorite(const QString &path);
     void openHistory(const QString &path); // opens and resumes
     void saveResume();                      // persist position (timer, file switch, quit)

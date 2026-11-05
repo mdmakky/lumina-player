@@ -97,6 +97,10 @@ void MpvVideoItem::initRenderContext()
     }
 
     m_renderCtx.store(ctx);
+    const QSurfaceFormat fmt = glContext->format();
+    m_engine->setRendererInfo(QStringLiteral("OpenGL %1.%2 %3 (Qt Quick scene graph, mpv render API)")
+        .arg(fmt.majorVersion()).arg(fmt.minorVersion())
+        .arg(fmt.profile() == QSurfaceFormat::CoreProfile ? QStringLiteral("core") : QStringLiteral("compatibility")));
     mpv_render_context_set_update_callback(ctx, &MpvVideoItem::mpvUpdateCallback, this);
     qCDebug(lcEngine) << "mpv render context created";
     update();
