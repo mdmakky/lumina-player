@@ -3,7 +3,10 @@
 #include "engine/MpvEngine.h"
 #include "utilities/Logger.h"
 
+#include <QCoreApplication>
+#include <QCryptographicHash>
 #include <QSettings>
+#include <QTimer>
 #include <QUrl>
 
 PlayerController::PlayerController(QObject *parent)
@@ -16,6 +19,21 @@ PlayerController::PlayerController(QObject *parent)
             next();
     });
     connect(m_engine, &MpvEngine::idleChanged, this, &PlayerController::hasMediaChanged);
+
+    // Resume where the file was left (disabled in self-test for determinism).
+    connect(m_engine, &MpvEngine::durationChanged, this, [this]() {
+        if (m_resumeTarget > 0.0 && m_engine->duration() > m_resumeTarget + 10.0) {
+            m_engine->seek(m_resumeTarget);
+            qCInfo(lcCore) << "Resuming at" << m_resumeTarget;
+        }
+        if (m_engine->duration() > 0.0)
+            m_resumeTarget = 0.0;
+    });
+    connect(qApp, &QCoreApplication::aboutToQuit, this, &PlayerController::saveResume);
+    auto *resumeTimer = new QTimer(this); // also survives crashes / SIGTERM
+    resumeTimer->setInterval(5000);
+    connect(resumeTimer, &QTimer::timeout, this, &PlayerController::saveResume);
+    resumeTimer->start();
 
     // Restore persisted state; keep volume/mute in sync from here on.
     QSettings settings;
@@ -74,6 +92,10 @@ void PlayerController::playIndex(int index)
     const QUrl url = m_playlist->urlAt(index);
     if (url.isEmpty())
         return;
+    saveResume();
+    m_currentPath = url.isLocalFile() ? url.toLocalFile() : QString();
+    m_resumeTarget = (!m_currentPath.isEmpty() && !qEnvironmentVariableIsSet("LUMINA_PLAYBACK_TEST"))
+        ? setting(resumeKey(m_currentPath), 0.0).toDouble() : 0.0;
     m_playlist->setCurrentIndex(index);
     qCInfo(lcCore) << "Playing playlist entry" << index << url.toString();
     m_engine->loadFile(url);
@@ -124,4 +146,22 @@ bool PlayerController::loadPlaylist(const QUrl &file)
         return false;
     openFiles(urls);
     return true;
+}
+
+QString PlayerController::resumeKey(const QString &path)
+{
+    return QStringLiteral("resume/")
+        + QString::fromLatin1(QCryptographicHash::hash(path.toUtf8(), QCryptographicHash::Md5).toHex());
+}
+
+void PlayerController::saveResume()
+{
+    if (m_currentPath.isEmpty() || m_engine->idle() || qEnvironmentVariableIsSet("LUMINA_PLAYBACK_TEST"))
+        return;
+    const double pos = m_engine->position(), dur = m_engine->duration();
+    QSettings s;
+    if (pos > 5.0 && dur - pos > 10.0)
+        s.setValue(resumeKey(m_currentPath), pos);
+    else
+        s.remove(resumeKey(m_currentPath));
 }

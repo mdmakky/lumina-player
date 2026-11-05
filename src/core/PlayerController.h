@@ -51,8 +51,13 @@ signals:
 
 private:
     void rememberFile(const QUrl &url);
+    // Resume support: remember where each local file stopped and seek back on reopen.
+    static QString resumeKey(const QString &path);
+    void saveResume();
 
     MpvEngine *m_engine = nullptr;
     PlaylistModel *m_playlist = nullptr;
+    QString m_currentPath;
+    double m_resumeTarget = 0.0;
     QStringList m_recentFiles;
 };
