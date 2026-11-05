@@ -389,8 +389,7 @@ void MpvEngine::stepFrame(int direction)
 {
     if (m_idle || !m_mpv)
         return;
-    command({QStringLiteral("frame-step")});
-    Q_UNUSED(direction)
+    command({direction < 0 ? QStringLiteral("frame-back-step") : QStringLiteral("frame-step")});
 }
 
 void MpvEngine::cycleAudioTrack()
@@ -419,8 +418,7 @@ void MpvEngine::seekChapter(int index)
 {
     if (m_idle || !m_mpv || index < 0)
         return;
-    command({QStringLiteral("seek"), QString::number(index), QStringLiteral("absolute"),
-             QStringLiteral("chapters")});
+    command({QStringLiteral("set"), QStringLiteral("chapter"), QString::number(index)});
 }
 
 void MpvEngine::setAudioTrack(int id)
