@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QObject>
+#include <QUrl>
 #include <QStringList>
 #include <QVariant>
 #include <QVariantList>
@@ -31,6 +32,8 @@ public:
 public slots:
     // Accepts a JS array of URLs (from file dialogs or drag & drop).
     void openFiles(const QVariantList &urls);
+    // Local path -> properly escaped file URL (paths with spaces, #, % ...).
+    Q_INVOKABLE QUrl fileUrl(const QString &path) const { return QUrl::fromLocalFile(path); }
     // Appends to the queue; starts playing the first one if nothing is current.
     void enqueue(const QVariantList &urls);
     void playIndex(int index);
