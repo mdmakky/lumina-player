@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Controls.Basic
+import Lumina.Player
 
 // Minimal icon button used across the player chrome. Icons are embedded SVGs
 // colored with the theme's primary text color.

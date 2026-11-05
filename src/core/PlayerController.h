@@ -5,6 +5,7 @@
 #include <QVariant>
 #include <QVariantList>
 
+#include "core/PlaylistModel.h"
 #include "engine/MpvEngine.h"
 
 // Application Core layer: the single object QML talks to. Holds playback
@@ -15,6 +16,7 @@ class PlayerController : public QObject
     Q_OBJECT
 
     Q_PROPERTY(MpvEngine *engine READ engine CONSTANT FINAL)
+    Q_PROPERTY(PlaylistModel *playlist READ playlist CONSTANT FINAL)
     Q_PROPERTY(bool hasMedia READ hasMedia NOTIFY hasMediaChanged FINAL)
     Q_PROPERTY(QStringList recentFiles READ recentFiles NOTIFY recentFilesChanged FINAL)
 
@@ -22,12 +24,18 @@ public:
     explicit PlayerController(QObject *parent = nullptr);
 
     MpvEngine *engine() const { return m_engine; }
+    PlaylistModel *playlist() const { return m_playlist; }
     bool hasMedia() const;
     QStringList recentFiles() const { return m_recentFiles; }
 
 public slots:
     // Accepts a JS array of URLs (from file dialogs or drag & drop).
     void openFiles(const QVariantList &urls);
+    // Appends to the queue; starts playing the first one if nothing is current.
+    void enqueue(const QVariantList &urls);
+    void playIndex(int index);
+    void next();
+    void previous();
     void clearRecentFiles();
 
     // Generic persisted UI settings (QSettings-backed), e.g. window geometry.
@@ -42,5 +50,6 @@ private:
     void rememberFile(const QUrl &url);
 
     MpvEngine *m_engine = nullptr;
+    PlaylistModel *m_playlist = nullptr;
     QStringList m_recentFiles;
 };

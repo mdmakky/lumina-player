@@ -37,6 +37,7 @@ ApplicationWindow {
     property bool chromeVisible: true
     property bool pointerInChrome: false
     property bool speedMenuOpen: false
+    property bool playlistOpen: false
 
     function showChrome() {
         chromeVisible = true
@@ -157,6 +158,14 @@ ApplicationWindow {
         }
     }
 
+    // --- Playlist panel ---------------------------------------------------
+    PlaylistPanel {
+        visible: root.playlistOpen
+        anchors.top: parent.top
+        anchors.right: parent.right
+        anchors.bottom: controlsBar.visible ? controlsBar.top : parent.bottom
+    }
+
     // --- Playback controls overlay ----------------------------------------
     Rectangle {
         id: controlsBar
@@ -270,6 +279,11 @@ ApplicationWindow {
                         radius: 5
                         color: Theme.primaryText
                     }
+                }
+
+                IconButton {
+                    label: qsTr("List")
+                    onClicked: root.playlistOpen = !root.playlistOpen
                 }
 
                 IconButton {
@@ -392,6 +406,9 @@ ApplicationWindow {
     Shortcut { sequence: "Comma";        enabled: player.hasMedia; onActivated: player.engine.stepFrame(-1) }
     Shortcut { sequence: "PgDown";       enabled: player.hasMedia; onActivated: root.stepChapter(1) }
     Shortcut { sequence: "PgUp";         enabled: player.hasMedia; onActivated: root.stepChapter(-1) }
+    Shortcut { sequence: "P";            onActivated: root.playlistOpen = !root.playlistOpen }
+    Shortcut { sequence: "Ctrl+Right";   enabled: player.hasMedia; onActivated: player.next() }
+    Shortcut { sequence: "Ctrl+Left";    enabled: player.hasMedia; onActivated: player.previous() }
     Shortcut { sequence: "Ctrl+O";       onActivated: fileDialog.open() }
     Shortcut { sequence: "Esc";          enabled: root.visibility === Window.FullScreen; onActivated: root.showNormal() }
 }

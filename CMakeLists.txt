@@ -33,6 +33,8 @@ qt_add_executable(lumina
     src/utilities/TimeUtils.cpp
     src/core/PlayerController.h
     src/core/PlayerController.cpp
+    src/core/PlaylistModel.h
+    src/core/PlaylistModel.cpp
     src/engine/MpvEngine.h
     src/engine/MpvEngine.cpp
     src/engine/MpvVideoItem.h
@@ -68,6 +70,7 @@ qt_add_qml_module(lumina
         ui/Components/IconButton.qml
         ui/Components/TimeSlider.qml
         ui/Components/VolumeSlider.qml
+        ui/Components/PlaylistPanel.qml
     RESOURCES
         resources/icons/play.svg
         resources/icons/pause.svg
@@ -116,4 +119,13 @@ if(BUILD_TESTING)
     target_include_directories(tst_timeutils PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
     target_link_libraries(tst_timeutils PRIVATE Qt6::Core Qt6::Test)
     add_test(NAME TimeUtils COMMAND tst_timeutils)
+
+    add_executable(tst_playlistmodel
+        tests/unit/tst_PlaylistModel.cpp
+        src/core/PlaylistModel.cpp
+        src/core/PlaylistModel.h
+    )
+    target_include_directories(tst_playlistmodel PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+    target_link_libraries(tst_playlistmodel PRIVATE Qt6::Core Qt6::Test)
+    add_test(NAME PlaylistModel COMMAND tst_playlistmodel)
 endif()
