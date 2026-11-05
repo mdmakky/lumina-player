@@ -38,6 +38,33 @@ Slider {
             color: Theme.accent
         }
 
+        // A-B loop range and endpoint markers
+        Rectangle {
+            readonly property double a: player.engine.loopA
+            readonly property double b: player.engine.loopB
+            visible: a >= 0 && control.to > 0
+            x: a / control.to * parent.width
+            width: b > a ? (b - a) / control.to * parent.width : 2
+            height: parent.height
+            radius: 1
+            color: Theme.success
+            opacity: 0.85
+        }
+        Repeater {
+            model: [player.engine.loopA, player.engine.loopB]
+            delegate: Rectangle {
+                required property double modelData
+                required property int index
+                visible: modelData >= 0 && control.to > 0
+                x: modelData / control.to * parent.width - 1
+                y: -4
+                width: 3
+                height: parent.height + 8
+                radius: 1
+                color: Theme.success
+            }
+        }
+
         // Chapter markers
         Repeater {
             model: player.engine.duration > 0 ? player.engine.chapters : []

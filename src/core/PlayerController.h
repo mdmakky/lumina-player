@@ -40,12 +40,16 @@ public slots:
     void next();
     void previous();
     void clearRecentFiles();
+    // Saves a PNG of the current frame to Pictures/Lumina; returns the path ("" on failure).
+    QString takeScreenshot();
 
     // Generic persisted UI settings (QSettings-backed), e.g. window geometry.
     QVariant setting(const QString &key, const QVariant &fallback = {}) const;
     void setSetting(const QString &key, const QVariant &value);
 
 signals:
+    // Transient user-facing message; the UI shows it as a toast.
+    void toast(const QString &text);
     void hasMediaChanged();
     void recentFilesChanged();
 

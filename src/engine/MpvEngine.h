@@ -46,6 +46,15 @@ class MpvEngine : public QObject
     // Read-only decoder/render statistics; refreshed ~2x/s only while statsEnabled.
     Q_PROPERTY(QVariantMap stats READ stats NOTIFY statsChanged FINAL)
     Q_PROPERTY(bool statsEnabled READ statsEnabled WRITE setStatsEnabled NOTIFY statsEnabledChanged FINAL)
+    // A-B loop points in seconds; -1 when unset.
+    Q_PROPERTY(double loopA READ loopA NOTIFY loopChanged FINAL)
+    Q_PROPERTY(double loopB READ loopB NOTIFY loopChanged FINAL)
+    // Video presentation state ("auto" aspect = file's own; rotate in degrees).
+    Q_PROPERTY(QString aspect READ aspect NOTIFY videoOptionsChanged FINAL)
+    Q_PROPERTY(int rotate READ rotate NOTIFY videoOptionsChanged FINAL)
+    Q_PROPERTY(bool deinterlace READ deinterlace NOTIFY videoOptionsChanged FINAL)
+    // {brightness, contrast, saturation, gamma, hue} each -100..100.
+    Q_PROPERTY(QVariantMap videoAdjust READ videoAdjust NOTIFY videoOptionsChanged FINAL)
 
 public:
     explicit MpvEngine(QObject *parent = nullptr);
@@ -74,6 +83,12 @@ public:
     QVariantMap stats() const { return m_stats; }
     bool statsEnabled() const { return m_statsTimer.isActive(); }
     void setStatsEnabled(bool enabled);
+    double loopA() const { return m_loopA; }
+    double loopB() const { return m_loopB; }
+    QString aspect() const { return m_aspect; }
+    int rotate() const { return m_rotate; }
+    bool deinterlace() const { return m_deinterlace; }
+    QVariantMap videoAdjust() const { return m_adjust; }
 
 public slots:
     void setPaused(bool paused);
@@ -106,6 +121,19 @@ public:
     Q_INVOKABLE void setSubtitleTrack(int id);
     Q_INVOKABLE void loadExternalSubtitle(const QUrl &url);
     // mode: "auto-safe" | "no" | "auto". Applies to the current and next files.
+    // A-B loop: A/B take the current position; clearLoop removes both.
+    Q_INVOKABLE void setLoopA();
+    Q_INVOKABLE void setLoopB();
+    Q_INVOKABLE void clearLoop();
+    // "auto" (file default) or "W:H".
+    Q_INVOKABLE void setAspect(const QString &ratio);
+    Q_INVOKABLE void setRotate(int degrees);
+    Q_INVOKABLE void setDeinterlace(bool on);
+    // name: brightness|contrast|saturation|gamma|hue; value -100..100.
+    Q_INVOKABLE void setVideoAdjust(const QString &name, int value);
+    Q_INVOKABLE void resetVideoAdjust();
+    // Saves the current video frame (no subtitles/OSD) as an image file.
+    Q_INVOKABLE bool screenshot(const QString &path);
     Q_INVOKABLE void setHwdec(const QString &mode);
 
 signals:
@@ -127,6 +155,8 @@ signals:
     void audioDelayChanged();
     void statsChanged();
     void statsEnabledChanged();
+    void loopChanged();
+    void videoOptionsChanged();
 
 private:
     // Drains the mpv event queue; runs on the GUI thread via the wakeup callback.
@@ -170,4 +200,10 @@ private:
     double m_audioDelay = 0.0;
     QVariantMap m_stats;
     QTimer m_statsTimer;
+    double m_loopA = -1.0;
+    double m_loopB = -1.0;
+    QString m_aspect = QStringLiteral("auto");
+    int m_rotate = 0;
+    bool m_deinterlace = false;
+    QVariantMap m_adjust{{"brightness", 0}, {"contrast", 0}, {"saturation", 0}, {"gamma", 0}, {"hue", 0}};
 };

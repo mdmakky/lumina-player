@@ -5,7 +5,10 @@
 
 #include <QCoreApplication>
 #include <QCryptographicHash>
+#include <QDateTime>
+#include <QDir>
 #include <QSettings>
+#include <QStandardPaths>
 #include <QTimer>
 #include <QUrl>
 
@@ -113,6 +116,21 @@ void PlayerController::previous()
     const int i = m_playlist->currentIndex();
     if (i > 0)
         playIndex(i - 1);
+}
+
+QString PlayerController::takeScreenshot()
+{
+    const QString dir = QStandardPaths::writableLocation(QStandardPaths::PicturesLocation)
+                        + QStringLiteral("/Lumina");
+    const QString path = dir + QStringLiteral("/Lumina-")
+                         + QDateTime::currentDateTime().toString(QStringLiteral("yyyyMMdd-HHmmss-zzz"))
+                         + QStringLiteral(".png");
+    if (!QDir().mkpath(dir) || !m_engine->screenshot(path)) {
+        emit toast(tr("Screenshot failed"));
+        return {};
+    }
+    emit toast(tr("Saved screenshot"));
+    return path;
 }
 
 void PlayerController::clearRecentFiles()

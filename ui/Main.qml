@@ -368,7 +368,7 @@ ApplicationWindow {
 
                 // Left: volume
                 RowLayout {
-                    Layout.preferredWidth: 220
+                    Layout.preferredWidth: 260
                     spacing: Theme.spacingSmall
                     IconButton {
                         objectName: "muteButton"
@@ -426,9 +426,16 @@ ApplicationWindow {
 
                 // Right: speed, chapters, fullscreen
                 RowLayout {
-                    Layout.preferredWidth: 220
+                    Layout.preferredWidth: 260
                     layoutDirection: Qt.RightToLeft
                     spacing: Theme.spacingSmall
+
+                    IconButton {
+                        objectName: "moreButton"
+                        iconSource: root.iconBase + "more.svg"
+                        tip: qsTr("More")
+                        onClicked: moreMenu.popup(this, 0, -moreMenu.height - 8)
+                    }
 
                     IconButton {
                         objectName: "fullscreenButton"
@@ -507,6 +514,88 @@ ApplicationWindow {
         }
     }
 
+    ThemedMenu {
+        id: moreMenu
+        objectName: "moreMenu"
+        component Heading: ThemedMenuItem {
+            enabled: false
+            implicitHeight: 26
+            font.pixelSize: Theme.fontSizeSmall
+        }
+        Heading { text: qsTr("ASPECT RATIO") }
+        Repeater {
+            model: ["auto", "16:9", "4:3", "21:9", "1:1"]
+            delegate: ThemedMenuItem {
+                required property string modelData
+                objectName: "aspectItem_" + modelData
+                text: modelData === "auto" ? qsTr("Auto") : modelData
+                checkable: true
+                checked: player.engine.aspect === modelData
+                onTriggered: player.engine.setAspect(modelData)
+            }
+        }
+        MenuSeparator { contentItem: Rectangle { implicitHeight: 1; color: Theme.border } }
+        Heading { text: qsTr("ROTATE") }
+        Repeater {
+            model: [0, 90, 180, 270]
+            delegate: ThemedMenuItem {
+                required property int modelData
+                objectName: "rotateItem_" + modelData
+                text: modelData + "°"
+                checkable: true
+                checked: player.engine.rotate === modelData
+                onTriggered: player.engine.setRotate(modelData)
+            }
+        }
+        MenuSeparator { contentItem: Rectangle { implicitHeight: 1; color: Theme.border } }
+        ThemedMenuItem {
+            objectName: "deinterlaceItem"
+            text: qsTr("Deinterlace")
+            checkable: true
+            checked: player.engine.deinterlace
+            onTriggered: player.engine.setDeinterlace(!player.engine.deinterlace)
+        }
+        ThemedMenuItem {
+            objectName: "adjustItem"
+            text: qsTr("Video adjustments…")
+            onTriggered: adjustPopup.open()
+        }
+        ThemedMenuItem {
+            objectName: "onTopItem"
+            text: qsTr("Always on top (T)")
+            checkable: true
+            checked: (root.flags & Qt.WindowStaysOnTopHint) !== 0
+            onTriggered: root.flags = root.flags ^ Qt.WindowStaysOnTopHint
+        }
+        ThemedMenuItem {
+            objectName: "screenshotItem"
+            text: qsTr("Screenshot (Ctrl+S)")
+            onTriggered: player.takeScreenshot()
+        }
+    }
+
+    VideoAdjustPopup {
+        id: adjustPopup
+        objectName: "adjustPopup"
+        x: root.width - width - Theme.spacingLarge
+        y: root.height - height - 150
+        onAboutToShow: root.menuOpen = true
+        onClosed: root.menuOpen = false
+    }
+
+    // --- Toast (also usable by other features: toast.show(text) or player.toast signal)
+    Toast {
+        id: toast
+        objectName: "toast"
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.bottom: parent.bottom
+        anchors.bottomMargin: 150
+    }
+    Connections {
+        target: player
+        function onToast(text) { toast.show(text) }
+    }
+
     TrackMenu {
         id: trackMenu
         objectName: "trackMenu"
@@ -574,6 +663,10 @@ ApplicationWindow {
     Shortcut { sequence: "P";            onActivated: root.playlistOpen = !root.playlistOpen }
     Shortcut { sequence: "Ctrl+Right";   enabled: player.hasMedia; onActivated: player.next() }
     Shortcut { sequence: "Ctrl+Left";    enabled: player.hasMedia; onActivated: player.previous() }
+    Shortcut { sequence: "[";            enabled: player.hasMedia; onActivated: player.engine.setLoopA() }
+    Shortcut { sequence: "]";            enabled: player.hasMedia; onActivated: player.engine.setLoopB() }
+    Shortcut { sequence: "Backspace";    enabled: player.hasMedia; onActivated: player.engine.clearLoop() }
+    Shortcut { sequence: "Ctrl+S";       enabled: player.hasMedia; onActivated: player.takeScreenshot() }
     Shortcut { sequence: "Ctrl+O";       onActivated: fileDialog.open() }
     Shortcut { sequence: "Esc";          enabled: root.visibility === Window.FullScreen; onActivated: root.showNormal() }
 }
