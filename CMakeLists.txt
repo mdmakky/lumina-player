@@ -10,8 +10,29 @@ find_package(Qt6 6.4 REQUIRED COMPONENTS Core Gui Network Quick Sql Test)
 if(UNIX AND NOT APPLE)
     find_package(Qt6 6.4 REQUIRED COMPONENTS DBus)
 endif()
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(MPV REQUIRED IMPORTED_TARGET mpv)
+
+# libmpv: pkg-config where available (Linux, macOS, MSYS2); otherwise an
+# mpv-dev SDK layout (include/mpv/client.h + lib/mpv.lib|libmpv.dll.a), found
+# via -DLIBMPV_ROOT=<dir> (MSVC / shinchiro builds).
+find_package(PkgConfig QUIET)
+if(PkgConfig_FOUND)
+    pkg_check_modules(MPV IMPORTED_TARGET mpv)
+endif()
+if(TARGET PkgConfig::MPV)
+    set(LUMINA_MPV_TARGET PkgConfig::MPV)
+else()
+    find_path(MPV_INCLUDE_DIR mpv/client.h HINTS ${LIBMPV_ROOT} ENV LIBMPV_ROOT
+              PATH_SUFFIXES include)
+    find_library(MPV_LIBRARY NAMES mpv libmpv mpv-2 HINTS ${LIBMPV_ROOT} ENV LIBMPV_ROOT
+                 PATH_SUFFIXES lib lib/x64 .)
+    if(NOT MPV_INCLUDE_DIR OR NOT MPV_LIBRARY)
+        message(FATAL_ERROR "libmpv not found. Install it (pkg-config 'mpv') or pass -DLIBMPV_ROOT=<mpv-dev dir>.")
+    endif()
+    add_library(lumina_mpv INTERFACE)
+    target_include_directories(lumina_mpv INTERFACE ${MPV_INCLUDE_DIR})
+    target_link_libraries(lumina_mpv INTERFACE ${MPV_LIBRARY})
+    set(LUMINA_MPV_TARGET lumina_mpv)
+endif()
 
 qt_standard_project_setup(REQUIRES 6.4)
 # Resources under :/qt/qml/<URI> (the paths main.cpp and QML icons use).
@@ -161,6 +182,19 @@ qt_add_qml_module(lumina
         resources/icons/app/lumina-256.png
 )
 
+if(WIN32)
+    target_sources(lumina PRIVATE
+        src/platform/windows/SleepInhibitor_win.h
+        src/platform/windows/SleepInhibitor_win.cpp)
+    # Version resource + app icon (lumina.ico = PNG-embedded, built from lumina-*.png).
+    set(LUMINA_ICO ${CMAKE_CURRENT_SOURCE_DIR}/resources/icons/app/lumina.ico)
+    string(REPLACE "." "," LUMINA_RC_VER "${PROJECT_VERSION}.0")
+    configure_file(packaging/windows/lumina.rc.in ${CMAKE_BINARY_DIR}/lumina.rc @ONLY)
+    target_sources(lumina PRIVATE ${CMAKE_BINARY_DIR}/lumina.rc)
+    set_target_properties(lumina PROPERTIES WIN32_EXECUTABLE TRUE) # no console window
+    target_compile_definitions(lumina PRIVATE NOMINMAX WIN32_LEAN_AND_MEAN)
+endif()
+
 if(APPLE AND LUMINA_MAC_BUNDLE)
     set(LUMINA_ICNS ${CMAKE_CURRENT_SOURCE_DIR}/resources/icons/app/lumina.icns)
     set_source_files_properties(${LUMINA_ICNS} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
@@ -194,7 +228,7 @@ target_link_libraries(lumina PRIVATE
     Qt6::Quick
     Qt6::Sql
     Qt6::Test # UiTest driver (synthetic mouse/key events); inert unless env vars set
-    PkgConfig::MPV
+    ${LUMINA_MPV_TARGET}
 )
 
 include(GNUInstallDirs)
@@ -202,6 +236,17 @@ install(TARGETS lumina
     BUNDLE  DESTINATION .
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
+
+if(WIN32)
+    # Runtime libmpv DLL (mpv-dev SDK ships it next to the import lib; MSYS2 has it in bin/).
+    find_file(MPV_RUNTIME_DLL NAMES libmpv-2.dll mpv-2.dll libmpv.dll mpv.dll
+              HINTS ${LIBMPV_ROOT} ENV LIBMPV_ROOT PATH_SUFFIXES . bin lib lib/x64)
+    if(MPV_RUNTIME_DLL)
+        install(FILES ${MPV_RUNTIME_DLL} DESTINATION ${CMAKE_INSTALL_BINDIR})
+    else()
+        message(STATUS "libmpv runtime DLL not found; copy it next to lumina.exe manually")
+    endif()
+endif()
 
 if(UNIX AND NOT APPLE)
     install(FILES packaging/linux/io.github.mdmakky.Lumina.desktop
