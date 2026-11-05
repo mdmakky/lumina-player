@@ -70,6 +70,7 @@ qt_add_qml_module(lumina
         ui/Components/IconButton.qml
         ui/Components/TimeSlider.qml
         ui/Components/VolumeSlider.qml
+        ui/Components/ThemedMenuItem.qml
         ui/Components/PlaylistPanel.qml
     RESOURCES
         resources/icons/play.svg

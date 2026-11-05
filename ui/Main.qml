@@ -12,7 +12,7 @@ ApplicationWindow {
     minimumWidth: 760
     minimumHeight: 500
     visible: true
-    color: Theme.background
+    color: "black"
     title: player.hasMedia && player.engine.mediaTitle !== ""
            ? player.engine.mediaTitle + " — Lumina" : "Lumina Player"
 
@@ -22,7 +22,8 @@ ApplicationWindow {
         if (g && g.width >= minimumWidth && g.height >= minimumHeight) {
             x = g.x; y = g.y; width = g.width; height = g.height
         }
-        if (player.setting("window/maximized", false) === true || player.setting("window/maximized", false) === "true")
+        const max = player.setting("window/maximized", false)
+        if (max === true || max === "true")
             showMaximized()
     }
     onClosing: {
@@ -35,9 +36,10 @@ ApplicationWindow {
 
     // --- UI state ---------------------------------------------------------
     property bool chromeVisible: true
-    property bool pointerInChrome: false
-    property bool speedMenuOpen: false
+    property bool menuOpen: false
     property bool playlistOpen: false
+    readonly property bool chromeHovered: topHover.hovered || bottomHover.hovered
+    readonly property string iconBase: "qrc:/qt/qml/Lumina/Player/icons/"
 
     function showChrome() {
         chromeVisible = true
@@ -63,6 +65,11 @@ ApplicationWindow {
             showFullScreen()
     }
 
+    function baseName(path) {
+        const parts = path.split("/")
+        return parts[parts.length - 1]
+    }
+
     // --- File opening -----------------------------------------------------
     FileDialog {
         id: fileDialog
@@ -83,54 +90,119 @@ ApplicationWindow {
         visible: player.hasMedia
     }
 
-    // --- Empty state ------------------------------------------------------
-    Item {
+    // Click toggles play/pause, double-click toggles fullscreen.
+    MouseArea {
+        anchors.fill: parent
+        visible: player.hasMedia
+        onClicked: {
+            if (root.playlistOpen) root.playlistOpen = false
+            else clickTimer.restart()
+        }
+        onDoubleClicked: {
+            clickTimer.stop()
+            root.toggleFullscreen()
+        }
+    }
+    Timer {
+        id: clickTimer
+        interval: 220
+        onTriggered: player.engine.togglePlayPause()
+    }
+
+    // --- Home / empty state -----------------------------------------------
+    Rectangle {
         anchors.fill: parent
         visible: !player.hasMedia
+        gradient: Gradient {
+            GradientStop { position: 0.0; color: Theme.background }
+            GradientStop { position: 1.0; color: Theme.surface }
+        }
 
-        Column {
+        ColumnLayout {
             anchors.centerIn: parent
+            width: Math.min(460, parent.width - 64)
             spacing: Theme.spacingLarge
 
             Text {
-                anchors.horizontalCenter: parent.horizontalCenter
-                text: qsTr("Lumina Player")
+                Layout.alignment: Qt.AlignHCenter
+                text: qsTr("Lumina")
                 color: Theme.primaryText
                 font.family: Theme.fontFamily
-                font.pixelSize: 28
-                font.weight: Font.DemiBold
+                font.pixelSize: 44
+                font.weight: Font.Light
+                font.letterSpacing: 6
             }
-
             Text {
-                anchors.horizontalCenter: parent.horizontalCenter
-                text: qsTr("Open a file to start watching")
+                Layout.alignment: Qt.AlignHCenter
+                Layout.bottomMargin: Theme.spacingMedium
+                text: qsTr("Drop a video here, or open a file to begin")
                 color: Theme.secondaryText
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSizeLarge
             }
 
             Button {
-                anchors.horizontalCenter: parent.horizontalCenter
+                Layout.alignment: Qt.AlignHCenter
                 text: qsTr("Open File")
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSizeLarge
                 onClicked: fileDialog.open()
-
                 background: Rectangle {
+                    implicitWidth: 160
+                    implicitHeight: 42
+                    radius: 21
                     color: parent.pressed ? Theme.accentPressed
                                           : (parent.hovered ? Theme.accentHover : Theme.accent)
-                    radius: Theme.radius
+                    Behavior on color { ColorAnimation { duration: Theme.animationFast } }
                 }
                 contentItem: Text {
                     text: parent.text
                     font: parent.font
-                    color: "#FFFFFF"
+                    color: Theme.primaryText
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter
-                    leftPadding: 20
-                    rightPadding: 20
-                    topPadding: 8
-                    bottomPadding: 8
+                }
+            }
+
+            Text {
+                visible: player.recentFiles.length > 0
+                Layout.topMargin: Theme.spacingLarge
+                text: qsTr("RECENT")
+                color: Theme.disabledText
+                font.family: Theme.fontFamily
+                font.pixelSize: Theme.fontSizeSmall
+                font.letterSpacing: 2
+            }
+
+            Repeater {
+                model: player.recentFiles.slice(0, 5)
+                delegate: Rectangle {
+                    id: recentRow
+                    required property string modelData
+                    Layout.fillWidth: true
+                    implicitHeight: 40
+                    radius: Theme.radius
+                    color: rowMouse.containsMouse ? Theme.surfaceHover : "transparent"
+                    Behavior on color { ColorAnimation { duration: Theme.animationFast } }
+
+                    Text {
+                        anchors.fill: parent
+                        anchors.leftMargin: Theme.spacingMedium
+                        anchors.rightMargin: Theme.spacingMedium
+                        verticalAlignment: Text.AlignVCenter
+                        text: root.baseName(recentRow.modelData)
+                        color: Theme.primaryText
+                        elide: Text.ElideMiddle
+                        font.family: Theme.fontFamily
+                        font.pixelSize: Theme.fontSizeMedium
+                    }
+                    MouseArea {
+                        id: rowMouse
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: player.openFiles([Qt.url("file://" + recentRow.modelData)])
+                    }
                 }
             }
         }
@@ -140,11 +212,11 @@ ApplicationWindow {
     Rectangle {
         visible: player.engine.mediaError !== ""
         anchors.top: parent.top
-        anchors.topMargin: 48
+        anchors.topMargin: 72
         anchors.horizontalCenter: parent.horizontalCenter
         width: errorText.implicitWidth + 32
         height: errorText.implicitHeight + 16
-        color: Theme.elevated
+        color: Theme.panelOverlay
         border.color: Theme.error
         radius: Theme.radius
 
@@ -158,160 +230,224 @@ ApplicationWindow {
         }
     }
 
-    // --- Playlist panel ---------------------------------------------------
-    PlaylistPanel {
-        visible: root.playlistOpen
-        anchors.top: parent.top
+    // --- Top bar (title + quick actions) ----------------------------------
+    Rectangle {
+        id: topBar
+        anchors.left: parent.left
         anchors.right: parent.right
-        anchors.bottom: controlsBar.visible ? controlsBar.top : parent.bottom
+        anchors.top: parent.top
+        height: 80
+        opacity: root.chromeVisible && player.hasMedia ? 1 : 0
+        visible: opacity > 0
+        Behavior on opacity { NumberAnimation { duration: Theme.animationMedium } }
+        gradient: Gradient {
+            GradientStop { position: 0.0; color: Theme.scrimStrong }
+            GradientStop { position: 1.0; color: Theme.scrimClear }
+        }
+
+        HoverHandler { id: topHover }
+
+        RowLayout {
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.top: parent.top
+            anchors.margins: Theme.spacingLarge
+            anchors.topMargin: Theme.spacingMedium
+            spacing: Theme.spacingSmall
+
+            Text {
+                Layout.fillWidth: true
+                text: player.engine.mediaTitle
+                color: Theme.primaryText
+                elide: Text.ElideRight
+                font.family: Theme.fontFamily
+                font.pixelSize: Theme.fontSizeHeading
+                font.weight: Font.DemiBold
+            }
+            IconButton {
+                iconSource: root.iconBase + "folder-open.svg"
+                tip: qsTr("Open file (Ctrl+O)")
+                onClicked: fileDialog.open()
+            }
+            IconButton {
+                iconSource: root.iconBase + "playlist.svg"
+                tip: qsTr("Playlist (P)")
+                onClicked: root.playlistOpen = !root.playlistOpen
+            }
+        }
     }
 
-    // --- Playback controls overlay ----------------------------------------
+    // --- Playlist panel ---------------------------------------------------
+    PlaylistPanel {
+        id: playlistPanel
+        visible: root.playlistOpen
+        anchors.top: parent.top
+        anchors.topMargin: 56
+        anchors.right: parent.right
+        anchors.rightMargin: Theme.spacingMedium
+        anchors.bottom: parent.bottom
+        anchors.bottomMargin: 120
+        radius: Theme.radiusLarge
+        color: Theme.panelOverlay
+        clip: true
+    }
+
+    // --- Bottom controls (floating over the video) -------------------------
     Rectangle {
         id: controlsBar
-        visible: chromeVisible
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.bottom: parent.bottom
-        height: 72
-        color: Theme.surface
-        border.color: Theme.border
-
-        MouseArea {
-            anchors.fill: parent
-            hoverEnabled: true
-            onPositionChanged: root.showChrome()
-            onEntered: root.pointerInChrome = true
-            onExited: root.pointerInChrome = false
+        height: 112
+        opacity: root.chromeVisible && player.hasMedia ? 1 : 0
+        visible: opacity > 0
+        Behavior on opacity { NumberAnimation { duration: Theme.animationMedium } }
+        gradient: Gradient {
+            GradientStop { position: 0.0; color: Theme.scrimClear }
+            GradientStop { position: 1.0; color: Theme.scrimStrong }
         }
 
-        Column {
-            anchors.fill: parent
-            anchors.margins: Theme.spacingMedium
+        HoverHandler { id: bottomHover }
 
-            TimeSlider {
-                id: timeline
-                width: parent.width
-            }
+        ColumnLayout {
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.bottom: parent.bottom
+            anchors.leftMargin: Theme.spacingLarge
+            anchors.rightMargin: Theme.spacingLarge
+            anchors.bottomMargin: Theme.spacingMedium
+            spacing: 2
 
             RowLayout {
-                id: buttonRow
-                width: parent.width
-                height: parent.height - timeline.height - Theme.spacingSmall
-                spacing: Theme.spacingSmall
-
-                IconButton {
-                    iconSource: player.engine.playing
-                                ? "qrc:/qt/qml/Lumina/Player/icons/pause.svg"
-                                : "qrc:/qt/qml/Lumina/Player/icons/play.svg"
-                    visible: player.hasMedia
-                    onClicked: player.engine.togglePlayPause()
-                }
-
-                IconButton {
-                    iconSource: "qrc:/qt/qml/Lumina/Player/icons/stop.svg"
-                    visible: player.hasMedia
-                    onClicked: player.engine.stop()
-                }
+                Layout.fillWidth: true
+                spacing: Theme.spacingMedium
 
                 Text {
-                    visible: player.hasMedia
-                    anchors.verticalCenter: parent.verticalCenter
                     text: timefmt.formatDuration(player.engine.position)
-                          + " / " + timefmt.formatDuration(player.engine.duration)
+                    color: Theme.primaryText
+                    font.family: Theme.fontFamily
+                    font.pixelSize: Theme.fontSizeSmall
+                    font.features: { "tnum": 1 }
+                }
+                TimeSlider {
+                    id: timeline
+                    Layout.fillWidth: true
+                }
+                Text {
+                    text: timefmt.formatDuration(player.engine.duration)
                     color: Theme.secondaryText
                     font.family: Theme.fontFamily
                     font.pixelSize: Theme.fontSizeSmall
+                    font.features: { "tnum": 1 }
+                }
+            }
+
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: Theme.spacingSmall
+
+                // Left: volume
+                RowLayout {
+                    Layout.preferredWidth: 220
+                    spacing: Theme.spacingSmall
+                    IconButton {
+                        iconSource: root.iconBase + (player.engine.muted ? "volume-mute.svg" : "volume-high.svg")
+                        tip: qsTr("Mute (M)")
+                        onClicked: player.engine.setMuted(!player.engine.muted)
+                    }
+                    VolumeSlider {
+                        Layout.alignment: Qt.AlignVCenter
+                    }
                 }
 
-                Item { Layout.fillWidth: true; Layout.preferredHeight: 1 } // flexible space
+                Item { Layout.fillWidth: true; Layout.preferredHeight: 1 }
 
+                // Center: transport
                 IconButton {
-                    label: qsTr("Chapters")
-                    visible: player.hasMedia && player.engine.chapters.length > 0
-                    onClicked: chapterMenu.popup(this, 0, -chapterMenu.height - 8)
+                    iconSource: root.iconBase + "skip-previous.svg"
+                    tip: qsTr("Previous (Ctrl+Left)")
+                    enabled: player.playlist.count > 1
+                    onClicked: player.previous()
                 }
-
-                IconButton {
-                    label: player.engine.speed.toFixed(2).replace(/0$/, "").replace(/\.$/, "") + "×"
-                    visible: player.hasMedia
-                    onClicked: speedMenu.popup(this, 0, -speedMenu.height - 8)
-                }
-
-                IconButton {
-                    iconSource: player.engine.muted
-                                ? "qrc:/qt/qml/Lumina/Player/icons/volume-mute.svg"
-                                : "qrc:/qt/qml/Lumina/Player/icons/volume-high.svg"
-                    visible: player.hasMedia
-                    onClicked: player.engine.setMuted(!player.engine.muted)
-                }
-
-                Slider {
-                    id: volumeSlider
-                    visible: player.hasMedia
-                    anchors.verticalCenter: parent.verticalCenter
-                    from: 0
-                    to: 150
-                    value: player.engine.volume
-                    onMoved: player.engine.setVolume(value)
-                    implicitWidth: 90
-                    implicitHeight: 20
-
+                Button {
+                    id: playButton
+                    implicitWidth: 48
+                    implicitHeight: 48
+                    onClicked: player.engine.togglePlayPause()
                     background: Rectangle {
-                        x: volumeSlider.leftPadding
-                        y: volumeSlider.topPadding + volumeSlider.availableHeight / 2 - height / 2
-                        width: volumeSlider.availableWidth
-                        height: 4
-                        radius: 2
-                        color: Theme.elevated
-                        Rectangle {
-                            width: volumeSlider.visualPosition * parent.width
-                            height: parent.height
-                            radius: 2
-                            color: Theme.accent
-                        }
+                        radius: width / 2
+                        color: playButton.pressed ? Theme.accentPressed
+                                                  : (playButton.hovered ? Theme.accentHover : Theme.accent)
+                        scale: playButton.hovered ? 1.06 : 1.0
+                        Behavior on scale { NumberAnimation { duration: Theme.animationFast } }
+                        Behavior on color { ColorAnimation { duration: Theme.animationFast } }
                     }
-                    handle: Rectangle {
-                        x: volumeSlider.leftPadding + volumeSlider.visualPosition * (volumeSlider.availableWidth - width)
-                        y: volumeSlider.topPadding + volumeSlider.availableHeight / 2 - height / 2
-                        width: 10
-                        height: 10
-                        radius: 5
-                        color: Theme.primaryText
+                    contentItem: Image {
+                        source: root.iconBase + (player.engine.playing ? "pause.svg" : "play.svg")
+                        sourceSize: Qt.size(22, 22)
+                        fillMode: Image.Pad
+                        horizontalAlignment: Image.AlignHCenter
+                        verticalAlignment: Image.AlignVCenter
                     }
                 }
-
                 IconButton {
-                    label: qsTr("List")
-                    onClicked: root.playlistOpen = !root.playlistOpen
+                    iconSource: root.iconBase + "skip-next.svg"
+                    tip: qsTr("Next (Ctrl+Right)")
+                    enabled: player.playlist.count > 1
+                    onClicked: player.next()
                 }
 
-                IconButton {
-                    iconSource: "qrc:/qt/qml/Lumina/Player/icons/folder-open.svg"
-                    onClicked: fileDialog.open()
-                }
+                Item { Layout.fillWidth: true; Layout.preferredHeight: 1 }
 
-                IconButton {
-                    iconSource: root.visibility === Window.FullScreen
-                                ? "qrc:/qt/qml/Lumina/Player/icons/fullscreen-exit.svg"
-                                : "qrc:/qt/qml/Lumina/Player/icons/fullscreen.svg"
-                    onClicked: root.toggleFullscreen()
+                // Right: speed, chapters, fullscreen
+                RowLayout {
+                    Layout.preferredWidth: 220
+                    layoutDirection: Qt.RightToLeft
+                    spacing: Theme.spacingSmall
+
+                    IconButton {
+                        iconSource: root.visibility === Window.FullScreen
+                                    ? root.iconBase + "fullscreen-exit.svg"
+                                    : root.iconBase + "fullscreen.svg"
+                        tip: qsTr("Fullscreen (F)")
+                        onClicked: root.toggleFullscreen()
+                    }
+                    IconButton {
+                        iconSource: root.iconBase + "chapters.svg"
+                        tip: qsTr("Chapters (PgUp/PgDn)")
+                        visible: player.engine.chapters.length > 0
+                        onClicked: chapterMenu.popup(this, 0, -chapterMenu.height - 8)
+                    }
+                    IconButton {
+                        label: player.engine.speed.toFixed(2).replace(/0$/, "").replace(/\.$/, "") + "×"
+                        tip: qsTr("Speed (X / C / Z)")
+                        onClicked: speedMenu.popup(this, 0, -speedMenu.height - 8)
+                    }
                 }
             }
         }
     }
 
-    Menu {
-        id: speedMenu
-        onAboutToShow: root.speedMenuOpen = true
-        onClosed: root.speedMenuOpen = false
+    // --- Menus ---------------------------------------------------------------
+    component ThemedMenu: Menu {
+        padding: 6
+        onAboutToShow: root.menuOpen = true
+        onClosed: root.menuOpen = false
+        background: Rectangle {
+            implicitWidth: 180
+            color: Theme.panelOverlay
+            border.color: Theme.border
+            radius: Theme.radius
+        }
+    }
 
+    ThemedMenu {
+        id: speedMenu
         Repeater {
             model: [0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0]
-            delegate: MenuItem {
+            delegate: ThemedMenuItem {
                 required property var modelData
                 text: modelData.toFixed(2).replace(/0$/, "").replace(/\.$/, "") + "×"
-                font.family: Theme.fontFamily
                 checkable: true
                 checked: Math.abs(player.engine.speed - modelData) < 0.001
                 onTriggered: player.engine.setSpeed(modelData)
@@ -319,59 +455,39 @@ ApplicationWindow {
         }
     }
 
-    Menu {
+    ThemedMenu {
         id: chapterMenu
-        onAboutToShow: root.speedMenuOpen = true
-        onClosed: root.speedMenuOpen = false
-
         Repeater {
             model: player.engine.chapters
-            delegate: MenuItem {
+            delegate: ThemedMenuItem {
                 required property var modelData
                 required property int index
                 text: (modelData.title || qsTr("Chapter %1").arg(index + 1))
-                      + "  " + timefmt.formatDuration(modelData.time)
-                font.family: Theme.fontFamily
+                      + "   " + timefmt.formatDuration(modelData.time)
                 onTriggered: player.engine.seekChapter(index)
             }
         }
     }
 
-    // --- Idle auto-hide ----------------------------------------------------
+    // --- Idle auto-hide + cursor -----------------------------------------------
     Timer {
         id: hideTimer
         interval: 2600
-        running: player.hasMedia && root.visibility === Window.FullScreen
         repeat: false
         onTriggered: {
-            if (!root.pointerInChrome && !root.speedMenuOpen)
+            if (player.engine.playing && !root.chromeHovered && !root.menuOpen && !root.playlistOpen)
                 root.chromeVisible = false
         }
     }
 
-    // Track chrome hover for auto-hide.
     Connections {
-        target: controlsBar
-        function onVisibleChanged() {
-            if (controlsBar.visible && root.visibility === Window.FullScreen)
-                hideTimer.restart()
-        }
+        target: player.engine
+        function onPausedChanged() { root.showChrome() }
     }
 
-    // --- Mouse interaction --------------------------------------------------
-    MouseArea {
-        anchors.fill: parent
-        acceptedButtons: Qt.NoButton
-        hoverEnabled: true
-        propagateComposedEvents: true
-        onPositionChanged: root.showChrome()
-    }
-
-    // Double-click toggles fullscreen; single click reveals chrome.
-    MouseArea {
-        anchors.fill: parent
-        z: -1
-        onDoubleClicked: root.toggleFullscreen()
+    HoverHandler {
+        cursorShape: root.chromeVisible || !player.hasMedia ? Qt.ArrowCursor : Qt.BlankCursor
+        onPointChanged: root.showChrome()
     }
 
     // --- Drag & drop ----------------------------------------------------------
