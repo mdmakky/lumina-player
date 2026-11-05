@@ -37,9 +37,9 @@ Source of truth for milestone status. Spec §18 defines the full milestone plan;
 - [x] Keyboard shortcuts (spec §10 defaults)
 - [ ] Playlist panel (queue, reorder, save/load, search)
 - [ ] Drag & drop playlist reordering
-- [ ] Chapters UI
+- [x] Chapters UI (timeline markers, chapter menu, PgUp/PgDn)
 - [ ] Multiple instance / single-instance behavior decision
-- [ ] Window state persistence (geometry, volume, last played)
+- [x] Window state persistence (geometry, volume, mute, recent files)
 
 ## Milestone 4 — Subtitle & Audio ⬜
 
