@@ -32,6 +32,8 @@ qt_add_executable(lumina
     app/ApplicationContext.cpp
     app/SingleInstance.h
     app/SingleInstance.cpp
+    app/UiTest.h
+    app/UiTest.cpp
     src/utilities/Logger.h
     src/utilities/Logger.cpp
     src/utilities/TimeUtils.h
@@ -102,6 +104,7 @@ target_link_libraries(lumina PRIVATE
     Qt6::Gui
     Qt6::Network
     Qt6::Quick
+    Qt6::Test # UiTest driver (synthetic mouse/key events); inert unless env vars set
     PkgConfig::MPV
 )
 

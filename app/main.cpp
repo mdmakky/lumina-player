@@ -6,6 +6,7 @@
 
 #include "ApplicationContext.h"
 #include "SingleInstance.h"
+#include "UiTest.h"
 #include "utilities/Logger.h"
 
 #include <QDir>
@@ -95,11 +96,16 @@ int main(int argc, char *argv[])
     // exists by then. Loading earlier lets short files hit EOF before any
     // video output is up, so the playlist skips them.
     auto *rootWindow = qobject_cast<QQuickWindow *>(engine.rootObjects().first());
+    if (UiTest::requested()) {
+        // UiTest loads the media itself so it can capture the empty state first.
+        (new UiTest(rootWindow, context.player(), QGuiApplication::arguments().mid(1), &app))->start();
+    }
     auto *firstFrame = new QObject(&app);
     QObject::connect(rootWindow, &QQuickWindow::frameSwapped, firstFrame, [&, firstFrame]() {
         firstFrame->deleteLater();
         QObject::disconnect(rootWindow, &QQuickWindow::frameSwapped, firstFrame, nullptr);
-        context.openCommandLineFiles(QGuiApplication::arguments().mid(1));
+        if (!UiTest::requested())
+            context.openCommandLineFiles(QGuiApplication::arguments().mid(1));
     });
 
     if (selfTest)
