@@ -129,7 +129,7 @@ Item {
         }
     }
     function pageMatched(i) { return pageItems[i].matched }
-    function goto(i) { search.text = ""; SettingsState.page = i; flick.contentY = 0 }
+    function gotoPage(i) { search.text = ""; SettingsState.page = i; flick.contentY = 0 }
 
     function open() { opened = true }
     function close() { opened = false }
@@ -281,9 +281,9 @@ Item {
                             activeFocusOnTab: true
                             opacity: dimmed ? 0.4 : 1
                             text: modelData.label
-                            onClicked: dlg.goto(index)
-                            Keys.onUpPressed: if (index > 0) { dlg.goto(index - 1); navRepeater.itemAt(index - 1).forceActiveFocus() }
-                            Keys.onDownPressed: if (index < dlg.pages.length - 1) { dlg.goto(index + 1); navRepeater.itemAt(index + 1).forceActiveFocus() }
+                            onClicked: dlg.gotoPage(index)
+                            Keys.onUpPressed: if (index > 0) { dlg.gotoPage(index - 1); navRepeater.itemAt(index - 1).forceActiveFocus() }
+                            Keys.onDownPressed: if (index < dlg.pages.length - 1) { dlg.gotoPage(index + 1); navRepeater.itemAt(index + 1).forceActiveFocus() }
                             Accessible.role: Accessible.PageTab
                             Accessible.name: modelData.label
                             ToolTip {
