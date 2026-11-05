@@ -79,7 +79,7 @@ void UiTest::run()
     };
     auto find = [&](const char *n) { return findItem(w->contentItem(), QString::fromLatin1(n)); };
     auto center = [&](QQuickItem *it) { return it->mapToScene(QPointF(it->width() / 2, it->height() / 2)).toPoint(); };
-    auto wake = [&] { QTest::mouseMove(w, QPoint(w->width() / 2, w->height() / 2)); QTest::qWait(60); };
+    auto wake = [&] { QTest::mouseMove(w, QPoint(w->width() / 2, w->height() / 2)); QTest::qWait(300); }; // 300 ms: let the chrome fade-in finish
     auto clickAt = [&](QPoint pt) {
         QTest::mouseMove(w, pt); QTest::qWait(40);
         QTest::mouseClick(w, Qt::LeftButton, {}, pt, 60);
@@ -194,12 +194,16 @@ void UiTest::run()
     if (doTest) {
         const double dur = eng->duration();
         const bool hasChapters = !eng->chapters().isEmpty();
+        // Screenshot steps above can leave a popup open; it would swallow the first click.
+        key(Qt::Key_Escape);
+        key(Qt::Key_Escape);
         // play button
         bool was = eng->paused();
         click("playButton");
         result("play button toggles pause", waitFor([&] { return eng->paused() != was; }));
         click("playButton");
-        result("play button toggles back", waitFor([&] { return eng->paused() == was; }));
+        const bool back = waitFor([&] { return eng->paused() == was; });
+        result("play button toggles back", back);
         // mute
         was = eng->muted();
         click("muteButton");
