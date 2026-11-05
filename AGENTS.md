@@ -50,10 +50,14 @@ Rules:
 
 - **Milestone 1 — Foundation:** ✅ DONE (repo, CMake, Qt bootstrap, main window, theme system, logging, CI)
 - **Milestone 2 — Playback Engine:** ✅ DONE AND VERIFIED — automated playback self-test (`LUMINA_PLAYBACK_TEST=1`) passes: load → play → accurate seek → pause → resume, mpv render context created on OpenGL scene graph. GitHub repo: `mdmakky/lumina-player` (main).
-- **Milestone 3 — Core UX:** ✅ essentially done (floating overlay controls, timeline + chapters, playlist panel, window/volume persistence, single-instance; remaining: drag-reorder, m3u save/load)
-- **Milestone 4 — Subtitle & Audio:** 🚧 track menu, external subs, delays done; subtitle style prefs pending
-- **Milestone 5 — Performance:** 🚧 stats overlay (I), seek/cache tuning, `LUMINA_SEEK_STRESS=1` test done; hwdec ladder UI pending
-- **Milestones 6–9:** ⬜ not started
+- **Milestone 3 — Core UX:** ✅ DONE (floating overlay controls, timeline + chapters, playlist panel with drag-reorder/shuffle/repeat/M3U, window + volume persistence, single-instance, resume playback)
+- **Milestone 4 — Subtitle & Audio:** ✅ DONE (track menus, external subs, delays, subtitle style prefs, bn/en auto-select, equalizer)
+- **Milestone 5 — Performance:** 🚧 seek/cache tuning, seek coalescing + keyframe scrubbing, stats overlay (I), `LUMINA_SEEK_STRESS/SPEED_TEST/SEEK_BENCH`, Linux VAAPI→NVDEC ladder (**unverified on Linux hardware**), docs/BENCHMARK.md for Fedora comparison vs mpv/VLC
+- **Milestone 6 — Advanced:** 🚧 A-B loop, screenshot, aspect/rotate/video adjust, equalizer, bookmarks, mini-player, rebindable shortcuts done; video profiles pending
+- **Milestone 7 — Library:** 🚧 SQLite history + Continue watching + favorites, optional folder library with search; thumbnails/metadata pending
+- **Milestone 8 — Cross-platform:** 🚧 macOS builds + CI; Linux packaging files (desktop, AppStream, Flatpak manifest — **never built**) ; Windows not started; MPRIS/media keys/screensaver inhibit missing
+- **Milestone 9 — Release:** ⬜ signing, auto-update, translations, crash reporting
+- Settings dialog: General, Playback, Video, Audio, Subtitles, Appearance (Dark/Light/OLED, reduce motion), Library, Shortcuts, Advanced, About; global search + per-page reset.
 
 ### Continuation on macOS (dev machine moved)
 
@@ -131,9 +135,10 @@ See `docs/TECHNICAL_DECISIONS.md` for the full record. Headlines:
 
 ## 10. Next Steps (pick up here)
 
-1. Milestone 3: playlist panel + drag & drop + fullscreen polish + idle-autohide controls.
-2. Milestone 4: subtitle track management UI (mpv handles rendering; we manage track lists/sync).
-3. Milestone 5: hardware acceleration manager (VAAPI first — AMD VAAPI present on dev machine), playback statistics OSD.
-4. Add integration test media generation (ffmpeg testsrc) — see `docs/TESTING.md`.
+1. **Verify on Fedora** (primary target): build, run `LUMINA_PLAYBACK_TEST=1`, `LUMINA_SPEED_TEST=1`, `LUMINA_SEEK_BENCH=1` (docs/BENCHMARK.md), check VAAPI is used (stats overlay `I`), check video orientation (`LUMINA_FLIP_Y=1` if upside-down), build the Flatpak.
+2. Linux integration: MPRIS + media keys, screensaver inhibit (DBus), `src/platform/`.
+3. Seek-bar hover thumbnail preview; online subtitle search; network streams (yt-dlp).
+4. Windows CI job + build; macOS Now Playing + notarization.
+5. Translations (qsTr is in place), auto-update, crash reporting.
 
 Packaging: see `docs/PACKAGING.md`. `-DLUMINA_MAC_BUNDLE=ON` builds `bin/lumina.app` (default OFF keeps `build/mac/bin/lumina`, so tools/run-ui-test.sh is unchanged).

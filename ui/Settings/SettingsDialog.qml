@@ -278,7 +278,7 @@ Item {
                             implicitHeight: 38
                             hoverEnabled: true
                             focusPolicy: Qt.StrongFocus
-                            activeFocusOnTab: current
+                            activeFocusOnTab: true
                             opacity: dimmed ? 0.4 : 1
                             text: modelData.label
                             onClicked: dlg.goto(index)
