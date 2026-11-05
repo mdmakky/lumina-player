@@ -28,6 +28,7 @@ public:
     Q_INVOKABLE QString defaultSequence(const QString &id) const;
     // Id of another action already using `seq`, or "" (empty seq never conflicts).
     Q_INVOKABLE QString conflict(const QString &id, const QString &seq) const;
+    Q_INVOKABLE void retranslate() { emit changed(); }
     Q_INVOKABLE QString nameOf(const QString &id) const;
     // Binds without checking conflicts (see conflict()/swap()). Returns the normalized sequence.
     Q_INVOKABLE QString setSequence(const QString &id, const QString &seq);
@@ -43,6 +44,7 @@ signals:
     void capturingChanged();
 
 private:
+    static QString trSrc(const QString &src);
     struct Action { QString id, name, category, defKey, key; bool media; };
     Action *find(const QString &id);
     const Action *find(const QString &id) const;

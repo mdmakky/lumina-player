@@ -26,7 +26,7 @@ Popup {
                 spacing: Theme.spacingMedium
                 Text {
                     Layout.preferredWidth: 80
-                    text: modelData.charAt(0).toUpperCase() + modelData.slice(1)
+                    text: ({ brightness: qsTr("Brightness"), contrast: qsTr("Contrast"), saturation: qsTr("Saturation"), gamma: qsTr("Gamma"), hue: qsTr("Hue") })[modelData]
                     color: Theme.secondaryText
                     font.family: Theme.fontFamily
                     font.pixelSize: Theme.fontSizeMedium

@@ -7,6 +7,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 find_package(Qt6 6.4 REQUIRED COMPONENTS Core Gui Network Quick Sql Test)
+find_package(Qt6 6.4 OPTIONAL_COMPONENTS LinguistTools)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(MPV REQUIRED IMPORTED_TARGET mpv)
 
@@ -143,6 +144,20 @@ qt_add_qml_module(lumina
         resources/icons/app/lumina-256.png
 )
 
+# Translations: lumina_en.ts is the English source (plural forms), lumina_bn.ts Bengali.
+# `cmake --build <dir> --target update_translations` refreshes the .ts files.
+if(Qt6LinguistTools_FOUND)
+    file(GLOB LUMINA_TR_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/ui/*.qml ${CMAKE_CURRENT_SOURCE_DIR}/ui/*/*.qml
+         ${CMAKE_CURRENT_SOURCE_DIR}/app/*.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/*/*.cpp)
+    qt_add_translations(lumina
+        TS_FILES translations/lumina_en.ts translations/lumina_bn.ts
+        SOURCES ${LUMINA_TR_SOURCES}
+        LUPDATE_OPTIONS -no-obsolete
+        RESOURCE_PREFIX /i18n)
+else()
+    message(WARNING "Qt6 LinguistTools not found: building without translations (UI stays English)")
+endif()
+
 if(APPLE AND LUMINA_MAC_BUNDLE)
     set(LUMINA_ICNS ${CMAKE_CURRENT_SOURCE_DIR}/resources/icons/app/lumina.icns)
     set_source_files_properties(${LUMINA_ICNS} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
@@ -243,6 +258,11 @@ if(BUILD_TESTING)
     target_include_directories(tst_singleinstance PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/app)
     target_link_libraries(tst_singleinstance PRIVATE Qt6::Core Qt6::Network Qt6::Test)
     add_test(NAME SingleInstance COMMAND tst_singleinstance)
+
+    add_executable(tst_translations tests/unit/tst_Translations.cpp)
+    target_compile_definitions(tst_translations PRIVATE LUMINA_TS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/translations")
+    target_link_libraries(tst_translations PRIVATE Qt6::Core Qt6::Test)
+    add_test(NAME Translations COMMAND tst_translations)
 
     add_executable(tst_historyrepository
         tests/unit/tst_HistoryRepository.cpp

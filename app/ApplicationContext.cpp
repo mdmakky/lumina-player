@@ -6,6 +6,8 @@
 #include "utilities/TimeUtils.h"
 
 #include <QCoreApplication>
+#include <QLocale>
+#include <QSettings>
 #include <QElapsedTimer>
 #include <QFile>
 #include <QTextStream>
@@ -181,8 +183,12 @@ ApplicationContext::ApplicationContext(QObject *parent)
 
 void ApplicationContext::registerOnEngine(QQmlEngine *qmlEngine)
 {
+    m_engine = qmlEngine;
+    m_shortcuts = new ShortcutManager(qmlEngine);
+    applyLanguage(language());
+    qmlEngine->rootContext()->setContextProperty(QStringLiteral("app"), this);
     qmlEngine->rootContext()->setContextProperty(QStringLiteral("player"), m_player);
-    qmlEngine->rootContext()->setContextProperty(QStringLiteral("shortcuts"), new ShortcutManager(qmlEngine));
+    qmlEngine->rootContext()->setContextProperty(QStringLiteral("shortcuts"), m_shortcuts);
     qmlEngine->rootContext()->setContextProperty(QStringLiteral("timefmt"),
                                                  new Lumina::TimeUtils(qmlEngine));
 }
@@ -348,4 +354,39 @@ void ApplicationContext::startPlaybackSelfTest()
     });
 
     timer->start();
+}
+
+QString ApplicationContext::language() const
+{
+    const QString v = QSettings().value(QStringLiteral("interface/language"), QStringLiteral("system")).toString();
+    return (v == QLatin1String("en") || v == QLatin1String("bn")) ? v : QStringLiteral("system");
+}
+
+void ApplicationContext::setLanguage(const QString &code)
+{
+    QSettings().setValue(QStringLiteral("interface/language"), code);
+    applyLanguage(language());
+    if (m_engine)
+        m_engine->retranslate();
+    if (m_shortcuts)
+        m_shortcuts->retranslate();
+    emit languageChanged();
+}
+
+void ApplicationContext::applyLanguage(const QString &code)
+{
+    QString lang = code;
+    if (lang == QLatin1String("system")) {
+        lang = qEnvironmentVariable("LUMINA_LANG");
+        if (lang.isEmpty())
+            lang = QLocale::system().uiLanguages().value(0).startsWith(QLatin1String("bn")) ? QStringLiteral("bn")
+                                                                                              : QStringLiteral("en");
+    }
+    QCoreApplication::removeTranslator(&m_translator);
+    // en.qm only carries plural forms ("1 item" / "2 items"); source text is English.
+    if (m_translator.load(QStringLiteral(":/i18n/lumina_%1.qm").arg(lang)))
+        QCoreApplication::installTranslator(&m_translator);
+    else
+        qCWarning(lcCore) << "No translation for" << lang;
+    QLocale::setDefault(QLocale(lang));
 }

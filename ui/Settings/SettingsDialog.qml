@@ -106,12 +106,12 @@ Item {
             if (err === "") ++ok
             else errors.push(t + " → " + err)
         }
-        mpvStatus = errors.length ? errors.join("\n") : qsTr("Applied %1 option(s).").arg(ok)
+        mpvStatus = errors.length ? errors.join("\n") : qsTr("Applied %n option(s).", "", ok)
     }
 
     function resetPageNow(i) {
         switch (i) {
-        case 0: setResume(true); break
+        case 0: setResume(true); app.setLanguage("system"); break
         case 1:
             setHwdec("auto-safe"); setDefaultSpeed(1.0); setSeekStep(5); setAutoNext(true)
             break
@@ -494,6 +494,22 @@ Item {
                             title: qsTr("General"); pageIndex: 0
                             onResetRequested: dlg.resetPending = pageIndex
                             SettingSection {
+                                title: qsTr("Language")
+                                ComboRow {
+                                    name: "languageCombo"
+                                    title: qsTr("Interface language")
+                                    description: qsTr("Language of menus and buttons. Changes apply immediately.")
+                                    keywords: "language locale translation bangla bengali english bn"
+                                    model: [
+                                        { label: qsTr("System default"), value: "system" },
+                                        { label: "English", value: "en" },
+                                        { label: "বাংলা", value: "bn" }
+                                    ]
+                                    value: app.language
+                                    onPicked: (v) => app.setLanguage(v)
+                                }
+                            }
+                            SettingSection {
                                 title: qsTr("Startup and history")
                                 SwitchRow {
                                     name: "resumeSwitch"
@@ -785,7 +801,7 @@ Item {
                                 ButtonRow {
                                     name: "libRescan"
                                     title: qsTr("Rescan")
-                                    description: player.libraryScanning ? qsTr("Scanning… %1 files found").arg(player.libraryProgress)
+                                    description: player.libraryScanning ? qsTr("Scanning… %n file(s) found", "", player.libraryProgress)
                                                                         : qsTr("Look for added or removed files now.")
                                     keywords: "refresh update library"
                                     buttonText: qsTr("Rescan now")
