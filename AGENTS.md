@@ -1,6 +1,6 @@
 # AGENTS.md — Lumina Player Engineering Context
 
-**Read this file first.** It is the single source of truth for any agent (or human) continuing work on this project. Keep it synchronized with reality at all times — a stale AGENTS.md is worse than none.
+**Read this file first, then `docs/HANDOFF.md` (session memory: Fedora findings, owner preferences, open work).** It is the single source of truth for any agent (or human) continuing work on this project. Keep it synchronized with reality at all times — a stale AGENTS.md is worse than none.
 
 ---
 
