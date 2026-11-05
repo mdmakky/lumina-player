@@ -7,11 +7,16 @@
 #include <QCoreApplication>
 #include <QCryptographicHash>
 #include <QDateTime>
+#include <QDesktopServices>
 #include <QDir>
 #include <QFileInfo>
 #include <QSettings>
 #include <QStandardPaths>
 #include <QSysInfo>
+
+#ifdef Q_OS_WIN
+#include "platform/windows/SleepInhibitor_win.h"
+#endif
 #include <QTimer>
 #include <QUrl>
 
@@ -26,6 +31,15 @@ PlayerController::PlayerController(QObject *parent)
             advance(true);
     });
     connect(m_engine, &MpvEngine::idleChanged, this, &PlayerController::hasMediaChanged);
+#ifdef Q_OS_WIN
+    // Keep the display awake while video plays (audio-only may sleep the screen).
+    auto updateInhibit = [this]() {
+        SleepInhibitor::set(m_engine->playing() && !m_engine->videoTracks().isEmpty());
+    };
+    connect(m_engine, &MpvEngine::pausedChanged, this, updateInhibit);
+    connect(m_engine, &MpvEngine::idleChanged, this, updateInhibit);
+    connect(m_engine, &MpvEngine::tracksChanged, this, updateInhibit);
+#endif
 
     m_thumbs = new ThumbnailService(this);
     m_thumbs->setEnabled(setting(QStringLiteral("ui/seekPreview"), true).toBool());
@@ -314,6 +328,14 @@ QString PlayerController::screenshotDir() const
 void PlayerController::setVerboseLogging(bool on)
 {
     Logger::setVerbose(on);
+}
+
+QString PlayerController::logsPath() const { return Logger::logsPath(); }
+
+void PlayerController::openLogsFolder() const
+{
+    QDir().mkpath(Logger::logsPath());
+    QDesktopServices::openUrl(QUrl::fromLocalFile(Logger::logsPath()));
 }
 
 QVariantMap PlayerController::aboutInfo() const

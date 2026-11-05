@@ -85,7 +85,7 @@ Item {
                 font.letterSpacing: 2
             }
             Text {
-                text: qsTr("%1 items").arg(player.library.count)
+                text: qsTr("%n item(s)", "", player.library.count)
                 color: Theme.secondaryText
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSizeMedium
@@ -167,7 +167,7 @@ Item {
                 }
             }
             Text {
-                text: qsTr("Scanning… %1 files").arg(player.libraryProgress)
+                text: qsTr("Scanning… %n file(s)", "", player.libraryProgress)
                 color: Theme.secondaryText
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSizeSmall

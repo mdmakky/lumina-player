@@ -34,7 +34,7 @@ MpvEngine::MpvEngine(QObject *parent)
 
     m_mpv = mpv_create();
     if (!m_mpv) {
-        setMediaError(QStringLiteral("Failed to create mpv handle"));
+        setMediaError(tr("Failed to create mpv handle"));
         return;
     }
 
@@ -92,7 +92,7 @@ MpvEngine::MpvEngine(QObject *parent)
 
     const int rc = mpv_initialize(m_mpv);
     if (rc < 0) {
-        setMediaError(QStringLiteral("mpv initialization failed: %1").arg(mpv_error_string(rc)));
+        setMediaError(tr("mpv initialization failed: %1").arg(mpv_error_string(rc)));
         mpv_terminate_destroy(m_mpv);
         m_mpv = nullptr;
         return;
@@ -230,7 +230,7 @@ void MpvEngine::processEvents()
             qCInfo(lcEngine) << "end-file reason" << endFile->reason << "pos" << m_position
                              << "dur" << m_duration;
             if (endFile->reason == MPV_END_FILE_REASON_ERROR && endFile->error < 0) {
-                setMediaError(QStringLiteral("Playback failed: %1").arg(mpv_error_string(endFile->error)));
+                setMediaError(tr("Playback failed: %1").arg(mpv_error_string(endFile->error)));
             }
             break;
         }
@@ -278,7 +278,7 @@ bool MpvEngine::command(const QStringList &args)
     if (rc < 0) {
         qCWarning(lcEngine) << "mpv command failed:" << args.join(u' ')
                             << "-" << mpv_error_string(rc);
-        setMediaError(QStringLiteral("Command failed: %1").arg(mpv_error_string(rc)));
+        setMediaError(tr("Command failed: %1").arg(mpv_error_string(rc)));
         return false;
     }
     return true;
@@ -362,7 +362,7 @@ void MpvEngine::loadFile(const QUrl &url)
 {
     const QString path = url.scheme().isEmpty() ? url.toString() : url.toLocalFile();
     if (path.isEmpty()) {
-        setMediaError(QStringLiteral("Cannot open an empty path"));
+        setMediaError(tr("Cannot open an empty path"));
         return;
     }
     command({QStringLiteral("loadfile"), path, QStringLiteral("replace")});

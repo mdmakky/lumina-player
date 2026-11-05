@@ -43,6 +43,7 @@ class PlayerController : public QObject
     Q_PROPERTY(int repeatMode READ repeatMode WRITE setRepeatMode NOTIFY repeatModeChanged FINAL)
     // Bookmarks of the current file: [{id, time, label}], ordered by time.
     Q_PROPERTY(QVariantList bookmarks READ bookmarks NOTIFY bookmarksChanged FINAL)
+    Q_PROPERTY(QString logsPath READ logsPath CONSTANT FINAL)
     Q_PROPERTY(QStringList recentFiles READ recentFiles NOTIFY recentFilesChanged FINAL)
 
 public:
@@ -57,6 +58,10 @@ public:
     HistoryModel *favorites() const { return m_favorites; }
     bool historyAvailable() const { return m_repo.available(); }
     QVariantList bookmarks() const { return m_bookmarks; }
+    QString logsPath() const;
+    QUrl currentUrl() const { return m_playlist->urlAt(m_playlist->currentIndex()); }
+    bool canNext() const { return m_playlist->rowCount() > 1; }
+    bool canPrevious() const { return m_playlist->rowCount() > 1; }
     QStringList recentFiles() const { return m_recentFiles; }
     LibraryModel *library() const { return m_library; }
     QStringList libraryFolders() const { return m_libraryFolders; }
@@ -96,6 +101,7 @@ public slots:
     Q_INVOKABLE QString screenshotDir() const;
     // Version/environment strings for Settings > About.
     Q_INVOKABLE QVariantMap aboutInfo() const;
+    Q_INVOKABLE void openLogsFolder() const;
     Q_INVOKABLE void setVerboseLogging(bool on);
     void toggleFavorite(const QString &path);
     void openHistory(const QString &path); // opens and resumes
