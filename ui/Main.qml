@@ -65,6 +65,15 @@ ApplicationWindow {
             showFullScreen()
     }
 
+    function relTimeOf(sec) {
+        const d = Math.max(0, Date.now() / 1000 - sec)
+        if (d < 90) return qsTr("just now")
+        if (d < 3600) return qsTr("%1 min ago").arg(Math.round(d / 60))
+        if (d < 86400) return qsTr("%1 h ago").arg(Math.round(d / 3600))
+        if (d < 86400 * 30) return qsTr("%1 d ago").arg(Math.round(d / 86400))
+        return qsTr("long ago")
+    }
+
     function baseName(path) {
         const parts = path.split("/")
         return parts[parts.length - 1]
@@ -130,7 +139,7 @@ ApplicationWindow {
 
         ColumnLayout {
             anchors.centerIn: parent
-            width: Math.min(460, parent.width - 64)
+            width: Math.min(720, parent.width - 64)
             spacing: Theme.spacingLarge
 
             Text {
@@ -175,9 +184,129 @@ ApplicationWindow {
                 }
             }
 
+            // ---- Library sections (SQLite); falls back to the plain recent list if DB is unavailable ----
+            Component {
+                id: historyCard
+                Rectangle {
+                    id: card
+                    required property int index
+                    required property string path
+                    required property string title
+                    required property real progress
+                    required property real lastPlayed
+                    required property bool favorite
+                    objectName: "continueCard_" + index
+                    width: 210
+                    height: 84
+                    radius: Theme.radius
+                    color: cardMouse.containsMouse ? Theme.elevated : Theme.surface
+                    border.color: Theme.border
+                    Behavior on color { ColorAnimation { duration: Theme.animationFast } }
+
+                    MouseArea {
+                        id: cardMouse
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        acceptedButtons: Qt.LeftButton | Qt.RightButton
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: (m) => m.button === Qt.RightButton ? player.toggleFavorite(card.path)
+                                                                      : player.openHistory(card.path)
+                    }
+                    Text {
+                        anchors { left: parent.left; right: star.left; top: parent.top; margins: Theme.spacingMedium }
+                        text: card.title
+                        color: Theme.primaryText
+                        elide: Text.ElideRight
+                        wrapMode: Text.Wrap
+                        maximumLineCount: 2
+                        font.family: Theme.fontFamily
+                        font.pixelSize: Theme.fontSizeMedium
+                    }
+                    Text {
+                        anchors { left: parent.left; bottom: bar.top; margins: Theme.spacingMedium; bottomMargin: Theme.spacingSmall }
+                        text: root.relTimeOf(card.lastPlayed)
+                        color: Theme.secondaryText
+                        font.family: Theme.fontFamily
+                        font.pixelSize: Theme.fontSizeSmall
+                    }
+                    Text {
+                        id: star
+                        objectName: "cardStar_" + card.index
+                        anchors { right: parent.right; top: parent.top; margins: Theme.spacingSmall }
+                        text: card.favorite ? "★" : "☆"
+                        color: card.favorite ? Theme.accentHover : Theme.disabledText
+                        font.pixelSize: Theme.fontSizeLarge
+                        MouseArea {
+                            anchors.fill: parent
+                            anchors.margins: -4
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: player.toggleFavorite(card.path)
+                        }
+                    }
+                    Rectangle { // thin progress bar
+                        id: bar
+                        visible: card.progress > 0
+                        anchors { left: parent.left; right: parent.right; bottom: parent.bottom
+                                  leftMargin: Theme.spacingMedium; rightMargin: Theme.spacingMedium
+                                  bottomMargin: Theme.spacingMedium }
+                        height: 3
+                        radius: 2
+                        color: Theme.trackIdle
+                        Rectangle {
+                            width: parent.width * card.progress
+                            height: parent.height
+                            radius: 2
+                            color: Theme.accent
+                        }
+                    }
+                }
+            }
+
             Text {
-                visible: player.recentFiles.length > 0
+                visible: player.continueWatching.count > 0
                 Layout.topMargin: Theme.spacingLarge
+                text: qsTr("CONTINUE WATCHING")
+                color: Theme.disabledText
+                font.family: Theme.fontFamily
+                font.pixelSize: Theme.fontSizeSmall
+                font.letterSpacing: 2
+            }
+            ListView {
+                objectName: "continueList"
+                visible: player.continueWatching.count > 0
+                Layout.fillWidth: true
+                Layout.preferredHeight: 84
+                orientation: ListView.Horizontal
+                spacing: Theme.spacingMedium
+                clip: true
+                model: player.continueWatching
+                delegate: historyCard
+            }
+
+            Text {
+                visible: player.favorites.count > 0
+                Layout.topMargin: Theme.spacingMedium
+                text: qsTr("FAVORITES")
+                color: Theme.disabledText
+                font.family: Theme.fontFamily
+                font.pixelSize: Theme.fontSizeSmall
+                font.letterSpacing: 2
+            }
+            ListView {
+                objectName: "favoritesList"
+                visible: player.favorites.count > 0
+                Layout.fillWidth: true
+                Layout.preferredHeight: 84
+                orientation: ListView.Horizontal
+                spacing: Theme.spacingMedium
+                clip: true
+                model: player.favorites
+                delegate: historyCard
+            }
+
+            Text {
+                visible: player.historyAvailable ? player.history.count > 0 : player.recentFiles.length > 0
+                Layout.topMargin: Theme.spacingMedium
                 text: qsTr("RECENT")
                 color: Theme.disabledText
                 font.family: Theme.fontFamily
@@ -185,15 +314,19 @@ ApplicationWindow {
                 font.letterSpacing: 2
             }
 
-            Repeater {
-                model: player.recentFiles.slice(0, 5)
+            Repeater { // DB-backed recent list
+                model: player.history
                 delegate: Rectangle {
                     id: recentRow
                     objectName: "recentRow_" + index
                     required property int index
-                    required property string modelData
+                    required property string path
+                    required property string title
+                    required property real lastPlayed
+                    required property bool favorite
+                    visible: index < 5
                     Layout.fillWidth: true
-                    implicitHeight: 40
+                    Layout.preferredHeight: visible ? 40 : 0
                     radius: Theme.radius
                     color: rowMouse.containsMouse ? Theme.surfaceHover : "transparent"
                     Behavior on color { ColorAnimation { duration: Theme.animationFast } }
@@ -201,20 +334,74 @@ ApplicationWindow {
                     Text {
                         anchors.fill: parent
                         anchors.leftMargin: Theme.spacingMedium
+                        anchors.rightMargin: 130
+                        verticalAlignment: Text.AlignVCenter
+                        text: recentRow.title
+                        color: Theme.primaryText
+                        elide: Text.ElideMiddle
+                        font.family: Theme.fontFamily
+                        font.pixelSize: Theme.fontSizeMedium
+                    }
+                    Text {
+                        anchors { right: parent.right; rightMargin: 38; verticalCenter: parent.verticalCenter }
+                        text: root.relTimeOf(recentRow.lastPlayed)
+                        color: Theme.secondaryText
+                        font.family: Theme.fontFamily
+                        font.pixelSize: Theme.fontSizeSmall
+                    }
+                    MouseArea {
+                        id: rowMouse
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        acceptedButtons: Qt.LeftButton | Qt.RightButton
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: (m) => m.button === Qt.RightButton ? player.toggleFavorite(recentRow.path)
+                                                                      : player.openHistory(recentRow.path)
+                    }
+                    Text {
+                        objectName: "recentStar_" + recentRow.index
+                        anchors { right: parent.right; rightMargin: Theme.spacingMedium; verticalCenter: parent.verticalCenter }
+                        text: recentRow.favorite ? "★" : "☆"
+                        color: recentRow.favorite ? Theme.accentHover : Theme.disabledText
+                        font.pixelSize: Theme.fontSizeLarge
+                        MouseArea {
+                            anchors.fill: parent
+                            anchors.margins: -6
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: player.toggleFavorite(recentRow.path)
+                        }
+                    }
+                }
+            }
+
+            Repeater { // QSettings fallback when the library DB is unavailable
+                model: player.historyAvailable ? [] : player.recentFiles.slice(0, 5)
+                delegate: Rectangle {
+                    id: legacyRow
+                    objectName: "recentRow_" + index
+                    required property int index
+                    required property string modelData
+                    Layout.fillWidth: true
+                    implicitHeight: 40
+                    radius: Theme.radius
+                    color: legacyMouse.containsMouse ? Theme.surfaceHover : "transparent"
+                    Text {
+                        anchors.fill: parent
+                        anchors.leftMargin: Theme.spacingMedium
                         anchors.rightMargin: Theme.spacingMedium
                         verticalAlignment: Text.AlignVCenter
-                        text: root.baseName(recentRow.modelData)
+                        text: root.baseName(legacyRow.modelData)
                         color: Theme.primaryText
                         elide: Text.ElideMiddle
                         font.family: Theme.fontFamily
                         font.pixelSize: Theme.fontSizeMedium
                     }
                     MouseArea {
-                        id: rowMouse
+                        id: legacyMouse
                         anchors.fill: parent
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
-                        onClicked: player.openFiles([Qt.url("file://" + recentRow.modelData)])
+                        onClicked: player.openFiles([player.fileUrl(legacyRow.modelData)])
                     }
                 }
             }
@@ -346,7 +533,8 @@ ApplicationWindow {
                     color: Theme.primaryText
                     font.family: Theme.fontFamily
                     font.pixelSize: Theme.fontSizeSmall
-                    font.features: { "tnum": 1 }
+                    // font.features (tnum) needs Qt 6.6; reserve width so digits do not jitter on 6.4.
+                    Layout.minimumWidth: 56
                 }
                 TimeSlider {
                     id: timeline
@@ -358,7 +546,8 @@ ApplicationWindow {
                     color: Theme.secondaryText
                     font.family: Theme.fontFamily
                     font.pixelSize: Theme.fontSizeSmall
-                    font.features: { "tnum": 1 }
+                    // font.features (tnum) needs Qt 6.6; reserve width so digits do not jitter on 6.4.
+                    Layout.minimumWidth: 56
                 }
             }
 
