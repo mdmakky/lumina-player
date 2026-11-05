@@ -4,7 +4,7 @@
 # Usage: tools/run-ui-test.sh [media-file>=40s]   (default /tmp/long.mp4)
 BIN="${LUMINA_BIN:-build/mac/bin/lumina}"
 MEDIA="${1:-/tmp/long.mp4}"
-LOG="$(mktemp)"
+LOG="${LUMINA_UI_LOG:-$(mktemp)}" # set LUMINA_UI_LOG=path to keep the full log
 LUMINA_UI_TEST=1 "$BIN" "$MEDIA" >"$LOG" 2>&1 &
 PID=$!
 while kill -0 "$PID" 2>/dev/null; do
