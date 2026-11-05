@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls.Basic
 import QtQuick.Dialogs
 import QtQuick.Layouts
+import QtQml.Models
 import Lumina.Player
 
 ApplicationWindow {
@@ -9,10 +10,10 @@ ApplicationWindow {
 
     width: 1280
     height: 760
-    minimumWidth: 760
-    minimumHeight: 500
+    minimumWidth: miniMode ? 240 : 760
+    minimumHeight: miniMode ? 135 : 500
     visible: true
-    color: "black"
+    color: Theme.videoBackdrop
     title: player.hasMedia && player.engine.mediaTitle !== ""
            ? player.engine.mediaTitle + " — Lumina" : "Lumina Player"
 
@@ -25,12 +26,17 @@ ApplicationWindow {
         const max = player.setting("window/maximized", false)
         if (max === true || max === "true")
             showMaximized()
+        const mini = player.setting("window/mini", false)
+        if (mini === true || mini === "true")
+            Qt.callLater(toggleMini)
     }
     onClosing: {
         if (visibility === Window.FullScreen)
             return
         player.setSetting("window/maximized", visibility === Window.Maximized)
-        if (visibility === Window.Windowed)
+        if (miniMode && normalGeom)
+            player.setSetting("window/geometry", normalGeom)
+        else if (visibility === Window.Windowed)
             player.setSetting("window/geometry", { x: x, y: y, width: width, height: height })
     }
 
@@ -38,6 +44,9 @@ ApplicationWindow {
     property bool chromeVisible: true
     property bool menuOpen: false
     property bool playlistOpen: false
+    property bool miniMode: false
+    property var normalGeom: null
+    property bool miniPrevOnTop: false
     readonly property bool chromeHovered: topHover.hovered || bottomHover.hovered
     readonly property string iconBase: "qrc:/qt/qml/Lumina/Player/icons/"
 
@@ -58,7 +67,33 @@ ApplicationWindow {
             player.engine.seekChapter(target)
     }
 
+    // Mini-player: ~480 px wide at the video's aspect ratio, always on top, minimal chrome.
+    function toggleMini() {
+        if (!miniMode) {
+            if (visibility !== Window.Windowed) return
+            normalGeom = { x: x, y: y, width: width, height: height }
+            miniPrevOnTop = (flags & Qt.WindowStaysOnTopHint) !== 0
+            const vt = player.engine.videoTracks
+            const ar = vt.length > 0 && vt[0]["demux-w"] > 0 && vt[0]["demux-h"] > 0
+                     ? vt[0]["demux-w"] / vt[0]["demux-h"] : 16 / 9
+            miniMode = true
+            playlistOpen = false
+            width = 480
+            height = Math.round(480 / ar)
+            flags = flags | Qt.WindowStaysOnTopHint
+        } else {
+            miniMode = false
+            if (!miniPrevOnTop) flags = flags & ~Qt.WindowStaysOnTopHint
+            if (normalGeom) {
+                x = normalGeom.x; y = normalGeom.y
+                width = normalGeom.width; height = normalGeom.height
+            }
+        }
+        player.setSetting("window/mini", miniMode)
+    }
+
     function toggleFullscreen() {
+        if (miniMode) toggleMini()
         if (visibility === Window.FullScreen)
             showNormal()
         else
@@ -125,7 +160,7 @@ ApplicationWindow {
         anchors.top: parent.top
         anchors.margins: Theme.spacingLarge
         anchors.topMargin: 72
-        visible: player.hasMedia && player.engine.statsEnabled
+        visible: player.hasMedia && player.engine.statsEnabled && !root.miniMode
     }
 
     // --- Home / empty state -----------------------------------------------
@@ -178,7 +213,7 @@ ApplicationWindow {
                 contentItem: Text {
                     text: parent.text
                     font: parent.font
-                    color: Theme.primaryText
+                    color: Theme.accentText
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter
                 }
@@ -460,7 +495,7 @@ ApplicationWindow {
         anchors.right: parent.right
         anchors.top: parent.top
         height: 96
-        opacity: root.chromeVisible && player.hasMedia ? 1 : 0
+        opacity: root.chromeVisible && player.hasMedia && !root.miniMode ? 1 : 0
         visible: opacity > 0
         Behavior on opacity { NumberAnimation { duration: Theme.animationMedium } }
         gradient: Gradient {
@@ -482,7 +517,7 @@ ApplicationWindow {
             Text {
                 Layout.fillWidth: true
                 text: player.engine.mediaTitle
-                color: Theme.primaryText
+                color: Theme.videoText
                 elide: Text.ElideRight
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSizeHeading
@@ -509,11 +544,63 @@ ApplicationWindow {
         }
     }
 
+    // --- Mini-player chrome: drag the video to move; controls on hover ------------
+    DragHandler {
+        enabled: root.miniMode
+        target: null
+        onActiveChanged: if (active) root.startSystemMove()
+    }
+    Item {
+        id: miniChrome
+        objectName: "miniChrome"
+        anchors.fill: parent
+        visible: root.miniMode && player.hasMedia
+        HoverHandler { id: miniHover }
+        Rectangle {
+            anchors.fill: parent
+            color: Theme.scrimSoft
+            opacity: miniHover.hovered ? 1 : 0
+            Behavior on opacity { NumberAnimation { duration: Theme.animationFast } }
+            IconButton {
+                objectName: "miniPlayButton"
+                anchors.centerIn: parent
+                iconSize: 28
+                iconSource: root.iconBase + (player.engine.playing ? "pause.svg" : "play.svg")
+                onClicked: player.engine.togglePlayPause()
+            }
+            Row {
+                anchors.top: parent.top
+                anchors.right: parent.right
+                anchors.margins: Theme.spacingSmall
+                IconButton {
+                    objectName: "miniExpandButton"
+                    iconSource: root.iconBase + "fullscreen-exit.svg"
+                    tip: qsTr("Back to normal (Ctrl+M)")
+                    onClicked: root.toggleMini()
+                }
+                IconButton {
+                    objectName: "miniCloseButton"
+                    label: "✕"
+                    implicitWidth: 40
+                    tip: qsTr("Close")
+                    onClicked: root.close()
+                }
+            }
+        }
+        Rectangle { // thin progress bar, always visible
+            anchors.left: parent.left
+            anchors.bottom: parent.bottom
+            width: player.engine.duration > 0 ? parent.width * player.engine.position / player.engine.duration : 0
+            height: 3
+            color: Theme.accent
+        }
+    }
+
     // --- Playlist panel ---------------------------------------------------
     PlaylistPanel {
         id: playlistPanel
         objectName: "playlistPanel"
-        visible: root.playlistOpen
+        visible: root.playlistOpen && !root.miniMode
         anchors.top: parent.top
         anchors.topMargin: 56
         anchors.right: parent.right
@@ -533,7 +620,7 @@ ApplicationWindow {
         anchors.right: parent.right
         anchors.bottom: parent.bottom
         height: 136
-        opacity: root.chromeVisible && player.hasMedia ? 1 : 0
+        opacity: root.chromeVisible && player.hasMedia && !root.miniMode ? 1 : 0
         visible: opacity > 0
         Behavior on opacity { NumberAnimation { duration: Theme.animationMedium } }
         gradient: Gradient {
@@ -559,7 +646,7 @@ ApplicationWindow {
 
                 Text {
                     text: timefmt.formatDuration(player.engine.position)
-                    color: Theme.primaryText
+                    color: Theme.videoText
                     font.family: Theme.fontFamily
                     font.pixelSize: Theme.fontSizeSmall
                     // font.features (tnum) needs Qt 6.6; reserve width so digits do not jitter on 6.4.
@@ -572,7 +659,7 @@ ApplicationWindow {
                 }
                 Text {
                     text: timefmt.formatDuration(player.engine.duration)
-                    color: Theme.secondaryText
+                    color: Theme.videoTextSecondary
                     font.family: Theme.fontFamily
                     font.pixelSize: Theme.fontSizeSmall
                     // font.features (tnum) needs Qt 6.6; reserve width so digits do not jitter on 6.4.
@@ -799,6 +886,13 @@ ApplicationWindow {
             onTriggered: root.flags = root.flags ^ Qt.WindowStaysOnTopHint
         }
         ThemedMenuItem {
+            objectName: "miniItem"
+            text: qsTr("Mini player (Ctrl+M)")
+            checkable: true
+            checked: root.miniMode
+            onTriggered: root.toggleMini()
+        }
+        ThemedMenuItem {
             objectName: "screenshotItem"
             text: qsTr("Screenshot (Ctrl+S)")
             onTriggered: player.takeScreenshot()
@@ -896,41 +990,65 @@ ApplicationWindow {
         }
     }
 
-    // --- Keyboard shortcuts (spec §10 defaults) --------------------------------
-    Shortcut { sequence: "Space";        enabled: player.hasMedia; onActivated: player.engine.togglePlayPause() }
-    Shortcut { sequence: "Left";         enabled: player.hasMedia; onActivated: player.engine.seekRelative(-5) }
-    Shortcut { sequence: "Right";        enabled: player.hasMedia; onActivated: player.engine.seekRelative(5) }
-    Shortcut { sequence: "Up";           enabled: player.hasMedia; onActivated: player.engine.setVolume(Math.min(150, player.engine.volume + 5)) }
-    Shortcut { sequence: "Down";         enabled: player.hasMedia; onActivated: player.engine.setVolume(Math.max(0, player.engine.volume - 5)) }
-    Shortcut { sequence: "M";            enabled: player.hasMedia; onActivated: player.engine.setMuted(!player.engine.muted) }
-    Shortcut { sequence: "I";            enabled: player.hasMedia; onActivated: player.engine.statsEnabled = !player.engine.statsEnabled }
-    Shortcut { sequence: "F";            onActivated: root.toggleFullscreen() }
-    Shortcut { sequence: "T";            onActivated: root.flags = root.flags ^ Qt.WindowStaysOnTopHint }
-    Shortcut { sequence: "A";            enabled: player.hasMedia; onActivated: player.engine.cycleAudioTrack() }
-    Shortcut { sequence: "S";            enabled: player.hasMedia; onActivated: player.engine.cycleSubtitleTrack() }
-    Shortcut { sequence: "W";            enabled: player.hasMedia; onActivated: player.engine.setSubtitlesVisible(true) }
-    Shortcut { sequence: "Shift+W";      enabled: player.hasMedia; onActivated: player.engine.setSubtitlesVisible(false) }
-    Shortcut { sequence: "X";            enabled: player.hasMedia; onActivated: player.engine.setSpeed(Math.max(0.25, player.engine.speed - 0.25)) }
-    Shortcut { sequence: "C";            enabled: player.hasMedia; onActivated: player.engine.setSpeed(Math.min(2.0, player.engine.speed + 0.25)) }
-    Shortcut { sequence: "Z";            enabled: player.hasMedia; onActivated: player.engine.setSpeed(1.0) }
-    Shortcut { sequence: ".";            enabled: player.hasMedia; onActivated: player.engine.stepFrame(1) }
-    Shortcut { sequence: ",";            enabled: player.hasMedia; onActivated: player.engine.stepFrame(-1) }
-    Shortcut { sequence: "G";            enabled: player.hasMedia; onActivated: player.engine.setSubtitleDelay(player.engine.subtitleDelay - 0.1) }
-    Shortcut { sequence: "H";            enabled: player.hasMedia; onActivated: player.engine.setSubtitleDelay(player.engine.subtitleDelay + 0.1) }
-    Shortcut { sequence: "PgDown";       enabled: player.hasMedia; onActivated: root.stepChapter(1) }
-    Shortcut { sequence: "PgUp";         enabled: player.hasMedia; onActivated: root.stepChapter(-1) }
-    Shortcut { sequence: "B";            enabled: player.hasMedia; onActivated: player.addBookmark() }
-    Shortcut { sequence: "P";            onActivated: root.playlistOpen = !root.playlistOpen }
-    Shortcut { sequence: "Ctrl+Right";   enabled: player.hasMedia; onActivated: player.next() }
-    Shortcut { sequence: "Ctrl+Left";    enabled: player.hasMedia; onActivated: player.previous() }
-    Shortcut { sequence: "[";            enabled: player.hasMedia; onActivated: player.engine.setLoopA() }
-    Shortcut { sequence: "]";            enabled: player.hasMedia; onActivated: player.engine.setLoopB() }
-    Shortcut { sequence: "Backspace";    enabled: player.hasMedia; onActivated: player.engine.clearLoop() }
-    Shortcut { sequence: "Ctrl+S";       enabled: player.hasMedia; onActivated: player.takeScreenshot() }
-    Shortcut { sequence: "Shift+S";      onActivated: player.shuffle = !player.shuffle }
-    Shortcut { sequence: "R";            onActivated: player.repeatMode = (player.repeatMode + 1) % 3 }
-    Shortcut { sequence: "Ctrl+O";       onActivated: fileDialog.open() }
-    Shortcut { sequence: "L";            enabled: !libraryView.opened && !settingsDialog.opened; onActivated: libraryView.open() }
-    Shortcut { sequence: "Ctrl+,";      onActivated: settingsDialog.open() }
-    Shortcut { sequence: "Esc";          enabled: root.visibility === Window.FullScreen && !settingsDialog.opened && !libraryView.opened; onActivated: root.showNormal() }
+    // --- Keyboard shortcuts: data-driven by ShortcutManager (spec §10) ----------
+    function runAction(id) {
+        const e = player.engine
+        switch (id) {
+        case "playPause": e.togglePlayPause(); break
+        case "seekBack": e.seekRelative(-5); break
+        case "seekForward": e.seekRelative(5); break
+        case "volumeUp": e.setVolume(Math.min(150, e.volume + 5)); break
+        case "volumeDown": e.setVolume(Math.max(0, e.volume - 5)); break
+        case "mute": e.setMuted(!e.muted); break
+        case "stats": e.statsEnabled = !e.statsEnabled; break
+        case "fullscreen": root.toggleFullscreen(); break
+        case "alwaysOnTop": root.flags = root.flags ^ Qt.WindowStaysOnTopHint; break
+        case "audioTrack": e.cycleAudioTrack(); break
+        case "subTrack": e.cycleSubtitleTrack(); break
+        case "subShow": e.setSubtitlesVisible(true); break
+        case "subHide": e.setSubtitlesVisible(false); break
+        case "speedDown": e.setSpeed(Math.max(0.25, e.speed - 0.25)); break
+        case "speedUp": e.setSpeed(Math.min(2.0, e.speed + 0.25)); break
+        case "speedReset": e.setSpeed(1.0); break
+        case "frameForward": e.stepFrame(1); break
+        case "frameBack": e.stepFrame(-1); break
+        case "subDelayDown": e.setSubtitleDelay(e.subtitleDelay - 0.1); break
+        case "subDelayUp": e.setSubtitleDelay(e.subtitleDelay + 0.1); break
+        case "chapterNext": root.stepChapter(1); break
+        case "chapterPrev": root.stepChapter(-1); break
+        case "bookmark": player.addBookmark(); break
+        case "playlist": root.playlistOpen = !root.playlistOpen; break
+        case "next": player.next(); break
+        case "previous": player.previous(); break
+        case "loopA": e.setLoopA(); break
+        case "loopB": e.setLoopB(); break
+        case "loopClear": e.clearLoop(); break
+        case "screenshot": player.takeScreenshot(); break
+        case "shuffle": player.shuffle = !player.shuffle; break
+        case "repeat": player.repeatMode = (player.repeatMode + 1) % 3; break
+        case "openFile": fileDialog.open(); break
+        case "library": libraryView.open(); break
+        case "settings": settingsDialog.open(); break
+        case "exitFullscreen": root.showNormal(); break
+        }
+    }
+    function actionEnabled(a) {
+        if (shortcuts.capturing) return false
+        if (a.media && !player.hasMedia) return false
+        if (a.id === "library") return !libraryView.opened && !settingsDialog.opened
+        if (a.id === "exitFullscreen")
+            return root.visibility === Window.FullScreen && !settingsDialog.opened && !libraryView.opened
+        return true
+    }
+    Instantiator { // not Repeater: Shortcut is not an Item
+        model: shortcuts.actions
+        delegate: Shortcut {
+            required property var modelData
+            sequence: modelData.key
+            enabled: root.actionEnabled(modelData)
+            onActivated: root.runAction(modelData.id)
+        }
+    }
+    Shortcut { sequence: "Ctrl+M";       enabled: player.hasMedia; onActivated: root.toggleMini() }
+    Shortcut { sequence: "Esc";          enabled: root.miniMode; onActivated: root.toggleMini() }
 }

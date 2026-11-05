@@ -34,6 +34,7 @@ Rectangle {
                 Layout.fillWidth: true
             }
             IconButton {
+                onPanel: true
                 objectName: "shuffleButton"
                 iconSource: "qrc:/qt/qml/Lumina/Player/icons/shuffle.svg"
                 implicitWidth: 32
@@ -42,6 +43,7 @@ Rectangle {
                 onClicked: player.shuffle = !player.shuffle
             }
             IconButton {
+                onPanel: true
                 objectName: "repeatButton"
                 iconSource: "qrc:/qt/qml/Lumina/Player/icons/" + (player.repeatMode === 2 ? "repeat-one.svg" : "repeat.svg")
                 implicitWidth: 32
@@ -50,18 +52,21 @@ Rectangle {
                 onClicked: player.repeatMode = (player.repeatMode + 1) % 3
             }
             IconButton {
+                onPanel: true
                 objectName: "playlistSaveButton"
                 label: qsTr("Save")
                 implicitWidth: 46
                 onClicked: saveDialog.open()
             }
             IconButton {
+                onPanel: true
                 objectName: "playlistLoadButton"
                 label: qsTr("Load")
                 implicitWidth: 46
                 onClicked: loadDialog.open()
             }
             IconButton {
+                onPanel: true
                 objectName: "playlistClearButton"
                 label: qsTr("Clear")
                 implicitWidth: 46
@@ -179,6 +184,7 @@ Rectangle {
                         font.weight: row.current ? Font.DemiBold : Font.Normal
                     }
                     IconButton {
+                        onPanel: true
                         objectName: "rowRemove_" + row.index
                         implicitWidth: 28
                         label: "✕"

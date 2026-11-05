@@ -1,6 +1,7 @@
 #include "ApplicationContext.h"
 
 #include "core/PlayerController.h"
+#include "core/ShortcutManager.h"
 #include "utilities/Logger.h"
 #include "utilities/TimeUtils.h"
 
@@ -181,6 +182,7 @@ ApplicationContext::ApplicationContext(QObject *parent)
 void ApplicationContext::registerOnEngine(QQmlEngine *qmlEngine)
 {
     qmlEngine->rootContext()->setContextProperty(QStringLiteral("player"), m_player);
+    qmlEngine->rootContext()->setContextProperty(QStringLiteral("shortcuts"), new ShortcutManager(qmlEngine));
     qmlEngine->rootContext()->setContextProperty(QStringLiteral("timefmt"),
                                                  new Lumina::TimeUtils(qmlEngine));
 }

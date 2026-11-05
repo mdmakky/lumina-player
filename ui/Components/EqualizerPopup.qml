@@ -43,22 +43,20 @@ Popup {
                 Layout.fillWidth: true
             }
             Switch {
-                id: eqSwitch
                 objectName: "eqSwitch"
                 checked: player.engine.eqEnabled
                 onToggled: player.engine.eqEnabled = checked
+                id: eqSw
                 Accessible.name: qsTr("Equalizer enabled")
-                indicator: Rectangle {   // same look as the Settings switch (Basic default has a black knob)
+                indicator: Rectangle {
                     implicitWidth: 40; implicitHeight: 22
-                    x: eqSwitch.leftPadding; y: parent.height / 2 - height / 2
+                    x: eqSw.leftPadding; y: parent.height / 2 - height / 2
                     radius: height / 2
-                    color: eqSwitch.checked ? Theme.accent : Theme.trackIdle
-                    border.width: eqSwitch.visualFocus ? 2 : 0
-                    border.color: Theme.focusRing
+                    color: eqSw.checked ? Theme.accent : Theme.trackIdle
                     Rectangle {
-                        x: eqSwitch.checked ? parent.width - width - 3 : 3
+                        x: eqSw.checked ? parent.width - width - 3 : 3
                         y: 3; width: 16; height: 16; radius: 8
-                        color: Theme.primaryText
+                        color: Theme.accentText
                         Behavior on x { NumberAnimation { duration: Theme.animationFast } }
                     }
                 }

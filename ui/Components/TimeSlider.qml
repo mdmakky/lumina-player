@@ -28,7 +28,7 @@ Slider {
         width: control.availableWidth
         height: control.active ? 6 : 3
         radius: height / 2
-        color: Theme.trackIdle
+        color: Theme.videoTrackIdle
         Behavior on height { NumberAnimation { duration: Theme.animationFast; easing.type: Easing.OutCubic } }
 
         Rectangle {
@@ -76,7 +76,7 @@ Slider {
                 width: 6
                 height: 6
                 radius: 3
-                color: Theme.primaryText
+                color: Theme.videoText
             }
         }
 
@@ -90,7 +90,7 @@ Slider {
                 y: -2
                 width: 2
                 height: parent.height + 4
-                color: Theme.secondaryText
+                color: Theme.videoTextSecondary
             }
         }
     }
@@ -101,7 +101,7 @@ Slider {
         width: control.active ? 14 : 0
         height: width
         radius: width / 2
-        color: Theme.primaryText
+        color: Theme.videoText
         border.width: 2
         border.color: Theme.accent
         Behavior on width { NumberAnimation { duration: Theme.animationFast; easing.type: Easing.OutCubic } }
