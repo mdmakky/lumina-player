@@ -10,6 +10,19 @@ QtObject {
     readonly property color elevated: "#22252B"
     readonly property color border: "#30333B"
 
+    // Interaction surfaces (hover/pressed overlays on chrome)
+    readonly property color surfaceHover: Qt.rgba(1, 1, 1, 0.08)
+    readonly property color surfacePressed: Qt.rgba(1, 1, 1, 0.14)
+    readonly property color focusRing: accentHover
+
+    // Overlay scrims (controls over video fade from transparent to these)
+    readonly property color scrimClear: Qt.rgba(0, 0, 0, 0)
+    readonly property color scrimSoft: Qt.rgba(0, 0, 0, 0.45)
+    readonly property color scrimStrong: Qt.rgba(0, 0, 0, 0.78)
+    readonly property color panelOverlay: Qt.rgba(16 / 255, 17 / 255, 20 / 255, 0.88)
+    readonly property color shadow: Qt.rgba(0, 0, 0, 0.5)
+    readonly property color trackIdle: Qt.rgba(1, 1, 1, 0.22)
+
     // Text
     readonly property color primaryText: "#F4F5F7"
     readonly property color secondaryText: "#A3A7B0"
@@ -37,6 +50,8 @@ QtObject {
     readonly property int spacingMedium: 10
     readonly property int spacingLarge: 16
     readonly property int radius: 8
+    readonly property int radiusSmall: 4
+    readonly property int radiusLarge: 14
     readonly property int controlHeight: 36
 
     // Motion (restrained; respects nothing special for now — reduced-motion
