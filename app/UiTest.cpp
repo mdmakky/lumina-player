@@ -281,6 +281,7 @@ void UiTest::run()
 
         // --- playlist (queue: argv file + short1 + short2, kept paused) ---
         auto *pl = p->playlist();
+        p->setShuffle(false); p->setRepeatMode(0); // persisted settings must not leak into the test
         p->openFiles({QUrl::fromLocalFile(files.first()), QUrl::fromLocalFile("/tmp/short1.mp4"),
                       QUrl::fromLocalFile("/tmp/short2.mp4")});
         waitFor([&] { return pl->rowCount() == 3 && !eng->idle(); }, 6000);
