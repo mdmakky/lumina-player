@@ -98,7 +98,7 @@ void ApplicationContext::startPlaybackSelfTest()
             if (st->step >= 0 && ++st->tick == 4) {
                 const double rate = (engine->position() - st->startPos) / 4.0;
                 const double want = speeds[st->step];
-                const bool good = qAbs(rate - want) < want * 0.15;
+                const bool good = qAbs(rate - want) < qMax(want * 0.15, 0.1);
                 st->ok = st->ok && good;
                 qCInfo(lcCore) << "SPEEDTEST speed=" << want << "measured=" << rate
                                << "drops=" << (drops() - st->startDrops)

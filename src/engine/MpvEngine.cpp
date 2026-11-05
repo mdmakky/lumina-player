@@ -57,6 +57,9 @@ MpvEngine::MpvEngine(QObject *parent)
     // mpv's default macOS output (avfoundation) queues ~4 s of audio, so speed
     // changes took seconds to be heard and A/V desynced (dropped frames at 0.5x).
     mpv_set_option_string(m_mpv, "ao", "coreaudio");
+    // coreaudio can't open the device for mono sources (-50 on the channel layout);
+    // allow only layouts it accepts so mono is upmixed while surround is kept.
+    mpv_set_option_string(m_mpv, "audio-channels", "stereo,5.1,7.1");
 #endif
 
     // Debug hook: LUMINA_MPV_OPTS="key=val,key=val" overrides options before init.
