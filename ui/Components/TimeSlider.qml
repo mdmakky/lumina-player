@@ -10,11 +10,11 @@ Slider {
     readonly property bool dragging: pressed
 
     from: 0
-    to: player.duration > 0 ? player.duration : 1
-    value: dragging ? preview : player.position
+    to: player.engine.duration > 0 ? player.engine.duration : 1
+    value: dragging ? preview : player.engine.position
     onMoved: preview = value
 
-    onPressedChanged: if (!pressed) player.seek(preview)
+    onPressedChanged: if (!pressed) player.engine.seek(preview)
 
     hoverEnabled: true
     implicitWidth: 200
@@ -33,6 +33,20 @@ Slider {
             height: parent.height
             radius: 2
             color: Theme.accent
+        }
+
+        // Chapter markers
+        Repeater {
+            model: player.engine.duration > 0 ? player.engine.chapters : []
+            delegate: Rectangle {
+                required property var modelData
+                visible: modelData.time > 0
+                x: modelData.time / control.to * parent.width - 1
+                y: -2
+                width: 2
+                height: parent.height + 4
+                color: Theme.secondaryText
+            }
         }
     }
 

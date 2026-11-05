@@ -33,6 +33,8 @@ class MpvEngine : public QObject
     Q_PROPERTY(QVariantList audioTracks READ audioTracks NOTIFY tracksChanged FINAL)
     Q_PROPERTY(QVariantList videoTracks READ videoTracks NOTIFY tracksChanged FINAL)
     Q_PROPERTY(QVariantList subtitleTracks READ subtitleTracks NOTIFY tracksChanged FINAL)
+    // [{title, time}] from the container; empty when the file has no chapters.
+    Q_PROPERTY(QVariantList chapters READ chapters NOTIFY chaptersChanged FINAL)
 
 public:
     explicit MpvEngine(QObject *parent = nullptr);
@@ -53,6 +55,7 @@ public:
     QVariantList audioTracks() const { return m_audioTracks; }
     QVariantList videoTracks() const { return m_videoTracks; }
     QVariantList subtitleTracks() const { return m_subtitleTracks; }
+    QVariantList chapters() const { return m_chapters; }
 
 public slots:
     void setPaused(bool paused);
@@ -91,6 +94,7 @@ signals:
     void mediaTitleChanged();
     void mediaErrorChanged();
     void tracksChanged();
+    void chaptersChanged();
 
 private:
     // Drains the mpv event queue; runs on the GUI thread via the wakeup callback.
@@ -124,4 +128,5 @@ private:
     QVariantList m_audioTracks;
     QVariantList m_videoTracks;
     QVariantList m_subtitleTracks;
+    QVariantList m_chapters;
 };

@@ -43,6 +43,18 @@ ApplicationWindow {
         hideTimer.restart()
     }
 
+    // Jump to the next/previous chapter relative to the playhead.
+    function stepChapter(dir) {
+        const ch = player.engine.chapters
+        const pos = player.engine.position
+        let cur = -1
+        for (let i = 0; i < ch.length; ++i)
+            if (ch[i].time <= pos + 0.5) cur = i
+        const target = dir > 0 ? cur + 1 : (pos - ch[Math.max(cur, 0)].time > 3 ? cur : cur - 1)
+        if (ch.length > 0 && target >= 0 && target < ch.length)
+            player.engine.seekChapter(target)
+    }
+
     function toggleFullscreen() {
         if (visibility === Window.FullScreen)
             showNormal()
@@ -206,6 +218,12 @@ ApplicationWindow {
                 Item { Layout.fillWidth: true; Layout.preferredHeight: 1 } // flexible space
 
                 IconButton {
+                    label: qsTr("Chapters")
+                    visible: player.hasMedia && player.engine.chapters.length > 0
+                    onClicked: chapterMenu.popup(this, 0, -chapterMenu.height - 8)
+                }
+
+                IconButton {
                     label: player.engine.speed.toFixed(2).replace(/0$/, "").replace(/\.$/, "") + "×"
                     visible: player.hasMedia
                     onClicked: speedMenu.popup(this, 0, -speedMenu.height - 8)
@@ -287,6 +305,24 @@ ApplicationWindow {
         }
     }
 
+    Menu {
+        id: chapterMenu
+        onAboutToShow: root.speedMenuOpen = true
+        onClosed: root.speedMenuOpen = false
+
+        Repeater {
+            model: player.engine.chapters
+            delegate: MenuItem {
+                required property var modelData
+                required property int index
+                text: (modelData.title || qsTr("Chapter %1").arg(index + 1))
+                      + "  " + timefmt.formatDuration(modelData.time)
+                font.family: Theme.fontFamily
+                onTriggered: player.engine.seekChapter(index)
+            }
+        }
+    }
+
     // --- Idle auto-hide ----------------------------------------------------
     Timer {
         id: hideTimer
@@ -354,6 +390,8 @@ ApplicationWindow {
     Shortcut { sequence: "Z";            enabled: player.hasMedia; onActivated: player.engine.setSpeed(1.0) }
     Shortcut { sequence: "Period";       enabled: player.hasMedia; onActivated: player.engine.stepFrame(1) }
     Shortcut { sequence: "Comma";        enabled: player.hasMedia; onActivated: player.engine.stepFrame(-1) }
+    Shortcut { sequence: "PgDown";       enabled: player.hasMedia; onActivated: root.stepChapter(1) }
+    Shortcut { sequence: "PgUp";         enabled: player.hasMedia; onActivated: root.stepChapter(-1) }
     Shortcut { sequence: "Ctrl+O";       onActivated: fileDialog.open() }
     Shortcut { sequence: "Esc";          enabled: root.visibility === Window.FullScreen; onActivated: root.showNormal() }
 }

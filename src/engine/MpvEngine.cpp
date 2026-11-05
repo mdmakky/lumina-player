@@ -55,7 +55,7 @@ MpvEngine::MpvEngine(QObject *parent)
     // Observe the properties the UI needs.
     const char *properties[] = {
         "time-pos", "duration", "pause", "idle-active", "media-title",
-        "volume", "mute", "speed", "track-list",
+        "volume", "mute", "speed", "track-list", "chapter-list",
     };
     for (const char *name : properties) {
         mpv_format format = MPV_FORMAT_DOUBLE;
@@ -64,7 +64,8 @@ MpvEngine::MpvEngine(QObject *parent)
             format = MPV_FORMAT_FLAG;
         } else if (qstrcmp(name, "media-title") == 0) {
             format = MPV_FORMAT_STRING;
-        } else if (qstrcmp(name, "track-list") == 0) {
+        } else if (qstrcmp(name, "track-list") == 0
+                   || qstrcmp(name, "chapter-list") == 0) {
             format = MPV_FORMAT_NODE;
         }
         mpv_observe_property(m_mpv, 0, name, format);
@@ -129,6 +130,9 @@ void MpvEngine::processEvents()
                 emit speedChanged();
             } else if (name == QLatin1String("track-list") && prop->format == MPV_FORMAT_NODE) {
                 refreshTrackLists();
+            } else if (name == QLatin1String("chapter-list") && prop->format == MPV_FORMAT_NODE) {
+                m_chapters = nodeToVariant(*static_cast<mpv_node *>(prop->data)).toList();
+                emit chaptersChanged();
             }
             break;
         }

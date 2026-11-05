@@ -58,6 +58,7 @@ void ApplicationContext::startPlaybackSelfTest()
                                  << " dur=" << QString::number(engine->duration(), 'f', 2)
                                  << " paused=" << engine->paused()
                                  << " idle=" << engine->idle()
+                                 << " chapters=" << engine->chapters().size()
                                  << " error=" << engine->mediaError();
     };
 
