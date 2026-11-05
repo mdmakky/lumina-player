@@ -341,7 +341,7 @@
     <message>
         <location filename="../ui/Main.qml" line="877"/>
         <source>Bookmarks… (B to add)</source>
-        <translation>বুকমার্ক… (যোগ করতে B)</translation>
+        <translation>বুকমার্ক… (B)</translation>
     </message>
     <message>
         <location filename="../ui/Main.qml" line="883"/>
