@@ -57,6 +57,7 @@ qt_add_qml_module(lumina
         ui/Theme/Theme.qml
         ui/Components/IconButton.qml
         ui/Components/TimeSlider.qml
+        ui/Components/VolumeSlider.qml
     RESOURCES
         resources/icons/play.svg
         resources/icons/pause.svg
@@ -66,6 +67,10 @@ qt_add_qml_module(lumina
         resources/icons/fullscreen.svg
         resources/icons/fullscreen-exit.svg
         resources/icons/folder-open.svg
+        resources/icons/skip-next.svg
+        resources/icons/skip-previous.svg
+        resources/icons/playlist.svg
+        resources/icons/chapters.svg
 )
 
 target_include_directories(lumina PRIVATE
