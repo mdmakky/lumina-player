@@ -11,6 +11,17 @@
 #include <vector>
 
 namespace {
+// Maps the user-facing mode to an mpv hwdec value. On Linux "auto-safe" becomes
+// a ladder: VAAPI (AMD/Intel), then NVDEC, then mpv's own safe pick, with
+// software decode as the last resort.
+QByteArray hwdecValue(const QString &mode)
+{
+#ifdef Q_OS_LINUX
+    if (mode == QLatin1String("auto-safe"))
+        return "vaapi,nvdec,auto-safe";
+#endif
+    return mode.toUtf8();
+}
 } // namespace
 
 MpvEngine::MpvEngine(QObject *parent)
@@ -38,7 +49,7 @@ MpvEngine::MpvEngine(QObject *parent)
     // Playback behaviour.
     mpv_set_option_string(m_mpv, "idle", "yes");
     mpv_set_option_string(m_mpv, "keep-open", "yes");
-    mpv_set_option_string(m_mpv, "hwdec", "auto-safe");
+    mpv_set_option_string(m_mpv, "hwdec", hwdecValue(QStringLiteral("auto-safe")).constData());
     mpv_set_option_string(m_mpv, "volume-max", "150");
     mpv_set_option_string(m_mpv, "audio-pitch-correction", "yes");
     mpv_set_option_string(m_mpv, "sub-auto", "fuzzy"); // auto-load external subs next to the file
@@ -52,6 +63,13 @@ MpvEngine::MpvEngine(QObject *parent)
     mpv_set_option_string(m_mpv, "demuxer-readahead-secs", "30");
     mpv_set_option_string(m_mpv, "vd-lavc-dr", "yes");
     mpv_set_option_string(m_mpv, "video-sync", "audio");
+
+#ifdef Q_OS_LINUX
+    // Hardware decode for the common codecs, and drop to software decode on the
+    // first hw failure instead of stalling (the "VLC freeze" failure mode).
+    mpv_set_option_string(m_mpv, "hwdec-codecs", "h264,hevc,vp9,av1,vp8,vc1");
+    mpv_set_option_string(m_mpv, "vd-lavc-software-fallback", "yes");
+#endif
 
 #ifdef Q_OS_MACOS
     // mpv's default macOS output (avfoundation) queues ~4 s of audio, so speed
@@ -78,6 +96,19 @@ MpvEngine::MpvEngine(QObject *parent)
     }
 
     mpv_set_wakeup_callback(m_mpv, &MpvEngine::onWakeup, this);
+
+    // LUMINA_SEEK_COALESCE=0 disables coalescing (A/B benchmarking only).
+    m_coalesceSeeks = qgetenv("LUMINA_SEEK_COALESCE") != "0";
+    m_seekWatchdog.setSingleShot(true);
+    m_seekWatchdog.setInterval(3000);
+    connect(&m_seekWatchdog, &QTimer::timeout, this, [this]() {
+        qCWarning(lcEngine) << "seek: no playback-restart within 3 s, releasing";
+        m_seekInFlight = false;
+        if (m_hasPending) {
+            m_hasPending = false;
+            issueSeek(m_pendingTarget, m_pendingExact);
+        }
+    });
 
     m_statsTimer.setInterval(500);
     connect(&m_statsTimer, &QTimer::timeout, this, &MpvEngine::refreshStats);
@@ -182,6 +213,15 @@ void MpvEngine::processEvents()
             }
             break;
         }
+        case MPV_EVENT_PLAYBACK_RESTART:
+            m_seekInFlight = false;
+            m_seekWatchdog.stop();
+            emit seekFinished();
+            if (m_hasPending) {
+                m_hasPending = false;
+                issueSeek(m_pendingTarget, m_pendingExact);
+            }
+            break;
         case MPV_EVENT_END_FILE: {
             auto *endFile = static_cast<mpv_event_end_file *>(event->data);
             qCInfo(lcEngine) << "end-file reason" << endFile->reason << "pos" << m_position
@@ -391,19 +431,45 @@ void MpvEngine::setSpeed(double speed)
     command({QStringLiteral("set"), QStringLiteral("speed"), QString::number(speed, 'f', 2)});
 }
 
+void MpvEngine::issueSeek(double seconds, bool accurate)
+{
+    m_seekInFlight = true;
+    m_lastTarget = seconds;
+    m_seekWatchdog.start();
+    if (!command({QStringLiteral("seek"), QString::number(seconds, 'f', 3),
+                  accurate ? QStringLiteral("absolute+exact") : QStringLiteral("absolute+keyframes")})) {
+        m_seekInFlight = false;
+        m_seekWatchdog.stop();
+    }
+}
+
 void MpvEngine::seek(double seconds, bool accurate)
 {
     if (m_idle || !m_mpv)
         return;
-    command({QStringLiteral("seek"), QString::number(seconds, 'f', 3),
-             accurate ? QStringLiteral("absolute+exact") : QStringLiteral("absolute")});
+    if (m_coalesceSeeks && m_seekInFlight) {
+        // Drop the previous queued target; only the latest matters.
+        m_hasPending = true;
+        m_pendingTarget = seconds;
+        m_pendingExact = accurate;
+        return;
+    }
+    issueSeek(seconds, accurate);
+}
+
+void MpvEngine::seekPreview(double seconds)
+{
+    seek(seconds, false);
 }
 
 void MpvEngine::seekRelative(double seconds)
 {
     if (m_idle || !m_mpv)
         return;
-    command({QStringLiteral("seek"), QString::number(seconds, 'f', 3), QStringLiteral("relative")});
+    // Resolve against the latest target so held arrow keys accumulate instead of
+    // each starting from a stale position.
+    const double base = m_hasPending ? m_pendingTarget : (m_seekInFlight ? m_lastTarget : m_position);
+    seek(qMax(0.0, base + seconds), true);
 }
 
 void MpvEngine::stepFrame(int direction)
@@ -549,7 +615,7 @@ void MpvEngine::setHwdec(const QString &mode)
     if (!m_mpv || (mode != QLatin1String("auto-safe") && mode != QLatin1String("no")
                    && mode != QLatin1String("auto")))
         return;
-    const QByteArray v = mode.toUtf8();
+    const QByteArray v = hwdecValue(mode);
     mpv_set_property_string(m_mpv, "hwdec", v.constData());
 }
 

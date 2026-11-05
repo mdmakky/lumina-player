@@ -2,8 +2,8 @@ import QtQuick
 import QtQuick.Controls.Basic
 import Lumina.Player
 
-// Seek timeline. While dragging, shows a preview position and only seeks once
-// released — prevents seek flooding and keeps mpv responsive.
+// Seek timeline. While dragging, issues coalesced keyframe seeks for a live
+// preview, then one exact seek on release.
 Slider {
     id: control
 
@@ -14,7 +14,7 @@ Slider {
     from: 0
     to: player.engine.duration > 0 ? player.engine.duration : 1
     value: dragging ? preview : player.engine.position
-    onMoved: preview = value
+    onMoved: { preview = value; player.engine.seekPreview(value) }
 
     onPressedChanged: if (!pressed) player.engine.seek(preview)
 

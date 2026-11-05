@@ -107,9 +107,14 @@ public:
     Q_INVOKABLE void togglePlayPause();
     Q_INVOKABLE void stop();
     // Absolute seek in seconds (accurate, decodes to the exact target).
+    // Seeks are coalesced: while one is in flight only the latest target is kept.
     Q_INVOKABLE void seek(double seconds, bool accurate = true);
-    // Relative seek; negative values seek backwards.
+    // Keyframe-only seek for timeline scrubbing (fast); finish with seek() on release.
+    Q_INVOKABLE void seekPreview(double seconds);
+    // Relative seek; negative values seek backwards. Accumulates while held.
     Q_INVOKABLE void seekRelative(double seconds);
+    // True while a seek is in flight or queued.
+    bool seeking() const { return m_seekInFlight || m_hasPending; }
     // Step one frame; dir < 0 steps backwards (where mpv supports it).
     Q_INVOKABLE void stepFrame(int direction);
     Q_INVOKABLE void cycleAudioTrack();
@@ -163,6 +168,8 @@ signals:
     void statsEnabledChanged();
     void loopChanged();
     void videoOptionsChanged();
+    // mpv finished a seek (MPV_EVENT_PLAYBACK_RESTART); also fires after file load.
+    void seekFinished();
 
 private:
     // Drains the mpv event queue; runs on the GUI thread via the wakeup callback.
@@ -176,6 +183,7 @@ private:
 
     // Sends a command array; reports failures through mediaError.
     bool command(const QStringList &args);
+    void issueSeek(double seconds, bool accurate);
     void setMediaError(const QString &message);
     void checkEndOfFile();
 
@@ -186,6 +194,15 @@ private:
     QVariant getProp(const char *name) const;
 
     mpv_handle *m_mpv = nullptr;
+
+    // Seek coalescing state.
+    bool m_coalesceSeeks = true;
+    bool m_seekInFlight = false;
+    bool m_hasPending = false;
+    double m_pendingTarget = 0.0;
+    bool m_pendingExact = true;
+    double m_lastTarget = 0.0;
+    QTimer m_seekWatchdog; // clears a stuck in-flight flag if no restart arrives
 
     // Cached state mirrored from observed mpv properties.
     bool m_paused = true;
