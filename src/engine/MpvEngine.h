@@ -91,6 +91,8 @@ signals:
     void mediaTitleChanged();
     void mediaErrorChanged();
     void tracksChanged();
+    // Emitted when a file played to its natural end (not stopped/replaced/errored).
+    void endOfFile();
 
 private:
     // Drains the mpv event queue; runs on the GUI thread via the wakeup callback.

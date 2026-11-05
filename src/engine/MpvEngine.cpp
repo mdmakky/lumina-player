@@ -134,6 +134,8 @@ void MpvEngine::processEvents()
         }
         case MPV_EVENT_END_FILE: {
             auto *endFile = static_cast<mpv_event_end_file *>(event->data);
+            if (endFile->reason == MPV_END_FILE_REASON_EOF)
+                emit endOfFile();
             if (endFile->reason == MPV_END_FILE_REASON_ERROR && endFile->error < 0) {
                 setMediaError(QStringLiteral("Playback failed: %1").arg(mpv_error_string(endFile->error)));
             }
