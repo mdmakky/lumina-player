@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls.Basic
 import QtQuick.Layouts
+import QtQuick.Dialogs
 import Lumina.Player
 
 // Right-side play queue. Talks to the controller only (player.playlist model,
@@ -31,6 +32,17 @@ Rectangle {
                 Layout.fillWidth: true
             }
             IconButton {
+                objectName: "playlistSaveButton"
+                label: qsTr("Save")
+                onClicked: saveDialog.open()
+            }
+            IconButton {
+                objectName: "playlistLoadButton"
+                label: qsTr("Load")
+                onClicked: loadDialog.open()
+            }
+            IconButton {
+                objectName: "playlistClearButton"
                 label: qsTr("Clear")
                 onClicked: player.playlist.clear()
             }
@@ -38,6 +50,7 @@ Rectangle {
 
         TextField {
             id: search
+            objectName: "playlistSearch"
             Layout.fillWidth: true
             placeholderText: qsTr("Search")
             color: Theme.primaryText
@@ -62,6 +75,7 @@ Rectangle {
 
             delegate: Rectangle {
                 id: row
+                objectName: "playlistRow_" + index
                 required property int index
                 required property string title
                 required property string path
@@ -97,18 +111,21 @@ Rectangle {
                         font.weight: row.current ? Font.DemiBold : Font.Normal
                     }
                     IconButton {
+                        objectName: "rowUp_" + row.index
                         implicitWidth: 28
                         label: "▲"
                         enabled: !panel.filtering && row.index > 0
                         onClicked: player.playlist.move(row.index, row.index - 1)
                     }
                     IconButton {
+                        objectName: "rowDown_" + row.index
                         implicitWidth: 28
                         label: "▼"
                         enabled: !panel.filtering && row.index < player.playlist.count - 1
                         onClicked: player.playlist.move(row.index, row.index + 1)
                     }
                     IconButton {
+                        objectName: "rowRemove_" + row.index
                         implicitWidth: 28
                         label: "✕"
                         onClicked: player.playlist.remove(row.index)
@@ -126,5 +143,21 @@ Rectangle {
             font.family: Theme.fontFamily
             font.pixelSize: Theme.fontSizeSmall
         }
+    }
+
+    FileDialog {
+        id: saveDialog
+        title: qsTr("Save Playlist")
+        fileMode: FileDialog.SaveFile
+        nameFilters: [qsTr("Playlists (*.m3u *.m3u8)")]
+        defaultSuffix: "m3u8"
+        onAccepted: player.savePlaylist(selectedFile)
+    }
+    FileDialog {
+        id: loadDialog
+        title: qsTr("Load Playlist")
+        fileMode: FileDialog.OpenFile
+        nameFilters: [qsTr("Playlists (*.m3u *.m3u8)")]
+        onAccepted: player.loadPlaylist(selectedFile)
     }
 }

@@ -110,6 +110,7 @@ ApplicationWindow {
     }
 
     StatsOverlay {
+        objectName: "statsOverlay"
         engine: player.engine
         anchors.left: parent.left
         anchors.top: parent.top
@@ -151,6 +152,7 @@ ApplicationWindow {
             }
 
             Button {
+                objectName: "homeOpenButton"
                 Layout.alignment: Qt.AlignHCenter
                 text: qsTr("Open File")
                 font.family: Theme.fontFamily
@@ -187,6 +189,8 @@ ApplicationWindow {
                 model: player.recentFiles.slice(0, 5)
                 delegate: Rectangle {
                     id: recentRow
+                    objectName: "recentRow_" + index
+                    required property int index
                     required property string modelData
                     Layout.fillWidth: true
                     implicitHeight: 40
@@ -274,11 +278,13 @@ ApplicationWindow {
                 font.weight: Font.DemiBold
             }
             IconButton {
+                objectName: "openButton"
                 iconSource: root.iconBase + "folder-open.svg"
                 tip: qsTr("Open file (Ctrl+O)")
                 onClicked: fileDialog.open()
             }
             IconButton {
+                objectName: "playlistButton"
                 iconSource: root.iconBase + "playlist.svg"
                 tip: qsTr("Playlist (P)")
                 onClicked: root.playlistOpen = !root.playlistOpen
@@ -289,6 +295,7 @@ ApplicationWindow {
     // --- Playlist panel ---------------------------------------------------
     PlaylistPanel {
         id: playlistPanel
+        objectName: "playlistPanel"
         visible: root.playlistOpen
         anchors.top: parent.top
         anchors.topMargin: 56
@@ -304,6 +311,7 @@ ApplicationWindow {
     // --- Bottom controls (floating over the video) -------------------------
     Rectangle {
         id: controlsBar
+        objectName: "controlsBar"
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.bottom: parent.bottom
@@ -340,6 +348,7 @@ ApplicationWindow {
                 }
                 TimeSlider {
                     id: timeline
+                    objectName: "timeline"
                     Layout.fillWidth: true
                 }
                 Text {
@@ -360,11 +369,13 @@ ApplicationWindow {
                     Layout.preferredWidth: 220
                     spacing: Theme.spacingSmall
                     IconButton {
+                        objectName: "muteButton"
                         iconSource: root.iconBase + (player.engine.muted ? "volume-mute.svg" : "volume-high.svg")
                         tip: qsTr("Mute (M)")
                         onClicked: player.engine.setMuted(!player.engine.muted)
                     }
                     VolumeSlider {
+                        objectName: "volumeSlider"
                         Layout.alignment: Qt.AlignVCenter
                     }
                 }
@@ -373,6 +384,7 @@ ApplicationWindow {
 
                 // Center: transport
                 IconButton {
+                    objectName: "prevButton"
                     iconSource: root.iconBase + "skip-previous.svg"
                     tip: qsTr("Previous (Ctrl+Left)")
                     enabled: player.playlist.count > 1
@@ -380,6 +392,7 @@ ApplicationWindow {
                 }
                 Button {
                     id: playButton
+                    objectName: "playButton"
                     implicitWidth: 48
                     implicitHeight: 48
                     onClicked: player.engine.togglePlayPause()
@@ -400,6 +413,7 @@ ApplicationWindow {
                     }
                 }
                 IconButton {
+                    objectName: "nextButton"
                     iconSource: root.iconBase + "skip-next.svg"
                     tip: qsTr("Next (Ctrl+Right)")
                     enabled: player.playlist.count > 1
@@ -415,6 +429,7 @@ ApplicationWindow {
                     spacing: Theme.spacingSmall
 
                     IconButton {
+                        objectName: "fullscreenButton"
                         iconSource: root.visibility === Window.FullScreen
                                     ? root.iconBase + "fullscreen-exit.svg"
                                     : root.iconBase + "fullscreen.svg"
@@ -422,17 +437,20 @@ ApplicationWindow {
                         onClicked: root.toggleFullscreen()
                     }
                     IconButton {
+                        objectName: "tracksButton"
                         iconSource: root.iconBase + "subtitles.svg"
                         tip: qsTr("Audio & subtitles")
                         onClicked: trackMenu.popup(this, 0, -trackMenu.height - 8)
                     }
                     IconButton {
+                        objectName: "chaptersButton"
                         iconSource: root.iconBase + "chapters.svg"
                         tip: qsTr("Chapters (PgUp/PgDn)")
                         visible: player.engine.chapters.length > 0
                         onClicked: chapterMenu.popup(this, 0, -chapterMenu.height - 8)
                     }
                     IconButton {
+                        objectName: "speedButton"
                         label: player.engine.speed.toFixed(2).replace(/0$/, "").replace(/\.$/, "") + "×"
                         tip: qsTr("Speed (X / C / Z)")
                         onClicked: speedMenu.popup(this, 0, -speedMenu.height - 8)
@@ -457,10 +475,12 @@ ApplicationWindow {
 
     ThemedMenu {
         id: speedMenu
+        objectName: "speedMenu"
         Repeater {
             model: [0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0]
             delegate: ThemedMenuItem {
                 required property var modelData
+                objectName: "speedItem_" + modelData
                 text: modelData.toFixed(2).replace(/0$/, "").replace(/\.$/, "") + "×"
                 checkable: true
                 checked: Math.abs(player.engine.speed - modelData) < 0.001
@@ -471,11 +491,13 @@ ApplicationWindow {
 
     ThemedMenu {
         id: chapterMenu
+        objectName: "chapterMenu"
         Repeater {
             model: player.engine.chapters
             delegate: ThemedMenuItem {
                 required property var modelData
                 required property int index
+                objectName: "chapterItem_" + index
                 text: (modelData.title || qsTr("Chapter %1").arg(index + 1))
                       + "   " + timefmt.formatDuration(modelData.time)
                 onTriggered: player.engine.seekChapter(index)
@@ -485,6 +507,7 @@ ApplicationWindow {
 
     TrackMenu {
         id: trackMenu
+        objectName: "trackMenu"
         engine: player.engine
         onAboutToShow: root.menuOpen = true
         onClosed: root.menuOpen = false
@@ -540,8 +563,8 @@ ApplicationWindow {
     Shortcut { sequence: "X";            enabled: player.hasMedia; onActivated: player.engine.setSpeed(Math.max(0.25, player.engine.speed - 0.25)) }
     Shortcut { sequence: "C";            enabled: player.hasMedia; onActivated: player.engine.setSpeed(Math.min(2.0, player.engine.speed + 0.25)) }
     Shortcut { sequence: "Z";            enabled: player.hasMedia; onActivated: player.engine.setSpeed(1.0) }
-    Shortcut { sequence: "Period";       enabled: player.hasMedia; onActivated: player.engine.stepFrame(1) }
-    Shortcut { sequence: "Comma";        enabled: player.hasMedia; onActivated: player.engine.stepFrame(-1) }
+    Shortcut { sequence: ".";            enabled: player.hasMedia; onActivated: player.engine.stepFrame(1) }
+    Shortcut { sequence: ",";            enabled: player.hasMedia; onActivated: player.engine.stepFrame(-1) }
     Shortcut { sequence: "G";            enabled: player.hasMedia; onActivated: player.engine.setSubtitleDelay(player.engine.subtitleDelay - 0.1) }
     Shortcut { sequence: "H";            enabled: player.hasMedia; onActivated: player.engine.setSubtitleDelay(player.engine.subtitleDelay + 0.1) }
     Shortcut { sequence: "PgDown";       enabled: player.hasMedia; onActivated: root.stepChapter(1) }

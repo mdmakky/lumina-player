@@ -52,6 +52,7 @@ Menu {
         model: menu.engine.audioTracks
         delegate: Entry {
             required property var modelData
+            objectName: "audioItem_" + modelData.id
             text: menu.trackLabel(modelData)
             checkable: true
             checked: modelData.id === menu.engine.audioTrackId
@@ -65,6 +66,7 @@ Menu {
 
     Heading { text: qsTr("SUBTITLES") }
     Entry {
+        objectName: "subItem_off"
         text: qsTr("Off")
         checkable: true
         checked: menu.engine.subtitleTrackId === 0
@@ -74,6 +76,7 @@ Menu {
         model: menu.engine.subtitleTracks
         delegate: Entry {
             required property var modelData
+            objectName: "subItem_" + modelData.id
             text: menu.trackLabel(modelData)
             checkable: true
             checked: modelData.id === menu.engine.subtitleTrackId

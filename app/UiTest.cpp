@@ -4,6 +4,9 @@
 #include "utilities/Logger.h"
 
 #include <QDir>
+#include <QFile>
+#include <QFileInfo>
+#include "core/PlaylistModel.h"
 #include <QGuiApplication>
 #include <QImage>
 #include <QQuickItem>
@@ -96,6 +99,20 @@ void UiTest::run()
         return r;
     };
 
+    auto hasFs = [&] { return w->visibility() == QWindow::FullScreen; };
+    auto fsCheck = [&](const QString &name, bool wantFs) {
+        result(name, waitFor([&] { return hasFs() == wantFs; }, 6000));
+        QTest::qWait(1200); // macOS fullscreen animation
+    };
+    auto vis = [&](const char *n) { auto *it = find(n); return it && it->isVisible(); };
+    auto pause = [&] { eng->pause(); waitFor([&] { return eng->paused(); }); };
+    auto shownRows = [&] {
+        int shown = 0;
+        for (int i = 0; i < 3; ++i)
+            if (auto *r = find(("playlistRow_" + std::to_string(i)).c_str()); r && r->height() > 0) ++shown;
+        return shown;
+    };
+
     // --- home / empty state ---
     shot("home");
     if (doTest) {
@@ -113,13 +130,14 @@ void UiTest::run()
     }
     QTest::qWait(2000);
     shot("playing");
-    eng->pause(); QTest::qWait(300);
+    pause();
     shot("paused");
     eng->play();
     waitFor([&] { return !eng->paused(); });
 
     if (doTest) {
         const double dur = eng->duration();
+        const bool hasChapters = !eng->chapters().isEmpty();
         // play button
         bool was = eng->paused();
         click("playButton");
@@ -152,45 +170,72 @@ void UiTest::run()
         // speed menu
         if (click("speedButton")) {
             QTest::qWait(400);
+            shot("speedmenu");
             if (auto *it = find("speedItem_2")) clickAt(center(it));
             result("speed menu item sets 2x", waitFor([&] { return qAbs(eng->speed() - 2.0) < 0.01; }),
                    QString("speed=%1").arg(eng->speed()));
         }
         key(Qt::Key_Z);
         result("Z resets speed", qAbs(eng->speed() - 1.0) < 0.01);
-        // fullscreen button
+        // chapters menu (button only exists for files with chapters)
+        result("chapters button visibility matches chapter list", vis("chaptersButton") == hasChapters);
+        if (hasChapters) {
+            eng->seek(0); waitFor([&] { return eng->position() < 1.0; });
+            click("chaptersButton"); QTest::qWait(400);
+            shot("chaptermenu");
+            if (auto *it = find("chapterItem_1")) clickAt(center(it));
+            result("chapter menu item seeks", waitFor([&] { return eng->position() > 1.0; }), QString::number(eng->position()));
+            eng->seek(0); waitFor([&] { return eng->position() < 1.0; });
+            key(Qt::Key_PageDown);
+            result("PgDn next chapter", waitFor([&] { return eng->position() > 1.0; }), QString::number(eng->position()));
+            const double at = eng->position();
+            key(Qt::Key_PageUp);
+            result("PgUp previous chapter", waitFor([&] { return eng->position() < at - 0.5; }),
+                   QString("%1->%2").arg(at).arg(eng->position()));
+        }
+        // tracks menu
+        if (click("tracksButton")) {
+            QTest::qWait(400);
+            shot("trackmenu");
+            if (eng->audioTracks().size() > 1) {
+                const int a0 = eng->audioTrackId();
+                auto *it = find(a0 == 2 ? "audioItem_1" : "audioItem_2");
+                if (it) clickAt(center(it));
+                result("tracks menu switches audio", waitFor([&] { return eng->audioTrackId() != a0; }),
+                       QString("%1->%2").arg(a0).arg(eng->audioTrackId()));
+            } else {
+                result("tracks menu has subtitle Off entry", vis("subItem_off"));
+                key(Qt::Key_Escape);
+            }
+            QTest::qWait(300);
+        }
+        // fullscreen button + double click + Esc
         click("fullscreenButton");
-        result("fullscreen button enters", waitFor([&] { return w->visibility() == QWindow::FullScreen; }, 6000));
-        QTest::qWait(1200);
+        fsCheck("fullscreen button enters", true);
         click("fullscreenButton");
-        result("fullscreen button exits", waitFor([&] { return w->visibility() != QWindow::FullScreen; }, 6000));
-        QTest::qWait(1200);
-        // double-click on video toggles fullscreen
+        fsCheck("fullscreen button exits", false);
         QTest::mouseMove(w, QPoint(w->width() / 2, w->height() / 3)); QTest::qWait(60);
         QTest::mouseDClick(w, Qt::LeftButton, {}, QPoint(w->width() / 2, w->height() / 3), 60);
-        result("double-click video enters fullscreen", waitFor([&] { return w->visibility() == QWindow::FullScreen; }, 6000));
-        QTest::qWait(1200);
+        fsCheck("double-click video enters fullscreen", true);
         key(Qt::Key_Escape);
-        result("Esc exits fullscreen", waitFor([&] { return w->visibility() != QWindow::FullScreen; }, 6000));
-        QTest::qWait(1200);
-        // open button exists (clicking would block on a native dialog)
-        auto *ob = find("openButton");
-        result("open button present", ob && ob->isVisible() && ob->isEnabled());
+        fsCheck("Esc exits fullscreen", false);
+        {
+            auto *ob = find("openButton"); // clicking would open a native dialog
+            result("open button present", ob && ob->isVisible() && ob->isEnabled());
+        }
         // keyboard shortcuts
         was = eng->paused();
         key(Qt::Key_Space);
-        result("Space toggles pause", eng->paused() != was);
+        result("Space toggles pause", waitFor([&] { return eng->paused() != was; }));
         key(Qt::Key_Space);
         was = eng->muted();
         key(Qt::Key_M);
         result("M toggles mute", eng->muted() != was);
         key(Qt::Key_M);
         key(Qt::Key_F);
-        result("F enters fullscreen", waitFor([&] { return w->visibility() == QWindow::FullScreen; }, 6000));
-        QTest::qWait(1200);
+        fsCheck("F enters fullscreen", true);
         key(Qt::Key_F);
-        result("F exits fullscreen", waitFor([&] { return w->visibility() != QWindow::FullScreen; }, 6000));
-        QTest::qWait(1200);
+        fsCheck("F exits fullscreen", false);
         eng->seek(10); waitFor([&] { return qAbs(eng->position() - 10) < 1; });
         double p0 = eng->position();
         key(Qt::Key_Right);
@@ -207,26 +252,107 @@ void UiTest::run()
         result("C speeds up", qAbs(eng->speed() - 1.25) < 0.01);
         key(Qt::Key_X);
         result("X slows down", qAbs(eng->speed() - 1.0) < 0.01);
-        eng->pause(); waitFor([&] { return eng->paused(); }); QTest::qWait(300);
+        const double sd = eng->subtitleDelay();
+        key(Qt::Key_H);
+        result("H raises subtitle delay", qAbs(eng->subtitleDelay() - (sd + 0.1)) < 0.01, QString::number(eng->subtitleDelay()));
+        key(Qt::Key_G);
+        result("G lowers subtitle delay", qAbs(eng->subtitleDelay() - sd) < 0.01);
+        pause();
+        QTest::qWait(300);
         p0 = eng->position();
         key(Qt::Key_Period);
         result("Period steps frame", waitFor([&] { return eng->position() != p0; }), QString("%1->%2").arg(p0).arg(eng->position()));
+        p0 = eng->position();
+        key(Qt::Key_Comma);
+        result("Comma steps back", waitFor([&] { return eng->position() < p0; }), QString("%1->%2").arg(p0).arg(eng->position()));
         eng->play();
         if (eng->audioTracks().size() > 1) {
             const QString a0 = aid();
             key(Qt::Key_A);
             result("A cycles audio track", waitFor([&] { return aid() != a0; }), a0 + "->" + aid());
         }
-        // engine-level chapter seek (no chapters UI in this build)
-        if (files.first().contains("chapters")) {
-            eng->seek(0); waitFor([&] { return eng->position() < 1.0; });
-            eng->seekChapter(1);
-            result("engine seekChapter(1)", waitFor([&] { return eng->position() > 1.0; }), QString::number(eng->position()));
+        // stats overlay
+        key(Qt::Key_I);
+        QTest::qWait(800);
+        result("I shows stats overlay", eng->statsEnabled() && vis("statsOverlay"));
+        shot("stats");
+        key(Qt::Key_I);
+        result("I hides stats overlay", waitFor([&] { return !eng->statsEnabled() && !vis("statsOverlay"); }));
+
+        // --- playlist (queue: argv file + short1 + short2, kept paused) ---
+        auto *pl = p->playlist();
+        p->openFiles({QUrl::fromLocalFile(files.first()), QUrl::fromLocalFile("/tmp/short1.mp4"),
+                      QUrl::fromLocalFile("/tmp/short2.mp4")});
+        waitFor([&] { return pl->rowCount() == 3 && !eng->idle(); }, 6000);
+        pause();
+        result("queue has 3 entries", pl->rowCount() == 3, QString::number(pl->rowCount()));
+        click("nextButton");
+        result("next button advances", waitFor([&] { return pl->currentIndex() == 1; }), QString::number(pl->currentIndex()));
+        click("prevButton");
+        result("prev button goes back", waitFor([&] { return pl->currentIndex() == 0; }), QString::number(pl->currentIndex()));
+        key(Qt::Key_Right, Qt::ControlModifier);
+        result("Ctrl+Right next", waitFor([&] { return pl->currentIndex() == 1; }), QString::number(pl->currentIndex()));
+        key(Qt::Key_Left, Qt::ControlModifier);
+        result("Ctrl+Left previous", waitFor([&] { return pl->currentIndex() == 0; }), QString::number(pl->currentIndex()));
+        pause();
+        key(Qt::Key_P);
+        result("P opens playlist panel", waitFor([&] { return vis("playlistPanel"); }));
+        shot("playlist");
+        key(Qt::Key_P);
+        result("P closes playlist panel", waitFor([&] { return !vis("playlistPanel"); }));
+        click("playlistButton");
+        result("playlist button opens panel", waitFor([&] { return vis("playlistPanel"); }));
+        QTest::qWait(300);
+        if (auto *pn = find("playlistPanel"); pn && find("controlsBar")) {
+            const double panelBottom = pn->mapToScene(QPointF(0, pn->height())).y();
+            const double barTop = find("controlsBar")->mapToScene(QPointF(0, 0)).y();
+            result("playlist panel clear of controls bar", panelBottom <= barTop, QString("%1 <= %2").arg(panelBottom).arg(barTop));
         }
-        // stop button
-        click("stopButton");
-        result("stop button unloads media", waitFor([&] { return eng->idle(); }));
-        shot("stopped");
+        // Save/Load open native dialogs: check presence, then exercise the controller API they call.
+        result("playlist save/load buttons present", vis("playlistSaveButton") && vis("playlistLoadButton"));
+        const QUrl m3u = QUrl::fromLocalFile("/tmp/lumina-uitest.m3u8");
+        QFile::remove(m3u.toLocalFile());
+        result("savePlaylist writes file", p->savePlaylist(m3u) && QFileInfo::exists(m3u.toLocalFile()));
+        if (auto *r = find("playlistRow_2")) {
+            wake();
+            const QPoint pt = center(r);
+            QTest::mouseMove(w, pt); QTest::qWait(60);
+            QTest::mouseDClick(w, Qt::LeftButton, {}, pt, 60);
+            result("double-click row plays entry", waitFor([&] { return pl->currentIndex() == 2; }), QString::number(pl->currentIndex()));
+            pause();
+        } else result("double-click row plays entry", false, "row missing");
+        const QUrl u0 = pl->urlAt(0), u1 = pl->urlAt(1);
+        click("rowDown_0");
+        result("row down reorders", waitFor([&] { return pl->urlAt(0) == u1 && pl->urlAt(1) == u0; }));
+        click("rowUp_1");
+        result("row up reorders", waitFor([&] { return pl->urlAt(0) == u0 && pl->urlAt(1) == u1; }));
+        if (auto *sf = find("playlistSearch")) {
+            clickAt(center(sf));
+            for (auto k : {Qt::Key_S, Qt::Key_H, Qt::Key_O, Qt::Key_R, Qt::Key_T}) QTest::keyClick(w, k);
+            QTest::qWait(300);
+            int shown = shownRows();
+            result("search filters rows", shown == 2, QString("shown=%1").arg(shown));
+            for (int i = 0; i < 5; ++i) QTest::keyClick(w, Qt::Key_Backspace);
+            QTest::qWait(300);
+            shown = shownRows();
+            result("clearing search restores rows", shown == 3, QString("shown=%1").arg(shown));
+        } else result("search filters rows", false, "missing");
+        click("rowRemove_2");
+        result("remove row decreases count", waitFor([&] { return pl->rowCount() == 2; }), QString::number(pl->rowCount()));
+        click("playlistClearButton");
+        result("clear empties queue", waitFor([&] { return pl->rowCount() == 0; }), QString::number(pl->rowCount()));
+        result("loadPlaylist restores queue", p->loadPlaylist(m3u) && waitFor([&] { return pl->rowCount() == 3; }));
+        pause();
+        // home screen recent rows (stop via engine API; the new UI has no stop button)
+        pl->clear();
+        eng->stop();
+        result("stop returns to home", waitFor([&] { return eng->idle(); }));
+        QTest::qWait(500);
+        shot("home-recent");
+        if (auto *r = find("recentRow_0")) {
+            clickAt(center(r));
+            result("recent row opens media", waitFor([&] { return !eng->idle() && eng->duration() > 1; }, 6000));
+        } else result("recent row opens media", false, "no recent rows");
         qCInfo(lcCore) << "UITEST SUMMARY passes=" << passes << "fails=" << fails;
     }
     QCoreApplication::exit(fails ? 1 : 0);
