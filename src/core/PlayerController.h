@@ -18,6 +18,8 @@ class PlayerController : public QObject
     Q_PROPERTY(MpvEngine *engine READ engine CONSTANT FINAL)
     Q_PROPERTY(PlaylistModel *playlist READ playlist CONSTANT FINAL)
     Q_PROPERTY(bool hasMedia READ hasMedia NOTIFY hasMediaChanged FINAL)
+    Q_PROPERTY(bool shuffle READ shuffle WRITE setShuffle NOTIFY shuffleChanged FINAL)
+    Q_PROPERTY(int repeatMode READ repeatMode WRITE setRepeatMode NOTIFY repeatModeChanged FINAL)
     Q_PROPERTY(QStringList recentFiles READ recentFiles NOTIFY recentFilesChanged FINAL)
 
 public:
@@ -27,6 +29,10 @@ public:
     PlaylistModel *playlist() const { return m_playlist; }
     bool hasMedia() const;
     QStringList recentFiles() const { return m_recentFiles; }
+    bool shuffle() const { return m_shuffle; }
+    void setShuffle(bool on);
+    int repeatMode() const { return m_repeat; }
+    void setRepeatMode(int mode); // 0 off, 1 all, 2 one
 
 public slots:
     // Accepts a JS array of URLs (from file dialogs or drag & drop).
@@ -48,8 +54,11 @@ public slots:
 signals:
     void hasMediaChanged();
     void recentFilesChanged();
+    void shuffleChanged();
+    void repeatModeChanged();
 
 private:
+    void advance(bool autoAdvance);
     void rememberFile(const QUrl &url);
     // Resume support: remember where each local file stopped and seek back on reopen.
     static QString resumeKey(const QString &path);
@@ -60,4 +69,6 @@ private:
     QString m_currentPath;
     double m_resumeTarget = 0.0;
     QStringList m_recentFiles;
+    bool m_shuffle = false;
+    int m_repeat = 0;
 };

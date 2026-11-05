@@ -89,6 +89,9 @@ qt_add_qml_module(lumina
         resources/icons/playlist.svg
         resources/icons/chapters.svg
         resources/icons/subtitles.svg
+        resources/icons/shuffle.svg
+        resources/icons/repeat.svg
+        resources/icons/repeat-one.svg
 )
 
 target_include_directories(lumina PRIVATE
