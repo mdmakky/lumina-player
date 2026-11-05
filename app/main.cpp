@@ -60,7 +60,7 @@ int main(int argc, char *argv[])
     // (skipped for self-tests so they can run alongside a normal session).
     const bool selfTest = qEnvironmentVariableIsSet("LUMINA_PLAYBACK_TEST");
     SingleInstance single(QStringLiteral("lumina-player-%1").arg(QDir::home().dirName()));
-    if (!selfTest) {
+    if (!selfTest && !UiTest::requested()) {
         if (single.forward(QGuiApplication::arguments().mid(1))) {
             qCInfo(lcCore) << "Forwarded arguments to running instance";
             return 0;

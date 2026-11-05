@@ -91,7 +91,8 @@ void UiTest::run()
         clickAt(center(it));
         return true;
     };
-    auto key = [&](Qt::Key k, Qt::KeyboardModifiers m = {}) { QTest::keyClick(w, k, m, 40); QTest::qWait(250); };
+    // Re-activate first: other apps (or parallel test runs) can steal focus and Shortcuts need an active window.
+    auto key = [&](Qt::Key k, Qt::KeyboardModifiers m = {}) { w->requestActivate(); QTest::qWait(30); if (!w->isActive()) qCInfo(lcCore) << "UITEST window not active for key" << k; QTest::keyClick(w, k, m, 40); QTest::qWait(250); };
     auto aid = [&] {
         char *s = mpv_get_property_string(eng->handle(), "aid");
         QString r = s ? QString::fromUtf8(s) : QString();
@@ -209,6 +210,79 @@ void UiTest::run()
             }
             QTest::qWait(300);
         }
+        // --- A-B loop ---
+        eng->play();
+        eng->seek(1); waitFor([&] { return qAbs(eng->position() - 1) < 0.5; });
+        key(Qt::Key_BracketLeft);
+        result("[ sets loop A", waitFor([&] { return eng->loopA() >= 0.5 && eng->loopA() < 2; }), QString::number(eng->loopA()));
+        eng->seek(3); waitFor([&] { return qAbs(eng->position() - 3) < 0.5; });
+        key(Qt::Key_BracketRight);
+        result("] sets loop B", waitFor([&] { return eng->loopB() > eng->loopA(); }), QString::number(eng->loopB()));
+        QTest::qWait(300);
+        shot("abloop");
+        {
+            eng->seek(2); waitFor([&] { return qAbs(eng->position() - 2) < 0.5; });
+            double prev = eng->position(), maxPos = prev;
+            bool wrapped = false;
+            for (int i = 0; i < 160 && !wrapped; ++i) { // up to ~4 s
+                QTest::qWait(25);
+                const double cur = eng->position();
+                maxPos = qMax(maxPos, cur);
+                wrapped = cur < prev - 0.5;
+                prev = cur;
+            }
+            result("A-B loop wraps position", wrapped && maxPos < eng->loopB() + 0.6,
+                   QString("max=%1 B=%2").arg(maxPos).arg(eng->loopB()));
+        }
+        key(Qt::Key_Backspace);
+        result("Backspace clears loop", waitFor([&] { return eng->loopA() < 0 && eng->loopB() < 0; }));
+
+        // --- screenshot + toast ---
+        {
+            QString toastText;
+            auto conn = QObject::connect(p, &PlayerController::toast, [&](const QString &t) { toastText = t; });
+            const QString path = p->takeScreenshot();
+            result("screenshot file created", !path.isEmpty() && waitFor([&] { return QFileInfo(path).size() > 0; }), path);
+            result("screenshot toast emitted", toastText == "Saved screenshot", toastText);
+            QTest::qWait(400);
+            shot("toast");
+            QObject::disconnect(conn);
+            if (!path.isEmpty()) QFile::remove(path);
+        }
+
+        // --- More menu: aspect / rotate / deinterlace / adjustments ---
+        if (click("moreButton")) {
+            QTest::qWait(400);
+            shot("moremenu");
+            if (auto *it = find("aspectItem_16:9")) clickAt(center(it));
+            result("More menu sets aspect 16:9", waitFor([&] { return eng->aspect() == "16:9"; }), eng->aspect());
+        }
+        if (click("moreButton")) {
+            QTest::qWait(400);
+            if (auto *it = find("rotateItem_90")) clickAt(center(it));
+            result("More menu rotates 90", waitFor([&] { return eng->rotate() == 90; }), QString::number(eng->rotate()));
+        }
+        if (click("moreButton")) {
+            QTest::qWait(400);
+            if (auto *it = find("deinterlaceItem")) clickAt(center(it));
+            result("More menu toggles deinterlace", waitFor([&] { return eng->deinterlace(); }));
+        }
+        if (click("moreButton")) {
+            QTest::qWait(400);
+            if (auto *it = find("adjustItem")) clickAt(center(it));
+            QTest::qWait(400);
+            result("Video adjustments popup opens", vis("adjustPopup") || find("adjust_brightness"));
+            eng->setVideoAdjust("brightness", 30);
+            QTest::qWait(300);
+            shot("adjust");
+            result("brightness slider reflects engine", find("adjust_brightness") && qAbs(find("adjust_brightness")->property("value").toDouble() - 30) < 1);
+            click("adjustReset");
+            result("Reset zeroes adjustments", waitFor([&] { return eng->videoAdjust().value("brightness").toInt() == 0; }));
+            key(Qt::Key_Escape);
+        }
+        eng->setAspect("auto"); eng->setRotate(0); eng->setDeinterlace(false);
+        result("aspect/rotate reset", eng->aspect() == "auto" && eng->rotate() == 0);
+
         // fullscreen button + double click + Esc
         click("fullscreenButton");
         fsCheck("fullscreen button enters", true);
