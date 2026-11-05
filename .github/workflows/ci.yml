@@ -8,8 +8,10 @@ on:
 
 jobs:
   build-linux:
-    name: Build & Test (Linux)
+    name: Build & Test (Linux, Qt 6.4)
     runs-on: ubuntu-latest
+    env:
+      QT_QPA_PLATFORM: offscreen
     steps:
       - uses: actions/checkout@v4
 
@@ -17,12 +19,47 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
-            ninja-build cmake g++ \
-            qt6-base-dev qt6-declarative-dev \
-            libmpv-dev pkg-config
+            ninja-build cmake g++ pkg-config \
+            qt6-base-dev qt6-declarative-dev qt6-declarative-dev-tools \
+            qml6-module-qtquick qml6-module-qtquick-controls \
+            qml6-module-qtquick-dialogs qml6-module-qtquick-layouts \
+            qml6-module-qtquick-templates qml6-module-qtquick-window \
+            libqt6network6 libgl1-mesa-dri libegl1 \
+            libmpv-dev ffmpeg xvfb
 
       - name: Configure
         run: cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
+
+      - name: Build
+        run: cmake --build build
+
+      - name: Test
+        run: ctest --test-dir build --output-on-failure
+
+      # Best effort: needs software GL + a generated clip; never fails the job.
+      - name: Playback self-test (headless, optional)
+        continue-on-error: true
+        run: |
+          ffmpeg -loglevel error -f lavfi -i testsrc=duration=20:size=320x240:rate=25 \
+            -f lavfi -i sine=duration=20 -shortest -pix_fmt yuv420p /tmp/test.mp4
+          LUMINA_PLAYBACK_TEST=1 QT_QPA_PLATFORM=xcb LIBGL_ALWAYS_SOFTWARE=1 \
+            timeout 90 xvfb-run -a ./build/bin/lumina /tmp/test.mp4
+
+  build-macos:
+    name: Build & Test (macOS)
+    runs-on: macos-latest
+    env:
+      QT_QPA_PLATFORM: offscreen
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: brew install cmake ninja qt mpv pkg-config
+
+      - name: Configure
+        run: |
+          cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON \
+            -DCMAKE_PREFIX_PATH="$(brew --prefix qt)"
 
       - name: Build
         run: cmake --build build
