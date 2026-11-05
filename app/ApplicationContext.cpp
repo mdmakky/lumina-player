@@ -2,6 +2,7 @@
 
 #include "core/PlayerController.h"
 #include "core/ShortcutManager.h"
+#include "platform/PlatformIntegration.h"
 #include "utilities/Logger.h"
 #include "utilities/TimeUtils.h"
 
@@ -173,10 +174,65 @@ void runSeekBench(MpvEngine *engine)
 }
 } // namespace
 
+namespace {
+// Connects player state to the OS integration (media keys, now-playing, sleep
+// inhibit) and routes its commands back. Signals only; no OS code here.
+void wirePlatform(PlayerController *player, PlatformIntegration *os)
+{
+    MpvEngine *e = player->engine();
+    auto push = [=]() {
+        MediaState s;
+        s.status = e->idle() ? MediaState::Stopped : (e->paused() ? MediaState::Paused : MediaState::Playing);
+        s.title = e->mediaTitle();
+        s.url = player->currentUrl();
+        s.duration = e->duration();
+        s.position = e->position();
+        s.volume = qBound(0.0, e->volume() / 100.0, 1.0);
+        s.rate = e->speed();
+        s.hasVideo = !e->videoTracks().isEmpty();
+        s.canNext = player->canNext();
+        s.canPrevious = player->canPrevious();
+        os->update(s);
+    };
+    for (auto sig : {&MpvEngine::playingChanged, &MpvEngine::pausedChanged, &MpvEngine::idleChanged,
+                     &MpvEngine::mediaTitleChanged, &MpvEngine::durationChanged, &MpvEngine::volumeChanged,
+                     &MpvEngine::speedChanged, &MpvEngine::tracksChanged})
+        QObject::connect(e, sig, os, push);
+    QObject::connect(player->playlist(), &PlaylistModel::currentIndexChanged, os, push);
+    QObject::connect(player->playlist(), &PlaylistModel::countChanged, os, push);
+    // Position ticks: forward once per second only.
+    auto lastSec = QSharedPointer<int>::create(-1);
+    QObject::connect(e, &MpvEngine::positionChanged, os, [=]() {
+        if (int(e->position()) != *lastSec) {
+            *lastSec = int(e->position());
+            push();
+        }
+    });
+    QObject::connect(e, &MpvEngine::seekFinished, os, [=]() { push(); os->seeked(e->position()); });
+
+    QObject::connect(os, &PlatformIntegration::playRequested, e, &MpvEngine::play);
+    QObject::connect(os, &PlatformIntegration::pauseRequested, e, &MpvEngine::pause);
+    QObject::connect(os, &PlatformIntegration::playPauseRequested, e, &MpvEngine::togglePlayPause);
+    QObject::connect(os, &PlatformIntegration::stopRequested, e, &MpvEngine::stop);
+    QObject::connect(os, &PlatformIntegration::nextRequested, player, &PlayerController::next);
+    QObject::connect(os, &PlatformIntegration::previousRequested, player, &PlayerController::previous);
+    QObject::connect(os, &PlatformIntegration::seekByRequested, e, [e](double d) { e->seekRelative(d); });
+    QObject::connect(os, &PlatformIntegration::seekToRequested, e, [e](double t) { e->seek(t); });
+    QObject::connect(os, &PlatformIntegration::openUriRequested, player,
+                     [player](const QUrl &u) { player->openFiles({u}); });
+    QObject::connect(os, &PlatformIntegration::volumeRequested, e,
+                     [e](double v) { e->setVolume(int(v * 100 + 0.5)); });
+}
+} // namespace
+
 ApplicationContext::ApplicationContext(QObject *parent)
     : QObject(parent)
     , m_player(new PlayerController(this))
 {
+    // Self-tests must not grab media keys or hold sleep assertions.
+    if (!qEnvironmentVariableIsSet("LUMINA_PLAYBACK_TEST") && !qEnvironmentVariableIsSet("LUMINA_UI_TEST")
+        && !qEnvironmentVariableIsSet("LUMINA_SCREENSHOT"))
+        wirePlatform(m_player, PlatformIntegration::create(this));
 }
 
 void ApplicationContext::registerOnEngine(QQmlEngine *qmlEngine)

@@ -7,6 +7,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 find_package(Qt6 6.4 REQUIRED COMPONENTS Core Gui Network Quick Sql Test)
+if(UNIX AND NOT APPLE)
+    find_package(Qt6 6.4 REQUIRED COMPONENTS DBus)
+endif()
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(MPV REQUIRED IMPORTED_TARGET mpv)
 
@@ -60,7 +63,22 @@ qt_add_executable(lumina
     src/engine/MpvEngine.cpp
     src/engine/MpvVideoItem.h
     src/engine/MpvVideoItem.cpp
+    src/platform/PlatformIntegration.h
+    src/platform/PlatformIntegration.cpp
+    src/platform/Mpris.h
+    src/platform/Mpris.cpp
 )
+
+if(UNIX AND NOT APPLE)
+    target_sources(lumina PRIVATE src/platform/MprisIntegration.h src/platform/MprisIntegration.cpp)
+    target_link_libraries(lumina PRIVATE Qt6::DBus)
+elseif(APPLE)
+    enable_language(OBJCXX)
+    target_sources(lumina PRIVATE src/platform/MacIntegration.mm)
+    set_source_files_properties(src/platform/MacIntegration.mm PROPERTIES COMPILE_OPTIONS -fobjc-arc)
+    target_link_libraries(lumina PRIVATE "-framework IOKit" "-framework CoreFoundation"
+                                         "-framework Foundation" "-framework MediaPlayer")
+endif()
 
 target_compile_definitions(lumina PRIVATE
     LUMINA_VERSION="${PROJECT_VERSION}"
@@ -165,6 +183,7 @@ target_include_directories(lumina PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src/storage
     ${CMAKE_CURRENT_SOURCE_DIR}/src/services
     ${CMAKE_CURRENT_SOURCE_DIR}/src/utilities
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/platform
     ${CMAKE_CURRENT_SOURCE_DIR}/app
 )
 
@@ -266,4 +285,12 @@ if(BUILD_TESTING)
     target_include_directories(tst_libraryscanner PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
     target_link_libraries(tst_libraryscanner PRIVATE Qt6::Core Qt6::Sql Qt6::Test)
     add_test(NAME LibraryScanner COMMAND tst_libraryscanner)
+
+    add_executable(tst_mpris
+        tests/unit/tst_Mpris.cpp
+        src/platform/Mpris.cpp
+    )
+    target_include_directories(tst_mpris PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+    target_link_libraries(tst_mpris PRIVATE Qt6::Core Qt6::Test)
+    add_test(NAME Mpris COMMAND tst_mpris)
 endif()
