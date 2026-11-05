@@ -107,6 +107,7 @@ private:
     // Sends a command array; reports failures through mediaError.
     bool command(const QStringList &args);
     void setMediaError(const QString &message);
+    void checkEndOfFile();
 
     static QVariant nodeToVariant(const mpv_node &node);
     void refreshTrackLists();
@@ -116,6 +117,7 @@ private:
     // Cached state mirrored from observed mpv properties.
     bool m_paused = true;
     bool m_idle = true;
+    bool m_eof = false;
     double m_position = 0.0;
     double m_duration = 0.0;
     int m_volume = 100;

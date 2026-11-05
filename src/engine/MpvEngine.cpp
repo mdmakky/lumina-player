@@ -55,12 +55,12 @@ MpvEngine::MpvEngine(QObject *parent)
     // Observe the properties the UI needs.
     const char *properties[] = {
         "time-pos", "duration", "pause", "idle-active", "media-title",
-        "volume", "mute", "speed", "track-list",
+        "volume", "mute", "speed", "track-list", "eof-reached",
     };
     for (const char *name : properties) {
         mpv_format format = MPV_FORMAT_DOUBLE;
         if (qstrcmp(name, "pause") == 0 || qstrcmp(name, "idle-active") == 0
-            || qstrcmp(name, "mute") == 0) {
+            || qstrcmp(name, "mute") == 0 || qstrcmp(name, "eof-reached") == 0) {
             format = MPV_FORMAT_FLAG;
         } else if (qstrcmp(name, "media-title") == 0) {
             format = MPV_FORMAT_STRING;
@@ -104,9 +104,14 @@ void MpvEngine::processEvents()
             if (name == QLatin1String("time-pos") && prop->format == MPV_FORMAT_DOUBLE) {
                 m_position = *static_cast<double *>(prop->data);
                 emit positionChanged();
+                checkEndOfFile();
             } else if (name == QLatin1String("duration") && prop->format == MPV_FORMAT_DOUBLE) {
                 m_duration = *static_cast<double *>(prop->data);
                 emit durationChanged();
+            } else if (name == QLatin1String("eof-reached") && prop->format == MPV_FORMAT_FLAG) {
+                // keep-open=always suppresses END_FILE at EOF; eof-reached is the EOF signal.
+                m_eof = *static_cast<int *>(prop->data) != 0;
+                checkEndOfFile();
             } else if (name == QLatin1String("pause") && prop->format == MPV_FORMAT_FLAG) {
                 m_paused = *static_cast<int *>(prop->data) != 0;
                 emit pausedChanged();
@@ -134,8 +139,6 @@ void MpvEngine::processEvents()
         }
         case MPV_EVENT_END_FILE: {
             auto *endFile = static_cast<mpv_event_end_file *>(event->data);
-            if (endFile->reason == MPV_END_FILE_REASON_EOF)
-                emit endOfFile();
             if (endFile->reason == MPV_END_FILE_REASON_ERROR && endFile->error < 0) {
                 setMediaError(QStringLiteral("Playback failed: %1").arg(mpv_error_string(endFile->error)));
             }
@@ -151,6 +154,16 @@ void MpvEngine::processEvents()
         default:
             break;
         }
+    }
+}
+
+// mpv can flag eof-reached early on startup (before the VO is up), so only
+// treat it as a real end once the position is also at the end.
+void MpvEngine::checkEndOfFile()
+{
+    if (m_eof && m_duration > 0 && m_position >= m_duration - 0.5) {
+        m_eof = false;
+        emit endOfFile();
     }
 }
 
