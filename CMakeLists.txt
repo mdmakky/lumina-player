@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-find_package(Qt6 6.4 REQUIRED COMPONENTS Core Gui Network Quick Test)
+find_package(Qt6 6.4 REQUIRED COMPONENTS Core Gui Network Quick Sql Test)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(MPV REQUIRED IMPORTED_TARGET mpv)
 
@@ -42,6 +42,12 @@ qt_add_executable(lumina
     src/core/PlayerController.cpp
     src/core/PlaylistModel.h
     src/core/PlaylistModel.cpp
+    src/storage/Database.h
+    src/storage/Database.cpp
+    src/storage/HistoryRepository.h
+    src/storage/HistoryRepository.cpp
+    src/storage/HistoryModel.h
+    src/storage/HistoryModel.cpp
     src/engine/MpvEngine.h
     src/engine/MpvEngine.cpp
     src/engine/MpvVideoItem.h
@@ -95,6 +101,7 @@ target_include_directories(lumina PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src
     ${CMAKE_CURRENT_SOURCE_DIR}/src/core
     ${CMAKE_CURRENT_SOURCE_DIR}/src/engine
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/storage
     ${CMAKE_CURRENT_SOURCE_DIR}/src/utilities
     ${CMAKE_CURRENT_SOURCE_DIR}/app
 )
@@ -104,6 +111,7 @@ target_link_libraries(lumina PRIVATE
     Qt6::Gui
     Qt6::Network
     Qt6::Quick
+    Qt6::Sql
     Qt6::Test # UiTest driver (synthetic mouse/key events); inert unless env vars set
     PkgConfig::MPV
 )
@@ -142,4 +150,15 @@ if(BUILD_TESTING)
     target_include_directories(tst_singleinstance PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/app)
     target_link_libraries(tst_singleinstance PRIVATE Qt6::Core Qt6::Network Qt6::Test)
     add_test(NAME SingleInstance COMMAND tst_singleinstance)
+
+    add_executable(tst_historyrepository
+        tests/unit/tst_HistoryRepository.cpp
+        src/storage/Database.cpp
+        src/storage/HistoryRepository.cpp
+        src/storage/HistoryModel.cpp
+        src/utilities/Logger.cpp
+    )
+    target_include_directories(tst_historyrepository PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+    target_link_libraries(tst_historyrepository PRIVATE Qt6::Core Qt6::Sql Qt6::Test)
+    add_test(NAME HistoryRepository COMMAND tst_historyrepository)
 endif()

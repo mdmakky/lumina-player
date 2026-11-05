@@ -7,6 +7,11 @@
 
 #include "core/PlaylistModel.h"
 #include "engine/MpvEngine.h"
+#include "storage/Database.h"
+#include "storage/HistoryModel.h"
+#include "storage/HistoryRepository.h"
+
+#include <memory>
 
 // Application Core layer: the single object QML talks to. Holds playback
 // state that is presentation-relevant and forwards commands to the media
@@ -17,6 +22,11 @@ class PlayerController : public QObject
 
     Q_PROPERTY(MpvEngine *engine READ engine CONSTANT FINAL)
     Q_PROPERTY(PlaylistModel *playlist READ playlist CONSTANT FINAL)
+    // Optional library (SQLite). Models are empty and historyAvailable is false if the DB can't open.
+    Q_PROPERTY(HistoryModel *history READ history CONSTANT FINAL)
+    Q_PROPERTY(HistoryModel *continueWatching READ continueWatching CONSTANT FINAL)
+    Q_PROPERTY(HistoryModel *favorites READ favorites CONSTANT FINAL)
+    Q_PROPERTY(bool historyAvailable READ historyAvailable CONSTANT FINAL)
     Q_PROPERTY(bool hasMedia READ hasMedia NOTIFY hasMediaChanged FINAL)
     Q_PROPERTY(QStringList recentFiles READ recentFiles NOTIFY recentFilesChanged FINAL)
 
@@ -26,6 +36,10 @@ public:
     MpvEngine *engine() const { return m_engine; }
     PlaylistModel *playlist() const { return m_playlist; }
     bool hasMedia() const;
+    HistoryModel *history() const { return m_history; }
+    HistoryModel *continueWatching() const { return m_continue; }
+    HistoryModel *favorites() const { return m_favorites; }
+    bool historyAvailable() const { return m_repo.available(); }
     QStringList recentFiles() const { return m_recentFiles; }
 
 public slots:
@@ -40,6 +54,8 @@ public slots:
     void next();
     void previous();
     void clearRecentFiles();
+    void toggleFavorite(const QString &path);
+    void openHistory(const QString &path); // opens and resumes
 
     // Generic persisted UI settings (QSettings-backed), e.g. window geometry.
     QVariant setting(const QString &key, const QVariant &fallback = {}) const;
@@ -54,10 +70,17 @@ private:
     // Resume support: remember where each local file stopped and seek back on reopen.
     static QString resumeKey(const QString &path);
     void saveResume();
+    void reloadHistory();
+    void migrateLegacy();
 
     MpvEngine *m_engine = nullptr;
     PlaylistModel *m_playlist = nullptr;
     QString m_currentPath;
     double m_resumeTarget = 0.0;
     QStringList m_recentFiles;
+    std::unique_ptr<Database> m_database;
+    HistoryRepository m_repo{nullptr};
+    HistoryModel *m_history = nullptr;
+    HistoryModel *m_continue = nullptr;
+    HistoryModel *m_favorites = nullptr;
 };
