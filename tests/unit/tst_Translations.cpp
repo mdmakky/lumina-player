@@ -32,7 +32,7 @@ private slots:
             if (xml.name() == u"source") {
                 source = xml.readElementText();
             } else if (xml.name() == u"translation") {
-                const bool unfinished = xml.attributes().value(u"type") == u"unfinished";
+                const bool unfinished = xml.attributes().value(QStringLiteral("type")) == QLatin1String("unfinished");
                 QStringList forms;
                 while (!(xml.isEndElement() && xml.name() == u"translation")) {
                     xml.readNext();

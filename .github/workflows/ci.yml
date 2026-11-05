@@ -1,6 +1,7 @@
 name: CI
 
 on:
+  workflow_dispatch:
   push:
     branches: [main]
   pull_request:
@@ -73,6 +74,8 @@ jobs:
   # from memory (qt6-*/mpv/toolchain in the MINGW64 repo); adjust if the job fails.
   build-windows:
     name: Build & Test (Windows, MSYS2 MinGW64)
+    # Experimental and manual-only until the MSYS2 package set (mpv/Qt names) is verified.
+    if: github.event_name == 'workflow_dispatch'
     runs-on: windows-latest
     continue-on-error: true
     env:
