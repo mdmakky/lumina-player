@@ -12,6 +12,8 @@
 #include <QDir>
 #include <QFileOpenEvent>
 #include <QGuiApplication>
+#include <QStandardPaths>
+#include <QSettings>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 #include <QQuickWindow>
@@ -41,7 +43,15 @@ private:
 int main(int argc, char *argv[])
 {
     QGuiApplication::setOrganizationName(QStringLiteral("mdmakky"));
-    QGuiApplication::setApplicationName(QStringLiteral("Lumina Player"));
+    // UI tests get their own pristine settings/database so runs are repeatable
+    // and never touch the user's real history.
+    const bool uiTest = qEnvironmentVariableIsSet("LUMINA_UI_TEST");
+    QGuiApplication::setApplicationName(uiTest ? QStringLiteral("Lumina Player UITest")
+                                               : QStringLiteral("Lumina Player"));
+    if (uiTest) {
+        QSettings().clear();
+        QDir(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation)).removeRecursively();
+    }
     QGuiApplication::setApplicationVersion(QStringLiteral(LUMINA_VERSION));
 
     // mpv's OpenGL render API requires the Qt scene graph to use OpenGL.

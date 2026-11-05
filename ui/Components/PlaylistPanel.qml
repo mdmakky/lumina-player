@@ -10,7 +10,7 @@ import Lumina.Player
 Rectangle {
     id: panel
 
-    width: 320
+    width: 360
     color: Theme.surface
     border.color: Theme.border
 
@@ -24,7 +24,9 @@ Rectangle {
         RowLayout {
             Layout.fillWidth: true
             Text {
-                text: qsTr("Playlist (%1)").arg(player.playlist.count)
+                text: qsTr("Queue · %1").arg(player.playlist.count)
+                elide: Text.ElideRight
+                Layout.minimumWidth: 0
                 color: Theme.primaryText
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSizeLarge
@@ -50,16 +52,19 @@ Rectangle {
             IconButton {
                 objectName: "playlistSaveButton"
                 label: qsTr("Save")
+                implicitWidth: 46
                 onClicked: saveDialog.open()
             }
             IconButton {
                 objectName: "playlistLoadButton"
                 label: qsTr("Load")
+                implicitWidth: 46
                 onClicked: loadDialog.open()
             }
             IconButton {
                 objectName: "playlistClearButton"
                 label: qsTr("Clear")
+                implicitWidth: 46
                 onClicked: player.playlist.clear()
             }
         }
