@@ -112,6 +112,8 @@ MpvEngine::MpvEngine(QObject *parent)
     }
 
     const int rc = mpv_initialize(m_mpv);
+    if (rc >= 0)
+        mpv_request_log_messages(m_mpv, "warn"); // forwarded into our own log file for diagnosis
     if (rc < 0) {
         setMediaError(tr("mpv initialization failed: %1").arg(mpv_error_string(rc)));
         mpv_terminate_destroy(m_mpv);
@@ -274,7 +276,25 @@ void MpvEngine::processEvents()
             }
             break;
         }
+        case MPV_EVENT_LOG_MESSAGE: {
+            auto *msg = static_cast<mpv_event_log_message *>(event->data);
+            const QString text = QString::fromUtf8(msg->text).trimmed();
+            const QString prefix = QString::fromUtf8(msg->prefix);
+            if (qstrcmp(msg->level, "warn") == 0 || qstrcmp(msg->level, "error") == 0
+                || qstrcmp(msg->level, "fatal") == 0) {
+                qCWarning(lcEngine).noquote() << "mpv" << msg->level << prefix << text;
+                if (prefix.startsWith(QLatin1String("ao")) || prefix.startsWith(QLatin1String("ad"))
+                    || prefix == QLatin1String("cplayer") || prefix.startsWith(QLatin1String("lavf"))) {
+                    m_audioLog << prefix + QLatin1String(": ") + text;
+                    while (m_audioLog.size() > 8)
+                        m_audioLog.removeFirst();
+                }
+            }
+            break;
+        }
         case MPV_EVENT_FILE_LOADED:
+            m_audioLog.clear();
+            QTimer::singleShot(1800, this, &MpvEngine::checkAudioPipeline);
             setLoadingRemote(false);
             refreshTrackLists(); // make sure listeners see this file's tracks, not the previous one's
             emit fileLoaded();
@@ -291,6 +311,43 @@ void MpvEngine::processEvents()
             break;
         }
     }
+}
+
+void MpvEngine::checkAudioPipeline()
+{
+    if (!m_mpv || m_idle)
+        return;
+    QString codec;
+    bool hasAudio = false;
+    for (const QVariant &t : std::as_const(m_audioTracks)) {
+        const QVariantMap m = t.toMap();
+        if (m.value(QStringLiteral("selected")).toBool()) {
+            hasAudio = true;
+            codec = m.value(QStringLiteral("codec")).toString();
+        }
+    }
+    if (m_audioTracks.isEmpty())
+        return; // silent video: nothing to warn about
+    if (codec.isEmpty()) // mpv deselects a track whose decoder/output failed
+        codec = m_audioTracks.first().toMap().value(QStringLiteral("codec")).toString();
+    Q_UNUSED(hasAudio)
+    char *ao = mpv_get_property_string(m_mpv, "current-ao");
+    const bool aoActive = ao && *ao;
+    if (ao)
+        mpv_free(ao);
+    if (aoActive || m_volume == 0 || m_muted)
+        return;
+    const QString log = m_audioLog.join(QLatin1Char('\n'));
+    QString reason;
+    if (log.contains(QLatin1String("audio device"), Qt::CaseInsensitive)
+        || log.contains(QLatin1String("audio driver"), Qt::CaseInsensitive)) {
+        reason = tr("The audio output could not be opened. Check that PipeWire/PulseAudio is running and not used exclusively by another app.");
+    } else {
+        reason = tr("No decoder for the %1 audio track. Your FFmpeg build may lack it; install the full FFmpeg (e.g. RPM Fusion) and restart.")
+                     .arg(codec.isEmpty() ? tr("selected") : codec.toUpper());
+    }
+    qCWarning(lcEngine).noquote() << "No audio output after load; codec" << codec << "log:" << log;
+    setMediaError(tr("No sound. %1").arg(reason));
 }
 
 // mpv can flag eof-reached early on startup (before the VO is up), so only

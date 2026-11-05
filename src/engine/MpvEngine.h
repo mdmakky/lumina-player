@@ -220,6 +220,9 @@ private:
     void setMediaError(const QString &message);
     void setLoadingRemote(bool on);
     void checkEndOfFile();
+    // Warns (via mediaError) when a file has an audio track but nothing is playing it.
+    void checkAudioPipeline();
+    QStringList m_audioLog; // recent audio/decoder related mpv log lines
     void applyEq();
     bool m_pausedForCache = false;
     bool m_loadingRemote = false;

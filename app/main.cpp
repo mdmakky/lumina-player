@@ -12,6 +12,7 @@
 #include <QDir>
 #include <QFileOpenEvent>
 #include <QGuiApplication>
+#include <QSurfaceFormat>
 #include <QIcon>
 #include <QStandardPaths>
 #include <QSettings>
@@ -58,6 +59,16 @@ int main(int argc, char *argv[])
 
     // mpv's OpenGL render API requires the Qt scene graph to use OpenGL.
     QQuickWindow::setGraphicsApi(QSGRendererInterface::OpenGL);
+#ifdef Q_OS_MACOS
+    // macOS defaults to a legacy 2.1 GL context where mpv disables its scalers
+    // and zero-copy VideoToolbox; ask for a 3.3 core profile.
+    {
+        QSurfaceFormat fmt;
+        fmt.setVersion(3, 3);
+        fmt.setProfile(QSurfaceFormat::CoreProfile);
+        QSurfaceFormat::setDefaultFormat(fmt);
+    }
+#endif
     // The Basic style is unstyled — all visuals come from our Theme system.
     // Set via env so we don't need the QuickControls2 C++ module at build time.
     qputenv("QT_QUICK_CONTROLS_STYLE", "Basic");
