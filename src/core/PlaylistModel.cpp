@@ -1,5 +1,7 @@
 #include "PlaylistModel.h"
 
+#include "utilities/UrlUtils.h"
+
 #include <QRandomGenerator>
 
 #include <QFile>
@@ -22,7 +24,9 @@ QVariant PlaylistModel::data(const QModelIndex &index, int role) const
     const QUrl &url = m_items.at(index.row());
     const QString path = url.isLocalFile() ? url.toLocalFile() : url.toString();
     switch (role) {
-    case TitleRole: return url.isLocalFile() ? QFileInfo(path).fileName() : path;
+    case TitleRole:
+        if (url.isLocalFile()) return QFileInfo(path).fileName();
+        return m_titles.value(url, Lumina::UrlUtils::isRemote(url) ? Lumina::UrlUtils::titleFor(url) : path);
     case PathRole: return path;
     case CurrentRole: return index.row() == m_current;
     default: return {};
@@ -37,6 +41,14 @@ QHash<int, QByteArray> PlaylistModel::roleNames() const
 QUrl PlaylistModel::urlAt(int row) const
 {
     return row >= 0 && row < m_items.size() ? m_items.at(row) : QUrl();
+}
+
+void PlaylistModel::setCurrentTitle(const QString &title)
+{
+    if (m_current < 0 || m_current >= m_items.size() || title.isEmpty() || m_items.at(m_current).isLocalFile())
+        return;
+    m_titles.insert(m_items.at(m_current), title);
+    emit dataChanged(index(m_current), index(m_current), {TitleRole});
 }
 
 void PlaylistModel::setCurrentIndex(int index)
@@ -112,6 +124,7 @@ void PlaylistModel::clear()
     beginResetModel();
     m_items.clear();
     m_history.clear();
+    m_titles.clear();
     m_round = 0;
     m_current = -1;
     endResetModel();

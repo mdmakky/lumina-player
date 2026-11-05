@@ -43,6 +43,7 @@ ShortcutManager::ShortcutManager(QObject *parent) : QObject(parent)
         {"stats",        QT_TRANSLATE_NOOP("Shortcuts", "Playback statistics"),  QT_TRANSLATE_NOOP("Shortcuts", "Window"),    "I", true},
         {"screenshot",   QT_TRANSLATE_NOOP("Shortcuts", "Take screenshot"),      QT_TRANSLATE_NOOP("Shortcuts", "Window"),    "Ctrl+S", true},
         {"openFile",     QT_TRANSLATE_NOOP("Shortcuts", "Open file"),            QT_TRANSLATE_NOOP("Shortcuts", "Library"),   "Ctrl+O", false},
+        {"openUrl",      QT_TRANSLATE_NOOP("Shortcuts", "Open URL"),             QT_TRANSLATE_NOOP("Shortcuts", "Library"),   "Ctrl+U", false},
         {"library",      QT_TRANSLATE_NOOP("Shortcuts", "Open library"),         QT_TRANSLATE_NOOP("Shortcuts", "Library"),   "L", false},
         {"settings",     QT_TRANSLATE_NOOP("Shortcuts", "Open settings"),        QT_TRANSLATE_NOOP("Shortcuts", "Library"),   "Ctrl+,", false},
         {"playlist",     QT_TRANSLATE_NOOP("Shortcuts", "Toggle playlist"),      QT_TRANSLATE_NOOP("Shortcuts", "Playlist"),  "P", false},

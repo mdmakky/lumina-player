@@ -2,6 +2,7 @@
 
 #include <QList>
 #include <QString>
+#include <QVariantMap>
 
 class Database;
 
@@ -34,6 +35,7 @@ public:
     void recordPlay(const QString &path, const QString &title, double duration = 0);
     // position 0 clears resume (finished). Only touches an existing row.
     void updateProgress(const QString &path, double position, double duration);
+    void setTitle(const QString &path, const QString &title); // only touches an existing row
     void setFavorite(const QString &path, bool favorite);
     // Legacy QSettings import; never overwrites an existing row.
     void importEntry(const HistoryEntry &e);
@@ -46,6 +48,11 @@ public:
     qint64 addBookmark(const QString &path, double time, const QString &label = {});
     void removeBookmark(qint64 id);
     QList<Bookmark> bookmarks(const QString &path) const;
+
+    // Per-file playback profile (video adjust, tracks, delays, ...) stored as JSON.
+    void saveProfile(const QString &path, const QVariantMap &profile);
+    QVariantMap profile(const QString &path) const; // empty if none / unavailable
+    void clearProfile(const QString &path);
 
 private:
     Database *m_db;

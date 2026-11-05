@@ -114,5 +114,18 @@ bool Database::migrate()
         }
         d.commit();
     }
+    if (v < 4) {
+        d.transaction();
+        const bool ok = q.exec(QStringLiteral(
+            "CREATE TABLE file_profile (path TEXT PRIMARY KEY, data TEXT NOT NULL)"))
+            && q.exec(QStringLiteral("DELETE FROM schema_version"))
+            && q.exec(QStringLiteral("INSERT INTO schema_version VALUES (4)"));
+        if (!ok) {
+            qCWarning(lcCore) << "Library migration failed:" << q.lastError().text();
+            d.rollback();
+            return false;
+        }
+        d.commit();
+    }
     return true;
 }

@@ -126,6 +126,13 @@ ApplicationWindow {
         onAccepted: player.openFiles(selectedUrls)
     }
 
+    OpenUrlDialog {
+        id: openUrlDialog
+        objectName: "openUrlDialog"
+        onAboutToShow: root.menuOpen = true
+        onClosed: root.menuOpen = false
+    }
+
     // --- Video surface ----------------------------------------------------
     MpvVideoItem {
         id: videoItem
@@ -195,10 +202,12 @@ ApplicationWindow {
                 font.pixelSize: Theme.fontSizeLarge
             }
 
+            RowLayout {
+                Layout.alignment: Qt.AlignHCenter
+                spacing: Theme.spacingMedium
             Button {
                 objectName: "homeOpenButton"
-                Layout.alignment: Qt.AlignHCenter
-                text: qsTr("Open File")
+                                text: qsTr("Open File")
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSizeLarge
                 onClicked: fileDialog.open()
@@ -216,6 +225,28 @@ ApplicationWindow {
                     color: Theme.accentText
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter
+                }
+            }
+                Button {
+                    objectName: "homeUrlButton"
+                    text: qsTr("Open URL…")
+                    font.family: Theme.fontFamily
+                    font.pixelSize: Theme.fontSizeLarge
+                    onClicked: openUrlDialog.open()
+                    background: Rectangle {
+                        implicitWidth: 140
+                        implicitHeight: 42
+                        radius: 21
+                        color: parent.pressed ? Theme.surfacePressed : (parent.hovered ? Theme.surfaceHover : "transparent")
+                        border.color: Theme.border
+                    }
+                    contentItem: Text {
+                        text: parent.text
+                        font: parent.font
+                        color: Theme.primaryText
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                    }
                 }
             }
 
@@ -462,6 +493,42 @@ ApplicationWindow {
                         onClicked: player.openFiles([player.fileUrl(legacyRow.modelData)])
                     }
                 }
+            }
+        }
+    }
+
+    // --- Network buffering pill ----------------------------------------------
+    Rectangle {
+        objectName: "bufferingPill"
+        visible: player.engine.buffering && player.hasMedia
+        anchors.centerIn: parent
+        width: bufRow.implicitWidth + 2 * Theme.spacingLarge
+        height: bufRow.implicitHeight + 2 * Theme.spacingMedium
+        radius: height / 2
+        color: Theme.panelOverlay
+        border.color: Theme.border
+        Row {
+            id: bufRow
+            anchors.centerIn: parent
+            spacing: Theme.spacingMedium
+            Text {
+                id: spinner
+                anchors.verticalCenter: parent.verticalCenter
+                text: "◜"
+                color: Theme.accent
+                font.pixelSize: Theme.fontSizeHeading
+                RotationAnimator on rotation {
+                    running: player.engine.buffering
+                    from: 0; to: 360; duration: 900; loops: Animation.Infinite
+                }
+            }
+            Text {
+                anchors.verticalCenter: parent.verticalCenter
+                text: qsTr("Buffering…") + (player.engine.cacheBufferedSeconds >= 1
+                      ? "  " + Math.round(player.engine.cacheBufferedSeconds) + " s" : "")
+                color: Theme.primaryText
+                font.family: Theme.fontFamily
+                font.pixelSize: Theme.fontSizeMedium
             }
         }
     }
@@ -897,6 +964,17 @@ ApplicationWindow {
             text: qsTr("Screenshot (Ctrl+S)")
             onTriggered: player.takeScreenshot()
         }
+        ThemedMenuItem {
+            objectName: "openUrlItem"
+            text: qsTr("Open URL… (Ctrl+U)")
+            onTriggered: openUrlDialog.open()
+        }
+        ThemedMenuItem {
+            objectName: "resetFileItem"
+            text: qsTr("Reset for this file")
+            enabled: player.hasMedia
+            onTriggered: player.resetFileSettings()
+        }
     }
 
     VideoAdjustPopup {
@@ -987,6 +1065,9 @@ ApplicationWindow {
             if (drop.hasUrls) {
                 player.openFiles(drop.urls)
                 root.showChrome()
+            } else if (drop.hasText) {
+                player.openUrl(drop.text)
+                root.showChrome()
             }
         }
     }
@@ -1028,6 +1109,7 @@ ApplicationWindow {
         case "shuffle": player.shuffle = !player.shuffle; break
         case "repeat": player.repeatMode = (player.repeatMode + 1) % 3; break
         case "openFile": fileDialog.open(); break
+        case "openUrl": openUrlDialog.open(); break
         case "library": libraryView.open(); break
         case "settings": settingsDialog.open(); break
         case "exitFullscreen": root.showNormal(); break

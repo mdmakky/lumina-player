@@ -2,6 +2,7 @@
 
 #include <QAbstractListModel>
 #include <QDir>
+#include <QHash>
 #include <QUrl>
 #include <QVariantList>
 
@@ -24,6 +25,8 @@ public:
     int currentIndex() const { return m_current; }
     void setCurrentIndex(int index);
     QUrl urlAt(int row) const;
+    // Better display title for the current remote entry once the engine knows it.
+    void setCurrentTitle(const QString &title);
 
     Q_INVOKABLE void append(const QVariantList &urls);
     Q_INVOKABLE void remove(int row);
@@ -50,6 +53,7 @@ signals:
 
 private:
     QList<QUrl> m_items;
+    QHash<QUrl, QString> m_titles; // remote entries: media-title once known
     QList<QUrl> m_history; // shuffle: entries already played (excludes current)
     int m_round = 0;       // history index where the current shuffle round began
     int m_current = -1;

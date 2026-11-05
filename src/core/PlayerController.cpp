@@ -3,6 +3,7 @@
 #include "engine/MpvEngine.h"
 #include "utilities/Logger.h"
 #include "utilities/TimeUtils.h"
+#include "utilities/UrlUtils.h"
 
 #include <QCoreApplication>
 #include <QCryptographicHash>
@@ -49,6 +50,28 @@ PlayerController::PlayerController(QObject *parent)
         emit libraryScanningChanged();
     });
 
+    // Per-file profiles: restore tracks once the file is open; any later change marks the profile dirty.
+    m_armTimer = new QTimer(this);
+    m_armTimer->setSingleShot(true);
+    m_armTimer->setInterval(1000);
+    connect(m_armTimer, &QTimer::timeout, this, [this] { m_profileArmed = true; });
+    connect(m_engine, &MpvEngine::fileLoaded, this, [this] {
+        applyProfileTracks();
+        m_armTimer->start();
+    });
+    for (auto sig : {&MpvEngine::videoOptionsChanged, &MpvEngine::speedChanged, &MpvEngine::subtitleDelayChanged,
+                     &MpvEngine::audioDelayChanged, &MpvEngine::volumeChanged, &MpvEngine::tracksChanged})
+        connect(m_engine, sig, this, &PlayerController::markProfileDirty);
+    // Remote entries start with a URL-derived title; use mpv's media-title once it is known.
+    connect(m_engine, &MpvEngine::mediaTitleChanged, this, [this] {
+        const QString t = m_engine->mediaTitle();
+        if (m_engine->idle() || t.isEmpty() || !m_currentPath.contains(QStringLiteral("://")))
+            return;
+        m_playlist->setCurrentTitle(t);
+        m_repo.setTitle(m_currentPath, t);
+        reloadHistory();
+    });
+
     // Resume where the file was left (disabled in self-test for determinism).
     connect(m_engine, &MpvEngine::durationChanged, this, [this]() {
         if (m_resumeTarget > 0.0 && m_engine->duration() > m_resumeTarget + 10.0) {
@@ -67,6 +90,8 @@ PlayerController::PlayerController(QObject *parent)
     // Restore persisted state; keep volume/mute in sync from here on.
     QSettings settings;
     m_recentFiles = settings.value(QStringLiteral("recentFiles")).toStringList();
+    m_recentUrls = settings.value(QStringLiteral("recentUrls")).toStringList();
+    m_rememberFile = settings.value(QStringLiteral("playback/rememberFile"), true).toBool();
     m_shuffle = settings.value(QStringLiteral("playback/shuffle"), false).toBool();
     m_repeat = qBound(0, settings.value(QStringLiteral("playback/repeat"), 0).toInt(), 2);
     m_libraryFolders = settings.value(QStringLiteral("library/folders")).toStringList();
@@ -115,6 +140,7 @@ PlayerController::PlayerController(QObject *parent)
         setSetting(QStringLiteral("eq/enabled"), m_engine->eqEnabled());
     });
     connect(m_engine, &MpvEngine::volumeChanged, this, [this] {
+        if (!m_profileArmed) return; // restoring a file's profile must not change the global default
         setSetting(QStringLiteral("playback/volume"), m_engine->volume());
     });
     connect(m_engine, &MpvEngine::mutedChanged, this, [this] {
@@ -221,6 +247,8 @@ void PlayerController::openFiles(const QVariantList &urls)
         const QUrl url = entry.toUrl();
         if (url.isLocalFile() || url.scheme().isEmpty())
             rememberFile(url);
+        else if (Lumina::UrlUtils::isRemote(url))
+            rememberUrl(url);
     }
 }
 
@@ -238,14 +266,37 @@ void PlayerController::playIndex(int index)
     if (url.isEmpty())
         return;
     saveResume();
-    m_currentPath = url.isLocalFile() ? url.toLocalFile() : QString();
+    const bool remote = Lumina::UrlUtils::isRemote(url);
+    m_currentPath = url.isLocalFile() ? url.toLocalFile() : (remote ? url.toString() : QString());
     m_resumeTarget = 0.0;
+    m_profileArmed = false;
+    m_profileDirty = false;
+    m_armTimer->stop();
+    m_pendingProfile.clear();
     if (!m_currentPath.isEmpty() && !qEnvironmentVariableIsSet("LUMINA_PLAYBACK_TEST")
         && setting(QStringLiteral("playback/resume"), true).toBool()) {
         m_resumeTarget = m_repo.available() ? m_repo.entry(m_currentPath).position
                                             : setting(resumeKey(m_currentPath), 0.0).toDouble();
-        m_repo.recordPlay(m_currentPath, QFileInfo(m_currentPath).completeBaseName());
+        m_repo.recordPlay(m_currentPath, remote ? Lumina::UrlUtils::titleFor(url)
+                                                : QFileInfo(m_currentPath).completeBaseName());
         reloadHistory();
+    }
+    if (!m_currentPath.isEmpty() && m_rememberFile && !qEnvironmentVariableIsSet("LUMINA_PLAYBACK_TEST")) {
+        m_pendingProfile = m_repo.profile(m_currentPath);
+        if (m_pendingProfile.isEmpty() && m_hadProfile) {
+            resetFileState(); // don't leak the previous file's settings into this one
+        } else if (!m_pendingProfile.isEmpty()) {
+            const QVariantMap &p = m_pendingProfile;
+            for (const char *k : {"brightness", "contrast", "saturation", "gamma", "hue"})
+                m_engine->setVideoAdjust(QString::fromLatin1(k), p.value(QString::fromLatin1(k)).toInt());
+            m_engine->setAspect(p.value("aspect", "auto").toString());
+            m_engine->setRotate(p.value("rotate", 0).toInt());
+            m_engine->setSpeed(p.value("speed", 1.0).toDouble());
+            m_engine->setVolume(p.value("volume", m_engine->volume()).toInt());
+            m_engine->setSubtitleDelay(p.value("subDelay", 0.0).toDouble());
+            m_engine->setAudioDelay(p.value("audioDelay", 0.0).toDouble());
+        }
+        m_hadProfile = !m_pendingProfile.isEmpty();
     }
     reloadBookmarks();
     m_playlist->setCurrentIndex(index);
@@ -373,6 +424,7 @@ QString PlayerController::resumeKey(const QString &path)
 
 void PlayerController::saveResume()
 {
+    saveProfileIfDirty();
     if (m_currentPath.isEmpty() || m_engine->idle() || qEnvironmentVariableIsSet("LUMINA_PLAYBACK_TEST")
         || !setting(QStringLiteral("playback/resume"), true).toBool())
         return;
@@ -426,5 +478,133 @@ void PlayerController::toggleFavorite(const QString &path)
 
 void PlayerController::openHistory(const QString &path)
 {
-    openFiles({QUrl::fromLocalFile(path)});
+    openFiles({fileUrl(path)});
+}
+
+void PlayerController::setRememberFileSettings(bool on)
+{
+    if (on == m_rememberFile)
+        return;
+    m_rememberFile = on;
+    setSetting(QStringLiteral("playback/rememberFile"), on);
+    emit rememberFileSettingsChanged();
+}
+
+void PlayerController::markProfileDirty()
+{
+    if (m_profileArmed && m_rememberFile && !m_currentPath.isEmpty())
+        m_profileDirty = true;
+}
+
+void PlayerController::saveProfileIfDirty()
+{
+    if (!m_profileDirty || !m_rememberFile || m_currentPath.isEmpty() || m_engine->idle())
+        return;
+    m_profileDirty = false;
+    QVariantMap p = m_engine->videoAdjust();
+    p.insert("aspect", m_engine->aspect());
+    p.insert("rotate", m_engine->rotate());
+    p.insert("speed", m_engine->speed());
+    p.insert("volume", m_engine->volume());
+    p.insert("subDelay", m_engine->subtitleDelay());
+    p.insert("audioDelay", m_engine->audioDelay());
+    auto describe = [&](const QVariantList &tracks, int id, const char *idKey, const char *langKey) {
+        p.insert(idKey, id);
+        for (const QVariant &t : tracks)
+            if (t.toMap().value("id").toInt() == id)
+                p.insert(langKey, t.toMap().value("lang").toString());
+    };
+    describe(m_engine->audioTracks(), m_engine->audioTrackId(), "aid", "alang");
+    describe(m_engine->subtitleTracks(), m_engine->subtitleTrackId(), "sid", "slang");
+    m_repo.saveProfile(m_currentPath, p);
+    m_hadProfile = true;
+}
+
+// Prefers the same language, falls back to the same id; sid 0 means subtitles were off.
+void PlayerController::applyProfileTracks()
+{
+    if (m_pendingProfile.isEmpty())
+        return;
+    const QVariantMap p = m_pendingProfile;
+    m_pendingProfile.clear();
+    auto pick = [&](const QVariantList &tracks, int id, const QString &lang) {
+        int byId = 0;
+        for (const QVariant &t : tracks) {
+            const QVariantMap m = t.toMap();
+            if (!lang.isEmpty() && m.value("lang").toString() == lang)
+                return m.value("id").toInt();
+            if (m.value("id").toInt() == id)
+                byId = id;
+        }
+        return byId;
+    };
+    if (p.value("aid", 0).toInt() > 0) {
+        if (const int a = pick(m_engine->audioTracks(), p.value("aid").toInt(), p.value("alang").toString()))
+            m_engine->setAudioTrack(a);
+    }
+    if (p.contains("sid")) {
+        const int sid = p.value("sid").toInt();
+        if (sid == 0)
+            m_engine->setSubtitleTrack(0);
+        else if (const int s = pick(m_engine->subtitleTracks(), sid, p.value("slang").toString()))
+            m_engine->setSubtitleTrack(s);
+    }
+}
+
+// Back to the user's defaults (settings), as if the file had never been touched.
+void PlayerController::resetFileState()
+{
+    m_engine->resetVideoAdjust();
+    m_engine->setAspect(setting(QStringLiteral("video/aspect"), QStringLiteral("auto")).toString());
+    m_engine->setRotate(0);
+    m_engine->setSpeed(setting(QStringLiteral("playback/defaultSpeed"), 1.0).toDouble());
+    m_engine->setVolume(setting(QStringLiteral("playback/defaultVolume"), 100).toInt());
+    m_engine->setSubtitleDelay(0.0);
+    m_engine->setAudioDelay(0.0);
+    m_engine->setMpvOption(QStringLiteral("aid"), QStringLiteral("auto"));
+    m_engine->setMpvOption(QStringLiteral("sid"), QStringLiteral("auto"));
+}
+
+void PlayerController::resetFileSettings()
+{
+    if (m_currentPath.isEmpty() || m_engine->idle())
+        return;
+    m_repo.clearProfile(m_currentPath);
+    m_profileDirty = false;
+    m_hadProfile = false;
+    resetFileState();
+    emit toast(tr("Settings for this file reset"));
+}
+
+bool PlayerController::isValidUrl(const QString &text) const
+{
+    return Lumina::UrlUtils::parseMediaUrl(text).isValid();
+}
+
+bool PlayerController::openUrl(const QString &text)
+{
+    const QUrl url = Lumina::UrlUtils::parseMediaUrl(text);
+    if (!url.isValid()) {
+        emit toast(tr("That is not a valid media URL"));
+        return false;
+    }
+    openFiles({url});
+    return true;
+}
+
+void PlayerController::rememberUrl(const QUrl &url)
+{
+    m_recentUrls.removeAll(url.toString());
+    m_recentUrls.prepend(url.toString());
+    while (m_recentUrls.size() > 10)
+        m_recentUrls.removeLast();
+    setSetting(QStringLiteral("recentUrls"), m_recentUrls);
+    emit recentUrlsChanged();
+}
+
+void PlayerController::clearRecentUrls()
+{
+    m_recentUrls.clear();
+    setSetting(QStringLiteral("recentUrls"), m_recentUrls);
+    emit recentUrlsChanged();
 }

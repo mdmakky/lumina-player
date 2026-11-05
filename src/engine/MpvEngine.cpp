@@ -1,8 +1,11 @@
 #include "MpvEngine.h"
 
 #include "utilities/Logger.h"
+#include "utilities/UrlUtils.h"
 
 #include <QByteArray>
+#include <QDir>
+#include <QStandardPaths>
 #include <QMetaObject>
 #include <QUrl>
 #include <QVector>
@@ -56,6 +59,24 @@ MpvEngine::MpvEngine(QObject *parent)
     // Pick a subtitle track automatically when one matches a common language
     // (embedded tracks without a "default" flag were otherwise never shown).
     mpv_set_option_string(m_mpv, "slang", "bn,ben,en,eng");
+
+    // Network streams: time out instead of hanging, reconnect dropped HTTP connections.
+    mpv_set_option_string(m_mpv, "network-timeout", "15");
+    mpv_set_option_string(m_mpv, "demuxer-lavf-o", "reconnect=1,reconnect_streamed=1,reconnect_delay_max=5");
+    // Page URLs (YouTube...) go through yt-dlp when installed. GUI apps often lack the shell PATH.
+    {
+        const QStringList dirs = qEnvironmentVariable("PATH").split(QDir::listSeparator(), Qt::SkipEmptyParts)
+            + QStringList{"/opt/homebrew/bin", "/usr/local/bin", "/usr/bin"};
+        QString ytdl = QStandardPaths::findExecutable(QStringLiteral("yt-dlp"), dirs);
+        if (ytdl.isEmpty())
+            ytdl = QStandardPaths::findExecutable(QStringLiteral("youtube-dl"), dirs);
+        if (!ytdl.isEmpty()) {
+            m_ytdl = true;
+            mpv_set_option_string(m_mpv, "ytdl", "yes");
+            mpv_set_option_string(m_mpv, "ytdl-format", "bestvideo[height<=?1080]+bestaudio/best");
+            mpv_set_option_string(m_mpv, "script-opts", ("ytdl_hook-ytdl_path=" + ytdl).toUtf8().constData());
+        }
+    }
 
     // Seek responsiveness: exact seeks, deep demuxer cache (keeps backward
     // seeks in-memory), direct rendering, and A/V-synced display timing.
@@ -120,11 +141,13 @@ MpvEngine::MpvEngine(QObject *parent)
     const char *properties[] = {
         "time-pos", "duration", "pause", "idle-active", "media-title",
         "volume", "mute", "speed", "track-list", "chapter-list", "eof-reached", "sub-delay", "audio-delay", "ab-loop-a", "ab-loop-b",
+        "paused-for-cache", "demuxer-cache-duration",
     };
     for (const char *name : properties) {
         mpv_format format = MPV_FORMAT_DOUBLE;
         if (qstrcmp(name, "pause") == 0 || qstrcmp(name, "idle-active") == 0
-            || qstrcmp(name, "mute") == 0 || qstrcmp(name, "eof-reached") == 0) {
+            || qstrcmp(name, "mute") == 0 || qstrcmp(name, "eof-reached") == 0
+            || qstrcmp(name, "paused-for-cache") == 0) {
             format = MPV_FORMAT_FLAG;
         } else if (qstrcmp(name, "media-title") == 0) {
             format = MPV_FORMAT_STRING;
@@ -188,6 +211,13 @@ void MpvEngine::processEvents()
             } else if (name == QLatin1String("media-title") && prop->format == MPV_FORMAT_STRING) {
                 m_mediaTitle = QString::fromUtf8(*static_cast<const char **>(prop->data));
                 emit mediaTitleChanged();
+            } else if (name == QLatin1String("paused-for-cache") && prop->format == MPV_FORMAT_FLAG) {
+                const bool was = buffering();
+                m_pausedForCache = *static_cast<int *>(prop->data) != 0;
+                if (was != buffering()) emit bufferingChanged();
+            } else if (name == QLatin1String("demuxer-cache-duration")) {
+                m_cacheAhead = prop->format == MPV_FORMAT_DOUBLE ? *static_cast<double *>(prop->data) : 0.0;
+                emit cacheBufferedSecondsChanged();
             } else if (name == QLatin1String("volume") && prop->format == MPV_FORMAT_DOUBLE) {
                 m_volume = qBound(0, qRound(*static_cast<double *>(prop->data)), 150);
                 emit volumeChanged();
@@ -229,11 +259,26 @@ void MpvEngine::processEvents()
             auto *endFile = static_cast<mpv_event_end_file *>(event->data);
             qCInfo(lcEngine) << "end-file reason" << endFile->reason << "pos" << m_position
                              << "dur" << m_duration;
+            setLoadingRemote(false);
             if (endFile->reason == MPV_END_FILE_REASON_ERROR && endFile->error < 0) {
-                setMediaError(QStringLiteral("Playback failed: %1").arg(mpv_error_string(endFile->error)));
+                if (Lumina::UrlUtils::isRemote(m_remoteUrl) && m_playingRemote) {
+                    if (!m_ytdl && !Lumina::UrlUtils::looksLikeDirectMedia(m_remoteUrl))
+                        setMediaError(QStringLiteral("This looks like a web page, not a media file. Install yt-dlp to play it."));
+                    else if (m_ytdl && !Lumina::UrlUtils::looksLikeDirectMedia(m_remoteUrl))
+                        setMediaError(QStringLiteral("yt-dlp could not extract a playable video from this page."));
+                    else
+                        setMediaError(QStringLiteral("Could not open stream: %1").arg(mpv_error_string(endFile->error)));
+                } else {
+                    setMediaError(QStringLiteral("Playback failed: %1").arg(mpv_error_string(endFile->error)));
+                }
             }
             break;
         }
+        case MPV_EVENT_FILE_LOADED:
+            setLoadingRemote(false);
+            refreshTrackLists(); // make sure listeners see this file's tracks, not the previous one's
+            emit fileLoaded();
+            break;
         case MPV_EVENT_START_FILE:
             qCInfo(lcEngine) << "start-file";
             // New file started — clear any stale error state.
@@ -358,13 +403,29 @@ QVariant MpvEngine::nodeToVariant(const mpv_node &node)
     }
 }
 
+void MpvEngine::setLoadingRemote(bool on)
+{
+    if (m_loadingRemote == on) return;
+    m_loadingRemote = on;
+    emit bufferingChanged();
+}
+
+// Local files by path, everything else (http, rtmp, ...) by its full URL.
+static QString mpvTarget(const QUrl &url)
+{
+    return url.isLocalFile() ? url.toLocalFile() : url.toString();
+}
+
 void MpvEngine::loadFile(const QUrl &url)
 {
-    const QString path = url.scheme().isEmpty() ? url.toString() : url.toLocalFile();
+    const QString path = mpvTarget(url);
     if (path.isEmpty()) {
         setMediaError(QStringLiteral("Cannot open an empty path"));
         return;
     }
+    m_remoteUrl = url;
+    m_playingRemote = Lumina::UrlUtils::isRemote(url);
+    setLoadingRemote(m_playingRemote);
     command({QStringLiteral("loadfile"), path, QStringLiteral("replace")});
 }
 
@@ -375,7 +436,7 @@ void MpvEngine::loadFiles(const QVariantList &urls)
 
     for (int i = 0; i < urls.size(); ++i) {
         const QUrl url = urls.at(i).toUrl();
-        const QString path = url.scheme().isEmpty() ? url.toString() : url.toLocalFile();
+        const QString path = mpvTarget(url);
         if (path.isEmpty())
             continue;
         command({QStringLiteral("loadfile"), path,

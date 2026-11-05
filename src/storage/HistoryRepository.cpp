@@ -3,6 +3,8 @@
 #include "Database.h"
 
 #include <QDateTime>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QSqlQuery>
 #include <QVariant>
 
@@ -132,4 +134,43 @@ QList<Bookmark> HistoryRepository::bookmarks(const QString &path) const
         while (q.next())
             out.append({q.value(0).toLongLong(), q.value(1).toDouble(), q.value(2).toString()});
     return out;
+}
+
+void HistoryRepository::setTitle(const QString &path, const QString &title)
+{
+    if (!available() || title.isEmpty()) return;
+    QSqlQuery q(m_db->db());
+    q.prepare(QStringLiteral("UPDATE history SET title=? WHERE path=?"));
+    q.addBindValue(title);
+    q.addBindValue(path);
+    q.exec();
+}
+
+void HistoryRepository::saveProfile(const QString &path, const QVariantMap &profile)
+{
+    if (!available() || path.isEmpty()) return;
+    QSqlQuery q(m_db->db());
+    q.prepare(QStringLiteral("INSERT OR REPLACE INTO file_profile(path,data) VALUES(?,?)"));
+    q.addBindValue(path);
+    q.addBindValue(QString::fromUtf8(QJsonDocument(QJsonObject::fromVariantMap(profile)).toJson(QJsonDocument::Compact)));
+    q.exec();
+}
+
+QVariantMap HistoryRepository::profile(const QString &path) const
+{
+    if (!available()) return {};
+    QSqlQuery q(m_db->db());
+    q.prepare(QStringLiteral("SELECT data FROM file_profile WHERE path=?"));
+    q.addBindValue(path);
+    if (!q.exec() || !q.next()) return {};
+    return QJsonDocument::fromJson(q.value(0).toString().toUtf8()).object().toVariantMap();
+}
+
+void HistoryRepository::clearProfile(const QString &path)
+{
+    if (!available()) return;
+    QSqlQuery q(m_db->db());
+    q.prepare(QStringLiteral("DELETE FROM file_profile WHERE path=?"));
+    q.addBindValue(path);
+    q.exec();
 }

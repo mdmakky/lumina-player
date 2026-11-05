@@ -113,6 +113,7 @@ Item {
         switch (i) {
         case 0: setResume(true); break
         case 1:
+            player.rememberFileSettings = true
             setHwdec("auto-safe"); setDefaultSpeed(1.0); setSeekStep(5); setAutoNext(true)
             break
         case 2:
@@ -562,6 +563,14 @@ Item {
                                     keywords: "skip jump arrow forward backward seconds"
                                     value: dlg.seekStep; from: 1; to: 60; step: 1; suffix: " s"
                                     onPicked: (v) => dlg.setSeekStep(v)
+                                }
+                                SwitchRow {
+                                    name: "rememberFileSwitch"
+                                    title: qsTr("Remember per-file settings")
+                                    description: qsTr("Restore each file's video adjustments, aspect, rotation, audio and subtitle tracks, delays, speed and volume when you reopen it.")
+                                    keywords: "profile per file video adjust brightness track subtitle delay speed volume remember"
+                                    checked: player.rememberFileSettings
+                                    onToggled: (v) => player.rememberFileSettings = v
                                 }
                                 SwitchRow {
                                     name: "autoNextSwitch"

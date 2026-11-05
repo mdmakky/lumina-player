@@ -3,6 +3,7 @@
 #include <QObject>
 #include <QString>
 #include <QTimer>
+#include <QUrl>
 #include <QVariantMap>
 #include <QVariantList>
 
@@ -57,6 +58,12 @@ class MpvEngine : public QObject
     Q_PROPERTY(QVariantMap videoAdjust READ videoAdjust NOTIFY videoOptionsChanged FINAL)
     // 10-band graphic equalizer (31 Hz .. 16 kHz), gains in dB (-12..12).
     Q_PROPERTY(bool eqEnabled READ eqEnabled WRITE setEqEnabled NOTIFY eqChanged FINAL)
+    // Network streams: true while a remote file is loading or mpv is waiting for cache data.
+    Q_PROPERTY(bool buffering READ buffering NOTIFY bufferingChanged FINAL)
+    // Seconds of media cached ahead of the playhead.
+    Q_PROPERTY(double cacheBufferedSeconds READ cacheBufferedSeconds NOTIFY cacheBufferedSecondsChanged FINAL)
+    // yt-dlp (youtube-dl) found: page URLs (YouTube etc.) can be played.
+    Q_PROPERTY(bool ytdlAvailable READ ytdlAvailable CONSTANT FINAL)
     Q_PROPERTY(QVariantList eqGains READ eqGains NOTIFY eqChanged FINAL)
 
 public:
@@ -92,6 +99,9 @@ public:
     int rotate() const { return m_rotate; }
     bool deinterlace() const { return m_deinterlace; }
     QVariantMap videoAdjust() const { return m_adjust; }
+    bool buffering() const { return m_pausedForCache || m_loadingRemote; }
+    double cacheBufferedSeconds() const { return m_cacheAhead; }
+    bool ytdlAvailable() const { return m_ytdl; }
 
 public slots:
     void setPaused(bool paused);
@@ -189,6 +199,10 @@ signals:
     void videoOptionsChanged();
     // mpv finished a seek (MPV_EVENT_PLAYBACK_RESTART); also fires after file load.
     void seekFinished();
+    void bufferingChanged();
+    // mpv finished opening the file (tracks are known).
+    void fileLoaded();
+    void cacheBufferedSecondsChanged();
 
 private:
     // Drains the mpv event queue; runs on the GUI thread via the wakeup callback.
@@ -204,8 +218,15 @@ private:
     bool command(const QStringList &args);
     void issueSeek(double seconds, bool accurate);
     void setMediaError(const QString &message);
+    void setLoadingRemote(bool on);
     void checkEndOfFile();
     void applyEq();
+    bool m_pausedForCache = false;
+    bool m_loadingRemote = false;
+    bool m_playingRemote = false;
+    double m_cacheAhead = 0.0;
+    bool m_ytdl = false;
+    QUrl m_remoteUrl; // last remote URL loaded (for error messages)
     bool m_eqEnabled = false;
     QVariantList m_eqGains = QVariantList(10, 0.0);
     QString m_rendererInfo;

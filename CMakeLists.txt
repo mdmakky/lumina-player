@@ -38,6 +38,8 @@ qt_add_executable(lumina
     src/utilities/Logger.cpp
     src/utilities/TimeUtils.h
     src/utilities/TimeUtils.cpp
+    src/utilities/UrlUtils.h
+    src/utilities/UrlUtils.cpp
     src/core/PlayerController.h
     src/core/PlayerController.cpp
     src/core/PlaylistModel.h
@@ -116,6 +118,7 @@ qt_add_qml_module(lumina
         ui/Components/VideoAdjustPopup.qml
         ui/Components/EqualizerPopup.qml
         ui/Components/BookmarksPopup.qml
+        ui/Components/OpenUrlDialog.qml
         ui/Library/LibraryView.qml
     RESOURCES
         resources/icons/play.svg
@@ -220,10 +223,19 @@ if(BUILD_TESTING)
     target_link_libraries(tst_timeutils PRIVATE Qt6::Core Qt6::Test)
     add_test(NAME TimeUtils COMMAND tst_timeutils)
 
+    add_executable(tst_urlutils
+        tests/unit/tst_UrlUtils.cpp
+        src/utilities/UrlUtils.cpp
+    )
+    target_include_directories(tst_urlutils PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+    target_link_libraries(tst_urlutils PRIVATE Qt6::Core Qt6::Test)
+    add_test(NAME UrlUtils COMMAND tst_urlutils)
+
     add_executable(tst_playlistmodel
         tests/unit/tst_PlaylistModel.cpp
         src/core/PlaylistModel.cpp
         src/core/PlaylistModel.h
+        src/utilities/UrlUtils.cpp
     )
     target_include_directories(tst_playlistmodel PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
     target_link_libraries(tst_playlistmodel PRIVATE Qt6::Core Qt6::Test)

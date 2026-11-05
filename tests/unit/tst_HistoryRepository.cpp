@@ -111,6 +111,44 @@ private slots:
         QVERIFY(off.bookmarks("/a").isEmpty());
     }
 
+    void fileProfiles()
+    {
+        QTemporaryDir dir;
+        const QString path = dir.filePath("lib.db");
+        const QString url = "http://h.com/a.mp4";
+        {
+            Database db(path);
+            HistoryRepository r(&db);
+            QVERIFY(r.profile(url).isEmpty());
+            r.saveProfile(url, {{"brightness", 20}, {"aspect", "16:9"}, {"speed", 1.5}, {"sid", 0}});
+            r.saveProfile(url, {{"brightness", 30}, {"aspect", "4:3"}, {"speed", 1.5}}); // replaces
+            r.saveProfile("/b", {{"rotate", 90}});
+        }
+        Database db(path); // survives reopen
+        HistoryRepository r(&db);
+        const QVariantMap p = r.profile(url);
+        QCOMPARE(p.value("brightness").toInt(), 30);
+        QCOMPARE(p.value("aspect").toString(), QString("4:3"));
+        QCOMPARE(p.value("speed").toDouble(), 1.5);
+        QCOMPARE(r.profile("/b").value("rotate").toInt(), 90);
+        r.clearProfile(url);
+        QVERIFY(r.profile(url).isEmpty());
+        QCOMPARE(r.profile("/b").value("rotate").toInt(), 90);
+
+        r.recordPlay(url, "a.mp4");
+        r.setTitle(url, "Real Title");
+        QCOMPARE(r.entry(url).title, QString("Real Title"));
+    }
+
+    void profilesUnavailableIsNoOp()
+    {
+        HistoryRepository none(nullptr);
+        none.saveProfile("/a", {{"x", 1}});
+        none.clearProfile("/a");
+        none.setTitle("/a", "t");
+        QVERIFY(none.profile("/a").isEmpty());
+    }
+
     void newerSchemaDisablesLibrary()
     {
         QTemporaryDir dir;

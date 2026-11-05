@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QObject>
+#include <QTimer>
 #include <QUrl>
 #include <QStringList>
 #include <QVariant>
@@ -41,6 +42,9 @@ class PlayerController : public QObject
     // Bookmarks of the current file: [{id, time, label}], ordered by time.
     Q_PROPERTY(QVariantList bookmarks READ bookmarks NOTIFY bookmarksChanged FINAL)
     Q_PROPERTY(QStringList recentFiles READ recentFiles NOTIFY recentFilesChanged FINAL)
+    Q_PROPERTY(QStringList recentUrls READ recentUrls NOTIFY recentUrlsChanged FINAL)
+    // Per-file video/audio/subtitle profiles (needs the library DB). Setting "playback/rememberFile".
+    Q_PROPERTY(bool rememberFileSettings READ rememberFileSettings WRITE setRememberFileSettings NOTIFY rememberFileSettingsChanged FINAL)
 
 public:
     explicit PlayerController(QObject *parent = nullptr);
@@ -54,6 +58,9 @@ public:
     bool historyAvailable() const { return m_repo.available(); }
     QVariantList bookmarks() const { return m_bookmarks; }
     QStringList recentFiles() const { return m_recentFiles; }
+    QStringList recentUrls() const { return m_recentUrls; }
+    bool rememberFileSettings() const { return m_rememberFile; }
+    void setRememberFileSettings(bool on);
     LibraryModel *library() const { return m_library; }
     QStringList libraryFolders() const { return m_libraryFolders; }
     bool libraryScanning() const { return m_scanner && m_scanner->scanning(); }
@@ -73,8 +80,15 @@ public slots:
     void playLibrary(int index);
     // Accepts a JS array of URLs (from file dialogs or drag & drop).
     void openFiles(const QVariantList &urls);
-    // Local path -> properly escaped file URL (paths with spaces, #, % ...).
-    Q_INVOKABLE QUrl fileUrl(const QString &path) const { return QUrl::fromLocalFile(path); }
+    // Validates and plays a network URL (http/https/rtmp/rtsp/ftp/file); toasts and returns false if invalid.
+    Q_INVOKABLE bool openUrl(const QString &text);
+    Q_INVOKABLE bool isValidUrl(const QString &text) const;
+    Q_INVOKABLE void clearRecentUrls();
+    // Forgets and undoes this file's saved profile (adjustments, tracks, delays, speed, volume).
+    Q_INVOKABLE void resetFileSettings();
+    // Local path (or URL string) -> properly escaped file URL (paths with spaces, #, % ...).
+    Q_INVOKABLE QUrl fileUrl(const QString &path) const
+    { return path.contains(QStringLiteral("://")) ? QUrl(path) : QUrl::fromLocalFile(path); }
     // Appends to the queue; starts playing the first one if nothing is current.
     void enqueue(const QVariantList &urls);
     void playIndex(int index);
@@ -107,6 +121,8 @@ signals:
     void hasMediaChanged();
     void bookmarksChanged();
     void recentFilesChanged();
+    void recentUrlsChanged();
+    void rememberFileSettingsChanged();
     void shuffleChanged();
     void repeatModeChanged();
     void libraryFoldersChanged();
@@ -115,7 +131,19 @@ signals:
 
 private:
     void reloadBookmarks();
+    void rememberUrl(const QUrl &url);
+    void markProfileDirty();
+    void saveProfileIfDirty();
+    void applyProfileTracks();
+    void resetFileState();
     QVariantList m_bookmarks;
+    QStringList m_recentUrls;
+    bool m_rememberFile = true;
+    QVariantMap m_pendingProfile; // tracks are restored on fileLoaded (needs the demuxer)
+    bool m_hadProfile = false;
+    bool m_profileArmed = false; // false while load-time changes settle; they are not user edits
+    bool m_profileDirty = false;
+    QTimer *m_armTimer = nullptr;
     void advance(bool autoAdvance);
     void rememberFile(const QUrl &url);
     // Resume support: remember where each local file stopped and seek back on reopen.
