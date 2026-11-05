@@ -10,7 +10,6 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
-#include <QQuickStyle>
 #include <QQuickWindow>
 #include <QSGRendererInterface>
 
@@ -23,7 +22,8 @@ int main(int argc, char *argv[])
     // mpv's OpenGL render API requires the Qt scene graph to use OpenGL.
     QQuickWindow::setGraphicsApi(QSGRendererInterface::OpenGL);
     // The Basic style is unstyled — all visuals come from our Theme system.
-    QQuickStyle::setStyle(QStringLiteral("Basic"));
+    // Set via env so we don't need the QuickControls2 C++ module at build time.
+    qputenv("QT_QUICK_CONTROLS_STYLE", "Basic");
 
     QGuiApplication app(argc, argv);
 

@@ -18,7 +18,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
             ninja-build cmake g++ \
-            qt6-base-dev qt6-declarative-dev qt6-quickcontrols2-dev \
+            qt6-base-dev qt6-declarative-dev \
             libmpv-dev pkg-config
 
       - name: Configure
