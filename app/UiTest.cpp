@@ -283,6 +283,50 @@ void UiTest::run()
         eng->setAspect("auto"); eng->setRotate(0); eng->setDeinterlace(false);
         result("aspect/rotate reset", eng->aspect() == "auto" && eng->rotate() == 0);
 
+        // --- equalizer popup ---
+        if (click("moreButton")) {
+            QTest::qWait(400);
+            if (auto *it = find("equalizerItem")) clickAt(center(it));
+            QTest::qWait(400);
+            result("Equalizer popup opens", find("eqBand_0") != nullptr);
+            click("eqPreset_Bass boost");
+            result("preset enables EQ and sets gains", waitFor([&] { return eng->property("eqEnabled").toBool() && eng->property("eqGains").toList().value(0).toDouble() == 6; }));
+            char *af = mpv_get_property_string(eng->handle(), "af");
+            const QString afs = af ? QString::fromUtf8(af) : QString();
+            mpv_free(af);
+            result("mpv af chain holds equalizer", afs.contains("equalizer"), afs.left(60));
+            shot("equalizer");
+            click("eqSwitch");
+            result("switch disables EQ", waitFor([&] { return !eng->property("eqEnabled").toBool(); }));
+            click("eqReset");
+            result("Reset zeroes bands", waitFor([&] { return eng->property("eqGains").toList().value(0).toDouble() == 0; }));
+            key(Qt::Key_Escape);
+        }
+
+        // --- bookmarks ---
+        {
+            eng->seek(12);
+            waitFor([&] { return eng->position() >= 11; }, 4000);
+            key(Qt::Key_B);
+            result("B adds a bookmark", waitFor([&] { return p->bookmarks().size() == 1; }));
+            wake();
+            QTest::qWait(300);
+            result("bookmark marker on timeline", find("bookmarkMarker") && find("bookmarkMarker")->isVisible());
+            eng->seek(2);
+            waitFor([&] { return eng->position() < 6; }, 4000);
+            if (click("moreButton")) {
+                QTest::qWait(400);
+                if (auto *it = find("bookmarksItem")) clickAt(center(it));
+                QTest::qWait(400);
+                shot("bookmarks");
+                click("bookmarkRow_0");
+                result("bookmark row click seeks", waitFor([&] { return eng->position() >= 11; }, 4000), QString::number(eng->position()));
+                click("bookmarkDelete_0");
+                result("delete removes bookmark", waitFor([&] { return p->bookmarks().isEmpty(); }));
+                key(Qt::Key_Escape);
+            }
+        }
+
         // fullscreen button + double click + Esc
         click("fullscreenButton");
         fsCheck("fullscreen button enters", true);
