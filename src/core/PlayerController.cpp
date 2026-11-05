@@ -34,6 +34,19 @@ PlayerController::PlayerController(QObject *parent)
     m_favorites = new HistoryModel(&m_repo, HistoryRepository::Filter::Favorites, 50, this);
     connect(m_engine, &MpvEngine::idleChanged, this, [this] { if (m_engine->idle()) reloadHistory(); });
 
+    m_libRepo = LibraryRepository(m_database.get());
+    m_library = new LibraryModel(&m_libRepo, this);
+    m_scanner = new LibraryScanner(&m_libRepo, this);
+    connect(m_scanner, &LibraryScanner::changed, m_library, &LibraryModel::reload);
+    connect(m_scanner, &LibraryScanner::progress, this, [this](int n) {
+        m_libraryProgress = n;
+        emit libraryProgressChanged();
+    });
+    connect(m_scanner, &LibraryScanner::finished, this, [this] {
+        m_library->reload();
+        emit libraryScanningChanged();
+    });
+
     // Resume where the file was left (disabled in self-test for determinism).
     connect(m_engine, &MpvEngine::durationChanged, this, [this]() {
         if (m_resumeTarget > 0.0 && m_engine->duration() > m_resumeTarget + 10.0) {
@@ -54,8 +67,12 @@ PlayerController::PlayerController(QObject *parent)
     m_recentFiles = settings.value(QStringLiteral("recentFiles")).toStringList();
     m_shuffle = settings.value(QStringLiteral("playback/shuffle"), false).toBool();
     m_repeat = qBound(0, settings.value(QStringLiteral("playback/repeat"), 0).toInt(), 2);
+    m_libraryFolders = settings.value(QStringLiteral("library/folders")).toStringList();
     migrateLegacy();
     reloadHistory();
+    m_library->reload();
+    if (!m_libraryFolders.isEmpty())
+        QTimer::singleShot(0, this, &PlayerController::rescanLibrary);
     m_engine->setVolume(settings.value(QStringLiteral("playback/defaultVolume"),
                                        settings.value(QStringLiteral("playback/volume"), 100)).toInt());
     m_engine->setHwdec(settings.value(QStringLiteral("playback/hwdec"), QStringLiteral("auto-safe")).toString());
@@ -109,6 +126,48 @@ void PlayerController::removeBookmark(qint64 id)
 {
     m_repo.removeBookmark(id);
     reloadBookmarks();
+}
+
+void PlayerController::addLibraryFolder(const QUrl &folder)
+{
+    const QString dir = QDir::cleanPath(folder.isLocalFile() ? folder.toLocalFile() : folder.toString());
+    if (dir.isEmpty() || !QFileInfo(dir).isDir() || m_libraryFolders.contains(dir))
+        return;
+    m_libraryFolders.append(dir);
+    setSetting(QStringLiteral("library/folders"), m_libraryFolders);
+    emit libraryFoldersChanged();
+    rescanLibrary();
+}
+
+void PlayerController::removeLibraryFolder(const QString &folder)
+{
+    if (!m_libraryFolders.removeOne(folder))
+        return;
+    setSetting(QStringLiteral("library/folders"), m_libraryFolders);
+    m_libRepo.removeFolder(folder);
+    m_library->reload();
+    emit libraryFoldersChanged();
+    rescanLibrary(); // restarts a running scan so it no longer re-adds the removed folder
+}
+
+void PlayerController::rescanLibrary()
+{
+    if (!m_libRepo.available())
+        return;
+    m_libraryProgress = 0;
+    emit libraryProgressChanged();
+    m_scanner->scan(m_libraryFolders);
+    emit libraryScanningChanged();
+}
+
+void PlayerController::playLibrary(int index)
+{
+    const QVariantList urls = m_library->urls();
+    if (index < 0 || index >= urls.size())
+        return;
+    m_playlist->clear();
+    m_playlist->append(urls);
+    playIndex(index);
 }
 
 QVariant PlayerController::setting(const QString &key, const QVariant &fallback) const

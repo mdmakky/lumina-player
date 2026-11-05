@@ -13,6 +13,7 @@
 #include <QQuickWindow>
 #include <QSet>
 #include <QTest>
+#include <QTemporaryDir>
 #include <QTimer>
 #include <QUrl>
 
@@ -119,6 +120,42 @@ void UiTest::run()
     if (doTest) {
         auto *b = find("homeOpenButton");
         result("home open button present", b && b->isVisible() && b->isEnabled());
+    }
+    // --- media library overlay (isolated DB/settings; folder of copied media) ---
+    if (doTest && !files.isEmpty()) {
+        QTemporaryDir lib;
+        const QString src = QFileInfo::exists("/tmp/short1.mp4") ? QStringLiteral("/tmp/short1.mp4") : files.first();
+        bool made = lib.isValid();
+        for (const char *n : {"sunrise_alpha.mp4", "Holiday/ocean_beta.mp4", "Holiday/ocean_gamma.mp4"}) {
+            QDir().mkpath(QFileInfo(lib.filePath(n)).absolutePath());
+            made = made && QFile::copy(src, lib.filePath(n));
+        }
+        result("library fixture media", made);
+        auto *pl0 = p->playlist();
+        key(Qt::Key_L);
+        result("L opens library", waitFor([&] { return vis("librarySearch"); }));
+        p->addLibraryFolder(QUrl::fromLocalFile(lib.path()));
+        result("library scan finds files", waitFor([&] { return p->library()->rowCount() == 3 && !p->libraryScanning(); }),
+               QString::number(p->library()->rowCount()));
+        QTest::qWait(300);
+        shot("library");
+        for (char c : std::string("ocean")) QTest::keyClick(w, c);
+        result("library search filters", waitFor([&] { return p->library()->rowCount() == 2 && vis("libraryRow_1") && !vis("libraryRow_2"); }),
+               QString::number(p->library()->rowCount()));
+        QTest::qWait(300);
+        shot("library-search");
+        if (auto *r = find("libraryRow_0")) {
+            clickAt(center(r));
+            result("library row click plays", waitFor([&] { return !eng->idle() && eng->duration() > 1; }, 8000));
+            result("library queues visible results", pl0->rowCount() == 2, QString::number(pl0->rowCount()));
+            result("library closes after play", waitFor([&] { return !vis("librarySearch"); }));
+        } else result("library row click plays", false, "missing row");
+        eng->stop();
+        waitFor([&] { return eng->idle(); });
+        pl0->clear();
+        p->removeLibraryFolder(lib.path());
+        result("remove library folder empties library", waitFor([&] { return p->library()->rowCount() == 0; }));
+        p->library()->setSearch({});
     }
     if (files.isEmpty()) { qCInfo(lcCore) << "no media arg; stopping after home"; QCoreApplication::exit(fails ? 1 : 0); return; }
 

@@ -11,6 +11,8 @@
 #include "storage/Database.h"
 #include "storage/HistoryModel.h"
 #include "storage/HistoryRepository.h"
+#include "storage/LibraryModel.h"
+#include "services/LibraryScanner.h"
 
 #include <memory>
 
@@ -28,6 +30,11 @@ class PlayerController : public QObject
     Q_PROPERTY(HistoryModel *continueWatching READ continueWatching CONSTANT FINAL)
     Q_PROPERTY(HistoryModel *favorites READ favorites CONSTANT FINAL)
     Q_PROPERTY(bool historyAvailable READ historyAvailable CONSTANT FINAL)
+    Q_PROPERTY(LibraryModel *library READ library CONSTANT FINAL)
+    Q_PROPERTY(QStringList libraryFolders READ libraryFolders NOTIFY libraryFoldersChanged FINAL)
+    Q_PROPERTY(bool libraryScanning READ libraryScanning NOTIFY libraryScanningChanged FINAL)
+    Q_PROPERTY(int libraryProgress READ libraryProgress NOTIFY libraryProgressChanged FINAL)
+    Q_PROPERTY(bool libraryAvailable READ libraryAvailable CONSTANT FINAL)
     Q_PROPERTY(bool hasMedia READ hasMedia NOTIFY hasMediaChanged FINAL)
     Q_PROPERTY(bool shuffle READ shuffle WRITE setShuffle NOTIFY shuffleChanged FINAL)
     Q_PROPERTY(int repeatMode READ repeatMode WRITE setRepeatMode NOTIFY repeatModeChanged FINAL)
@@ -47,12 +54,23 @@ public:
     bool historyAvailable() const { return m_repo.available(); }
     QVariantList bookmarks() const { return m_bookmarks; }
     QStringList recentFiles() const { return m_recentFiles; }
+    LibraryModel *library() const { return m_library; }
+    QStringList libraryFolders() const { return m_libraryFolders; }
+    bool libraryScanning() const { return m_scanner && m_scanner->scanning(); }
+    int libraryProgress() const { return m_libraryProgress; }
+    bool libraryAvailable() const { return m_libRepo.available(); }
     bool shuffle() const { return m_shuffle; }
     void setShuffle(bool on);
     int repeatMode() const { return m_repeat; }
     void setRepeatMode(int mode); // 0 off, 1 all, 2 one
 
 public slots:
+    // Optional media library (folders persisted; scans run on a worker thread).
+    void addLibraryFolder(const QUrl &folder);
+    void removeLibraryFolder(const QString &folder);
+    void rescanLibrary();
+    // Replaces the queue with the library's visible rows and plays row `index`.
+    void playLibrary(int index);
     // Accepts a JS array of URLs (from file dialogs or drag & drop).
     void openFiles(const QVariantList &urls);
     // Local path -> properly escaped file URL (paths with spaces, #, % ...).
@@ -86,6 +104,9 @@ signals:
     void recentFilesChanged();
     void shuffleChanged();
     void repeatModeChanged();
+    void libraryFoldersChanged();
+    void libraryScanningChanged();
+    void libraryProgressChanged();
 
 private:
     void reloadBookmarks();
@@ -109,4 +130,9 @@ private:
     HistoryModel *m_history = nullptr;
     HistoryModel *m_continue = nullptr;
     HistoryModel *m_favorites = nullptr;
+    LibraryRepository m_libRepo{nullptr};
+    LibraryModel *m_library = nullptr;
+    LibraryScanner *m_scanner = nullptr;
+    QStringList m_libraryFolders;
+    int m_libraryProgress = 0;
 };

@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1B1B27"/><stop offset="1" stop-color="#0B0B12"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#8175F5" stop-opacity="0.75"/>
+      <stop offset="0.55" stop-color="#8175F5" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#8175F5" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="tri" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#C4BEFF"/><stop offset="1" stop-color="#8175F5"/>
+    </linearGradient>
+    <clipPath id="clip"><rect x="64" y="64" width="896" height="896" rx="200"/></clipPath>
+  </defs>
+  <rect x="64" y="64" width="896" height="896" rx="200" fill="url(#bg)"/>
+  <g clip-path="url(#clip)">
+    <circle cx="512" cy="512" r="440" fill="url(#glow)"/>
+    <circle cx="512" cy="512" r="300" fill="none" stroke="#8175F5" stroke-opacity="0.35" stroke-width="10"/>
+  </g>
+  <path d="M432 350 L690 512 L432 674 Z" fill="url(#tri)" stroke="url(#tri)" stroke-width="56" stroke-linejoin="round"/>
+  <rect x="64.5" y="64.5" width="895" height="895" rx="199.5" fill="none" stroke="#FFFFFF" stroke-opacity="0.08"/>
+</svg>

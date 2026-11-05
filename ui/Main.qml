@@ -184,6 +184,29 @@ ApplicationWindow {
                 }
             }
 
+            Button {
+                objectName: "homeLibraryButton"
+                Layout.alignment: Qt.AlignHCenter
+                text: qsTr("Library")
+                font.family: Theme.fontFamily
+                font.pixelSize: Theme.fontSizeMedium
+                onClicked: libraryView.open()
+                background: Rectangle {
+                    implicitWidth: 160
+                    implicitHeight: 34
+                    radius: 17
+                    color: parent.pressed ? Theme.surfacePressed : (parent.hovered ? Theme.surfaceHover : "transparent")
+                    border.color: Theme.border
+                }
+                contentItem: Text {
+                    text: parent.text
+                    font: parent.font
+                    color: Theme.secondaryText
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                }
+            }
+
             // ---- Library sections (SQLite); falls back to the plain recent list if DB is unavailable ----
             Component {
                 id: historyCard
@@ -854,6 +877,11 @@ ApplicationWindow {
         objectName: "settingsDialog"
     }
 
+    LibraryView {
+        id: libraryView
+        objectName: "libraryView"
+    }
+
     // --- Drag & drop ----------------------------------------------------------
     DropArea {
         anchors.fill: parent
@@ -900,6 +928,7 @@ ApplicationWindow {
     Shortcut { sequence: "Shift+S";      onActivated: player.shuffle = !player.shuffle }
     Shortcut { sequence: "R";            onActivated: player.repeatMode = (player.repeatMode + 1) % 3 }
     Shortcut { sequence: "Ctrl+O";       onActivated: fileDialog.open() }
-    Shortcut { sequence: "Ctrl+,";       onActivated: settingsDialog.open() }
-    Shortcut { sequence: "Esc";          enabled: root.visibility === Window.FullScreen && !settingsDialog.opened; onActivated: root.showNormal() }
+    Shortcut { sequence: "L";            enabled: !libraryView.opened && !settingsDialog.opened; onActivated: libraryView.open() }
+    Shortcut { sequence: "Ctrl+,";      onActivated: settingsDialog.open() }
+    Shortcut { sequence: "Esc";          enabled: root.visibility === Window.FullScreen && !settingsDialog.opened && !libraryView.opened; onActivated: root.showNormal() }
 }

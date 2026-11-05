@@ -68,7 +68,7 @@ cmake --build --preset linux-debug
 LUMINA_PLAYBACK_TEST=1 ./build/linux-debug/lumina <some-video-file>
 ```
 
-Self-test env switches: `LUMINA_PLAYBACK_TEST=1` (+ `LUMINA_SEEK_STRESS=1` / `LUMINA_SPEED_TEST=1`), `LUMINA_UI_TEST=1` (real clicks/keys on every control; use a >=40 s file), `LUMINA_SCREENSHOT=<dir>` (PNG of each UI state), `LUMINA_MPV_OPTS=k=v` (debug mpv options). Run them alone via `tools/run-ui-test.sh` (it forces the window to the foreground; parallel runs or an IDE in front make keyboard checks fail).
+Self-test env switches: `LUMINA_PLAYBACK_TEST=1` (+ `LUMINA_SEEK_STRESS=1` / `LUMINA_SPEED_TEST=1`), `LUMINA_SEEK_BENCH=1` (+ `LUMINA_SEEK_BENCH_CSV`, `_N`; see `docs/BENCHMARK.md`; `LUMINA_SEEK_COALESCE=0` disables seek coalescing), `LUMINA_UI_TEST=1` (real clicks/keys on every control; use a >=40 s file), `LUMINA_SCREENSHOT=<dir>` (PNG of each UI state), `LUMINA_MPV_OPTS=k=v` (debug mpv options). Run them alone via `tools/run-ui-test.sh` (it forces the window to the foreground; parallel runs or an IDE in front make keyboard checks fail).
 
 On macOS the presets are not used: `cmake -S . -B build/mac -G Ninja -DCMAKE_PREFIX_PATH=$(brew --prefix qt)`; binary is `build/mac/bin/lumina` (case-insensitive FS clash with the `Lumina/` QML dir).
 
@@ -135,3 +135,5 @@ See `docs/TECHNICAL_DECISIONS.md` for the full record. Headlines:
 2. Milestone 4: subtitle track management UI (mpv handles rendering; we manage track lists/sync).
 3. Milestone 5: hardware acceleration manager (VAAPI first — AMD VAAPI present on dev machine), playback statistics OSD.
 4. Add integration test media generation (ffmpeg testsrc) — see `docs/TESTING.md`.
+
+Packaging: see `docs/PACKAGING.md`. `-DLUMINA_MAC_BUNDLE=ON` builds `bin/lumina.app` (default OFF keeps `build/mac/bin/lumina`, so tools/run-ui-test.sh is unchanged).
