@@ -41,6 +41,11 @@ set_source_files_properties(ui/Theme/Theme.qml PROPERTIES
     QT_QML_SINGLETON_TYPE TRUE
 )
 
+# Resource prefix :/qt/qml/ (Qt >= 6.5); main.cpp loads qrc:/qt/qml/Lumina/Player/...
+if(COMMAND qt_policy)
+    qt_policy(SET QTP0001 NEW)
+endif()
+
 qt_add_qml_module(lumina
     URI Lumina.Player
     VERSION 1.0
