@@ -36,6 +36,7 @@ bool SingleInstance::forward(const QStringList &arguments) const
 bool SingleInstance::listen()
 {
     m_server = new QLocalServer(this);
+    m_server->setSocketOptions(QLocalServer::UserAccessOption); // 0700 socket in shared /tmp on Linux
     if (!m_server->listen(m_name)) {
         QLocalServer::removeServer(m_name); // stale socket from a crash
         if (!m_server->listen(m_name))

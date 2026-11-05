@@ -427,6 +427,37 @@ void UiTest::run()
             clickAt(center(r));
             result("recent row opens media", waitFor([&] { return !eng->idle() && eng->duration() > 1; }, 6000));
         } else result("recent row opens media", false, "no recent rows");
+
+        // continue-watching cards: play, seek, persist, return home, click card -> resumes
+        p->openFiles({QUrl::fromLocalFile(files.first())});
+        if (waitFor([&] { return eng->duration() > 40; }, 6000)) {
+            QTest::qWait(1000); // let the automatic resume-seek settle first
+            eng->seek(20);
+            result("seek before home cards", waitFor([&] { return eng->position() >= 19; }, 6000));
+            p->saveResume();
+            pl->clear();
+            eng->stop();
+            waitFor([&] { return eng->idle(); });
+            result("continue card present after playing", waitFor([&] { return p->continueWatching()->rowCount() > 0 && vis("continueCard_0"); }));
+            QTest::qWait(400);
+            shot("home-cards");
+            if (auto *c = find("continueCard_0")) {
+                clickAt(center(c));
+                result("continue card resumes", waitFor([&] { return !eng->idle() && eng->position() >= 15; }, 8000),
+                       QString("pos=%1").arg(eng->position()));
+            } else result("continue card resumes", false, "missing");
+            pause();
+            p->saveResume();
+            pl->clear();
+            eng->stop();
+            waitFor([&] { return eng->idle(); });
+            QTest::qWait(400);
+            if (auto *star = find("cardStar_0")) {
+                clickAt(center(star));
+                result("star adds favorite", waitFor([&] { return p->favorites()->rowCount() == 1 && vis("favoritesList"); }));
+                shot("home-favorites");
+            } else result("star adds favorite", false, "missing");
+        } else result("continue card flow", false, "media shorter than 40s; pass /tmp/long.mp4");
         qCInfo(lcCore) << "UITEST SUMMARY passes=" << passes << "fails=" << fails;
     }
     QCoreApplication::exit(fails ? 1 : 0);
