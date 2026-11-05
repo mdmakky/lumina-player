@@ -15,6 +15,10 @@ qt_standard_project_setup(REQUIRES 6.4)
 if(QT_KNOWN_POLICY_QTP0001)
     qt_policy(SET QTP0001 NEW)
 endif()
+# Generate qmldir files for QML subdirectories (Components/, Theme/ ...).
+if(QT_KNOWN_POLICY_QTP0004)
+    qt_policy(SET QTP0004 NEW)
+endif()
 
 # ---------------------------------------------------------------------------
 # Main application target
@@ -48,6 +52,12 @@ target_compile_definitions(lumina PRIVATE
 set_source_files_properties(ui/Theme/Theme.qml PROPERTIES
     QT_QML_SINGLETON_TYPE TRUE
 )
+
+file(GLOB LUMINA_ICONS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} resources/icons/*.svg)
+foreach(icon IN LISTS LUMINA_ICONS)
+    get_filename_component(icon_name ${icon} NAME)
+    set_source_files_properties(${icon} PROPERTIES QT_RESOURCE_ALIAS icons/${icon_name})
+endforeach()
 
 qt_add_qml_module(lumina
     URI Lumina.Player
