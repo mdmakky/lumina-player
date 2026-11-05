@@ -20,6 +20,7 @@ ApplicationWindow {
     property bool chromeVisible: true
     property bool pointerInChrome: false
     property bool speedMenuOpen: false
+    property bool playlistOpen: false
 
     function showChrome() {
         chromeVisible = true
@@ -126,6 +127,14 @@ ApplicationWindow {
             font.family: Theme.fontFamily
             font.pixelSize: Theme.fontSizeMedium
         }
+    }
+
+    // --- Playlist panel ---------------------------------------------------
+    PlaylistPanel {
+        visible: root.playlistOpen
+        anchors.top: parent.top
+        anchors.right: parent.right
+        anchors.bottom: controlsBar.visible ? controlsBar.top : parent.bottom
     }
 
     // --- Playback controls overlay ----------------------------------------
@@ -238,6 +247,11 @@ ApplicationWindow {
                 }
 
                 IconButton {
+                    label: qsTr("List")
+                    onClicked: root.playlistOpen = !root.playlistOpen
+                }
+
+                IconButton {
                     iconSource: "qrc:/qt/qml/Lumina/Player/icons/folder-open.svg"
                     onClicked: fileDialog.open()
                 }
@@ -337,6 +351,9 @@ ApplicationWindow {
     Shortcut { sequence: "Z";            enabled: player.hasMedia; onActivated: player.engine.setSpeed(1.0) }
     Shortcut { sequence: "Period";       enabled: player.hasMedia; onActivated: player.engine.stepFrame(1) }
     Shortcut { sequence: "Comma";        enabled: player.hasMedia; onActivated: player.engine.stepFrame(-1) }
+    Shortcut { sequence: "P";            onActivated: root.playlistOpen = !root.playlistOpen }
+    Shortcut { sequence: "PgDown";       enabled: player.hasMedia; onActivated: player.next() }
+    Shortcut { sequence: "PgUp";         enabled: player.hasMedia; onActivated: player.previous() }
     Shortcut { sequence: "Ctrl+O";       onActivated: fileDialog.open() }
     Shortcut { sequence: "Esc";          enabled: root.visibility === Window.FullScreen; onActivated: root.showNormal() }
 }

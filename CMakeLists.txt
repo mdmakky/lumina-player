@@ -54,6 +54,7 @@ qt_add_qml_module(lumina
         ui/Theme/Theme.qml
         ui/Components/IconButton.qml
         ui/Components/TimeSlider.qml
+        ui/Components/PlaylistPanel.qml
     RESOURCES
         resources/icons/play.svg
         resources/icons/pause.svg
