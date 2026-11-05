@@ -464,61 +464,182 @@ void UiTest::run()
                 mpv_free(s);
                 return r;
             };
+            auto txt = [&](const char *n) { auto *it = find(n); return it ? it->property("text").toString() : QString(); };
+            auto setSearch = [&](const QString &t) { if (auto *sf = find("settingsSearch")) sf->setProperty("text", t); QTest::qWait(300); };
+            auto page = [&](int i) { return click(QStringLiteral("settingsNav_%1").arg(i).toLatin1().constData()); };
+            auto sd = [&] { return find("settingsDialog"); };
             click("settingsButton");
             result("settings button opens dialog", waitFor([&] { return vis("settingsPanel"); }));
-            shot("settings-playback");
+            shot("settings-general");
+
+            // sidebar reaches every page (title in the sticky header follows)
+            const char *titles[] = {"General", "Playback", "Video", "Audio", "Subtitles", "Appearance", "Library", "Shortcuts", "Advanced", "About"};
+            for (int i = 0; i < 10; ++i) {
+                page(i);
+                QTest::qWait(200);
+                result(QString("sidebar opens page %1").arg(titles[i]),
+                       txt("settingsPageTitle") == titles[i] && sd() && sd()->property("currentPage").toInt() == i,
+                       txt("settingsPageTitle"));
+                shot(QString("settings-page-%1-%2").arg(i).arg(titles[i]).toLower());
+            }
+
+            // global search: finds a setting on another page, shows it, hides the rest
+            page(0);
+            setSearch("equalizer");
+            result("search shows matching setting from another page", vis("openEqualizer"));
+            result("search hides non-matching settings", !vis("resumeSwitch") && !vis("hwdecOption_no"));
+            result("search title says results", txt("settingsPageTitle") == "Search results");
+            shot("settings-search");
+            setSearch("zzzz-nothing");
+            result("search with no match shows empty state", vis("settingsNoResults"));
+            shot("settings-search-empty");
+            setSearch("");
+            result("clearing search restores a page", vis("openEqualizer") && !vis("settingsNoResults"));
+            page(0);
+            result("General page back after search", waitFor([&] { return vis("resumeSwitch"); }));
+
+            page(1);
+            QTest::qWait(300);
             click("hwdecOption_no");
             result("hwdec Off applies to engine", waitFor([&] { return prop("hwdec") == "no"; }), prop("hwdec"));
             result("hwdec persisted", p->setting("playback/hwdec").toString() == "no");
             click("hwdecOption_auto-safe");
             result("hwdec restored", waitFor([&] { return prop("hwdec") == "auto-safe"; }));
-            click("settingsNav_1");
+
+            // reset page: change settings, cancel keeps them, confirm restores defaults
+            click("seekStepPlus");
+            click("seekStepPlus");
+            click("autoNextSwitch");
+            result("seek step persisted", p->setting("playback/seekStep").toInt() == 7, p->setting("playback/seekStep").toString());
+            result("auto-next off persisted", p->setting("playback/autoNext").isValid() && !p->setting("playback/autoNext").toBool());
+            click("settingsReset_1");
+            result("reset asks for confirmation", waitFor([&] { return vis("settingsResetConfirm"); }));
+            shot("settings-reset-confirm");
+            click("settingsResetCancel");
+            result("cancel keeps values", !vis("settingsResetConfirm") && p->setting("playback/seekStep").toInt() == 7);
+            click("settingsReset_1");
+            click("settingsResetConfirm");
+            result("reset page restores seek step", waitFor([&] { return p->setting("playback/seekStep").toInt() == 5; }));
+            result("reset page restores auto-next", p->setting("playback/autoNext").toBool());
+            result("reset page leaves other pages alone", p->setting("playback/hwdec").toString() == "auto-safe");
+
+            // a new setting changes engine state: seek step drives the arrow keys
+            click("seekStepPlus"); // 6 s
+            key(Qt::Key_Escape);
+            waitFor([&] { return !vis("settingsPanel"); });
+            pause();
+            eng->seek(10);
+            waitFor([&] { return qAbs(eng->position() - 10) < 1.0; });
+            double sp0 = eng->position();
+            key(Qt::Key_Right);
+            result("seek step setting drives Right key", waitFor([&] { return qAbs(eng->position() - (sp0 + 6)) < 1.0; }),
+                   QString("%1->%2").arg(sp0).arg(eng->position()));
+            key(Qt::Key_Comma, Qt::ControlModifier);
+            waitFor([&] { return vis("settingsPanel"); });
+            page(1);
+            click("seekStepMinus");
+            result("seek step minus persisted", p->setting("playback/seekStep").toInt() == 5);
+            eng->play();
+
+            // video page: deinterlace switch reaches the engine
+            page(2);
+            QTest::qWait(300);
+            click("deinterlaceSwitch");
+            result("deinterlace switch applies to engine", waitFor([&] { return eng->deinterlace(); }));
+            result("deinterlace persisted", p->setting("video/deinterlace").toBool());
+            click("deinterlaceSwitch");
+            result("deinterlace off", waitFor([&] { return !eng->deinterlace(); }));
+
+            page(4);
             QTest::qWait(300);
             click("subSizePlus");
             result("subtitle size applies to engine", waitFor([&] { return qAbs(prop("sub-font-size").toDouble() - 60) < 0.01; }), prop("sub-font-size"));
             result("subtitle size persisted", p->setting("subtitles/fontSize").toInt() == 60);
             click("subColor_FFE45C");
             result("subtitle color applies", waitFor([&] { return prop("sub-color").toUpper().startsWith("#FFFFE45C") || prop("sub-color").toUpper().contains("FFE45C"); }), prop("sub-color"));
+            click("subLang_en");
+            result("subtitle language preference applies", waitFor([&] { return prop("slang") == "en,eng"; }), prop("slang"));
             click("subSizeMinus");
             click("subColor_FFFFFF");
+            click("subLang_bnen");
             shot("settings-subtitles");
-            click("settingsNav_2");
+
+            page(5);
             QTest::qWait(300);
             const double hd0 = p->setting("interface/hideDelay", 2.6).toDouble();
             click("hideDelayPlus");
             result("hide delay persisted", qAbs(p->setting("interface/hideDelay").toDouble() - (hd0 + 0.5)) < 0.01,
                    p->setting("interface/hideDelay").toString());
             click("hideDelayMinus");
-            shot("settings-interface");
+            shot("settings-appearance");
             // theme + reduced motion
-            auto *sd = find("settingsDialog");
-            const QString theme0 = sd ? sd->property("activeTheme").toString() : QString();
+            const QString theme0 = sd() ? sd()->property("activeTheme").toString() : QString();
             click("themeOption_light");
             result("Light theme applies and persists",
-                   waitFor([&] { return sd && sd->property("activeTheme").toString() == "light"; })
+                   waitFor([&] { return sd() && sd()->property("activeTheme").toString() == "light"; })
                        && p->setting("interface/theme").toString() == "light");
-            shot("settings-interface-light");
+            shot("settings-appearance-light");
             click("themeOption_oled");
             result("OLED theme applies and persists",
-                   waitFor([&] { return sd && sd->property("activeTheme").toString() == "oled"; })
+                   waitFor([&] { return sd() && sd()->property("activeTheme").toString() == "oled"; })
                        && p->setting("interface/theme").toString() == "oled");
-            shot("settings-interface-oled");
+            shot("settings-appearance-oled");
             click(("themeOption_" + (theme0.isEmpty() ? QStringLiteral("dark") : theme0)).toLatin1().constData());
-            result("Theme restored", sd && waitFor([&] { return sd->property("activeTheme").toString() == theme0; }));
-            result("animations on by default", sd && sd->property("animFast").toInt() == 120);
+            result("Theme restored", sd() && waitFor([&] { return sd()->property("activeTheme").toString() == theme0; }));
+            result("animations on by default", sd() && sd()->property("animFast").toInt() == 120);
             click("reducedMotionSwitch");
             result("Reduce motion zeroes animation tokens and persists",
-                   sd && waitFor([&] { return sd->property("animFast").toInt() == 0; }) && sd->property("animMedium").toInt() == 0
+                   sd() && waitFor([&] { return sd()->property("animFast").toInt() == 0; }) && sd()->property("animMedium").toInt() == 0
                        && p->setting("interface/reducedMotion").toBool());
             click("reducedMotionSwitch");
             result("Reduce motion off restores tokens",
-                   sd && waitFor([&] { return sd->property("animFast").toInt() == 120; }) && !p->setting("interface/reducedMotion").toBool());
+                   sd() && waitFor([&] { return sd()->property("animFast").toInt() == 120; }) && !p->setting("interface/reducedMotion").toBool());
+
+            // advanced: mpv override box reports errors and applies valid lines
+            page(8);
+            QTest::qWait(300);
+            if (auto *f = find("mpvOptionsField")) f->setProperty("text", "deband=yes\nnot-an-option=1");
+            click("mpvOptionsApply");
+            result("mpv override applies valid line", waitFor([&] { return prop("deband") == "yes"; }), prop("deband"));
+            result("mpv override reports bad line", txt("mpvOptionsStatus").contains("not-an-option"), txt("mpvOptionsStatus"));
+            shot("settings-advanced");
+            click("settingsReset_8");
+            click("settingsResetConfirm");
+            result("advanced reset clears override text", waitFor([&] { return p->setting("advanced/mpvOptions").toString().isEmpty(); }));
+            eng->setMpvOption("deband", "no");
+            page(9);
+            QTest::qWait(300);
+            shot("settings-about");
+            result("about shows mpv version", sd() && sd()->property("about").toMap().value("mpv").toString().contains("mpv"),
+                   sd() ? sd()->property("about").toMap().value("mpv").toString() : QString());
+
+            // layout at the minimum window size (sidebar collapses to icons) and on a large display
+            const QSize size0 = w->size();
+            w->resize(760, 500);
+            QTest::qWait(500);
+            result("settings fit at 760x500", [&] {
+                auto *pn = find("settingsPanel");
+                return pn && pn->width() <= 760 && pn->height() <= 500 && pn->x() >= 0 && pn->y() >= 0;
+            }());
+            for (int i : {1, 7})
+                page(i), shot(QString("settings-min-%1").arg(i));
+            click("settingsSearch");
+            setSearch("subtitle");
+            shot("settings-min-search");
+            setSearch("");
+            w->resize(1920, 1080);
+            QTest::qWait(600);
+            page(2);
+            shot("settings-large-video");
+            w->resize(size0);
+            QTest::qWait(500);
+
             key(Qt::Key_Escape);
             result("Esc closes settings", waitFor([&] { return !vis("settingsPanel"); }));
             key(Qt::Key_Comma, Qt::ControlModifier);
             result("Ctrl+, opens settings", waitFor([&] { return vis("settingsPanel"); }));
             // --- rebindable shortcuts: M (mute) -> N, conflict prompt, reset ---
-            click("settingsNav_3");
+            page(7);
             QTest::qWait(300);
             if (auto *sf = find("shortcutSearch")) sf->setProperty("text", "mute");
             QTest::qWait(300);
@@ -546,7 +667,7 @@ void UiTest::run()
             result("old M no longer toggles mute", eng->muted() == was);
             key(Qt::Key_Comma, Qt::ControlModifier);
             waitFor([&] { return vis("settingsPanel"); });
-            click("settingsNav_3");
+            page(7);
             QTest::qWait(300);
             if (auto *sf = find("shortcutSearch")) sf->setProperty("text", "mute");
             QTest::qWait(300);
