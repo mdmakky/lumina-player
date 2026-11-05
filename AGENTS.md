@@ -68,6 +68,8 @@ cmake --build --preset linux-debug
 LUMINA_PLAYBACK_TEST=1 ./build/linux-debug/lumina <some-video-file>
 ```
 
+Self-test env switches: `LUMINA_PLAYBACK_TEST=1` (+ `LUMINA_SEEK_STRESS=1` / `LUMINA_SPEED_TEST=1`), `LUMINA_UI_TEST=1` (real clicks/keys on every control; use a >=40 s file), `LUMINA_SCREENSHOT=<dir>` (PNG of each UI state), `LUMINA_MPV_OPTS=k=v` (debug mpv options). Run them alone: parallel GUI runs steal window focus.
+
 On macOS the presets are not used: `cmake -S . -B build/mac -G Ninja -DCMAKE_PREFIX_PATH=$(brew --prefix qt)`; binary is `build/mac/bin/lumina` (case-insensitive FS clash with the `Lumina/` QML dir).
 
 macOS notes: mpv's OpenGL render API works with Qt's GL scene graph on macOS; consider `QQuickWindow::setGraphicsApi(OpenGLRaster)` if the default Metal path interferes — do NOT switch the app to Metal rendering without re-doing ADR-002. The playback self-test harness is the fastest way to verify the engine after any environment change.

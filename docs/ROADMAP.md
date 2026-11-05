@@ -36,7 +36,7 @@ Source of truth for milestone status. Spec §18 defines the full milestone plan;
 - [x] Fullscreen (F), always-on-top (T), borderless
 - [x] Keyboard shortcuts (spec §10 defaults)
 - [x] Playlist panel (queue, reorder, search, auto-advance; save/load m3u pending)
-- [ ] Drag & drop playlist reordering (up/down buttons today)
+- [x] Drag & drop playlist reordering, shuffle and repeat
 - [x] Chapters UI (timeline markers, chapter menu, PgUp/PgDn)
 - [x] Single-instance: second launch forwards files to the running window
 - [x] Window state persistence (geometry, volume, mute, recent files)
@@ -47,12 +47,12 @@ Source of truth for milestone status. Spec §18 defines the full milestone plan;
 - [x] External subtitle loading + auto-discovery
 - [x] Subtitle delay / sync controls (G/H)
 - [x] Audio track selection UI, audio delay
-- [ ] Subtitle style preferences (persisted)
+- [x] Subtitle style preferences (persisted, Settings dialog)
 
 ## Milestone 5 — Performance ⬜
 
 - [ ] Hardware acceleration manager (VAAPI → NVDEC → software fallback ladder)
-- [ ] Decoder selection UI (auto / hw-preferred / sw / manual)
+- [x] Decoder selection UI (Settings > Playback)
 - [ ] Seek optimization + rapid-seek stress testing
 - [x] Statistics overlay (key I)
 - [ ] Benchmark suite vs mpv/VLC on identical hardware
