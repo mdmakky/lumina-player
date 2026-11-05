@@ -49,13 +49,31 @@ Rules:
 ## 4. Current Status (update after every milestone)
 
 - **Milestone 1 — Foundation:** ✅ DONE (repo, CMake, Qt bootstrap, main window, theme system, logging, CI)
-- **Milestone 2 — Playback Engine:** ✅ DONE (libmpv render-API integration, open/play/pause/seek/volume/speed, error reporting; verified build + launch on Fedora 45 Wayland, AMD VAAPI available)
-- **Milestone 3 — Core UX:** 🚧 in progress (controls overlay + timeline + shortcuts present; next: playlist panel, drag & drop, fullscreen polish)
+- **Milestone 2 — Playback Engine:** ✅ DONE AND VERIFIED — automated playback self-test (`LUMINA_PLAYBACK_TEST=1`) passes: load → play → accurate seek → pause → resume, mpv render context created on OpenGL scene graph. GitHub repo: `mdmakky/lumina-player` (main).
+- **Milestone 3 — Core UX:** 🚧 in progress (controls overlay + timeline + shortcuts + idle auto-hide + drag&drop present; next: playlist panel, chapters UI, window state persistence)
 - **Milestones 4–9:** ⬜ not started
 
-Verified environment facts (do not re-derive):
-- Fedora 45, GCC 16.2, CMake 4.3, Qt 6.11.2, libmpv 2.5.0 (mpv 0.41), Ninja, Wayland session, AMD GPU (`amdgpu`, Lucienne iGPU → VAAPI-capable).
-- `ffmpeg-devel` from rpmfusion conflicts with Fedora's free ffmpeg libs — **do not install it**; mpv-devel already provides everything we need.
+### Continuation on macOS (dev machine moved)
+
+The project now continues development on macOS. To set up there:
+
+```bash
+git clone git@github.com:mdmakky/lumina-player.git
+cd lumina-player
+brew install cmake ninja qt libmpv
+cmake --preset linux-debug   # preset works; rename/copy to a mac preset if desired
+cmake --build --preset linux-debug
+LUMINA_PLAYBACK_TEST=1 ./build/linux-debug/lumina <some-video-file>
+```
+
+macOS notes: mpv's OpenGL render API works with Qt's GL scene graph on macOS; consider `QQuickWindow::setGraphicsApi(OpenGLRaster)` if the default Metal path interferes — do NOT switch the app to Metal rendering without re-doing ADR-002. The playback self-test harness is the fastest way to verify the engine after any environment change.
+
+### Known-good baseline (this commit state)
+
+- Fedora 45: GCC 16.2, CMake 4.3, Qt 6.11.2, libmpv 2.5.0 (mpv 0.41), Ninja, Wayland, AMD `amdgpu` (VAAPI-capable).
+- GitHub Actions ubuntu-latest: Qt 6.4.2 — this is why `find_package(Qt6 6.4)` is the minimum; do not raise it above 6.4 without dropping CI.
+- `ffmpeg-devel` conflicts with Fedora's free ffmpeg libs — **do not install it**; mpv-devel provides everything.
+- Self-test verdict is strict: requires duration > 5 s, position ≥ 10 s after seek, no engine error. Exit 0 = pass.
 
 ## 5. Build & Test
 
