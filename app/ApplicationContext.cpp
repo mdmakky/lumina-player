@@ -69,6 +69,11 @@ void ApplicationContext::startPlaybackSelfTest()
             qCInfo(lcCore) << "SELFTEST seek to 10s";
             engine->seek(10.0);
             break;
+        case 4:
+            if (engine->audioTracks().size() > 1)
+                engine->setAudioTrack(2);
+            engine->setSubtitleDelay(0.1);
+            break;
         case 5:
             qCInfo(lcCore) << "SELFTEST pause";
             engine->pause();
@@ -79,6 +84,10 @@ void ApplicationContext::startPlaybackSelfTest()
             break;
         case 9: {
             snapshot();
+            qCInfo(lcCore) << "SELFTEST tracks audio=" << engine->audioTracks().size()
+                           << "sub=" << engine->subtitleTracks().size()
+                           << "aid=" << engine->audioTrackId() << "sid=" << engine->subtitleTrackId()
+                           << "subDelay=" << engine->subtitleDelay();
             timer->stop();
             timer->deleteLater();
 

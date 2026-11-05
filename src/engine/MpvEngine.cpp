@@ -41,6 +41,7 @@ MpvEngine::MpvEngine(QObject *parent)
     mpv_set_option_string(m_mpv, "hwdec", "auto-safe");
     mpv_set_option_string(m_mpv, "volume-max", "150");
     mpv_set_option_string(m_mpv, "audio-pitch-correction", "yes");
+    mpv_set_option_string(m_mpv, "sub-auto", "fuzzy"); // auto-load external subs next to the file
 
     // Seek responsiveness: exact seeks, deep demuxer cache (keeps backward
     // seeks in-memory), direct rendering, and A/V-synced display timing.
@@ -65,7 +66,7 @@ MpvEngine::MpvEngine(QObject *parent)
     // Observe the properties the UI needs.
     const char *properties[] = {
         "time-pos", "duration", "pause", "idle-active", "media-title",
-        "volume", "mute", "speed", "track-list", "chapter-list", "eof-reached",
+        "volume", "mute", "speed", "track-list", "chapter-list", "eof-reached", "sub-delay", "audio-delay",
     };
     for (const char *name : properties) {
         mpv_format format = MPV_FORMAT_DOUBLE;
@@ -143,6 +144,12 @@ void MpvEngine::processEvents()
             } else if (name == QLatin1String("speed") && prop->format == MPV_FORMAT_DOUBLE) {
                 m_speed = *static_cast<double *>(prop->data);
                 emit speedChanged();
+            } else if (name == QLatin1String("sub-delay") && prop->format == MPV_FORMAT_DOUBLE) {
+                m_subDelay = *static_cast<double *>(prop->data);
+                emit subtitleDelayChanged();
+            } else if (name == QLatin1String("audio-delay") && prop->format == MPV_FORMAT_DOUBLE) {
+                m_audioDelay = *static_cast<double *>(prop->data);
+                emit audioDelayChanged();
             } else if (name == QLatin1String("track-list") && prop->format == MPV_FORMAT_NODE) {
                 refreshTrackLists();
             } else if (name == QLatin1String("chapter-list") && prop->format == MPV_FORMAT_NODE) {
@@ -213,6 +220,16 @@ void MpvEngine::setMediaError(const QString &message)
         return;
     m_mediaError = message;
     emit mediaErrorChanged();
+}
+
+int MpvEngine::selectedId(const QVariantList &tracks)
+{
+    for (const QVariant &t : tracks) {
+        const QVariantMap m = t.toMap();
+        if (m.value(QStringLiteral("selected")).toBool())
+            return m.value(QStringLiteral("id")).toInt();
+    }
+    return 0;
 }
 
 void MpvEngine::refreshTrackLists()
@@ -398,4 +415,40 @@ void MpvEngine::seekChapter(int index)
         return;
     command({QStringLiteral("seek"), QString::number(index), QStringLiteral("absolute"),
              QStringLiteral("chapters")});
+}
+
+void MpvEngine::setAudioTrack(int id)
+{
+    if (!m_mpv)
+        return;
+    command({QStringLiteral("set"), QStringLiteral("aid"),
+             id > 0 ? QString::number(id) : QStringLiteral("no")});
+}
+
+void MpvEngine::setSubtitleTrack(int id)
+{
+    if (!m_mpv)
+        return;
+    command({QStringLiteral("set"), QStringLiteral("sid"),
+             id > 0 ? QString::number(id) : QStringLiteral("no")});
+}
+
+void MpvEngine::loadExternalSubtitle(const QUrl &url)
+{
+    if (!m_mpv || m_idle)
+        return;
+    command({QStringLiteral("sub-add"),
+             url.isLocalFile() ? url.toLocalFile() : url.toString(), QStringLiteral("select")});
+}
+
+void MpvEngine::setSubtitleDelay(double seconds)
+{
+    if (m_mpv)
+        command({QStringLiteral("set"), QStringLiteral("sub-delay"), QString::number(seconds, 'f', 3)});
+}
+
+void MpvEngine::setAudioDelay(double seconds)
+{
+    if (m_mpv)
+        command({QStringLiteral("set"), QStringLiteral("audio-delay"), QString::number(seconds, 'f', 3)});
 }

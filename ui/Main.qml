@@ -413,6 +413,11 @@ ApplicationWindow {
                         onClicked: root.toggleFullscreen()
                     }
                     IconButton {
+                        iconSource: root.iconBase + "subtitles.svg"
+                        tip: qsTr("Audio & subtitles")
+                        onClicked: trackMenu.popup(this, 0, -trackMenu.height - 8)
+                    }
+                    IconButton {
                         iconSource: root.iconBase + "chapters.svg"
                         tip: qsTr("Chapters (PgUp/PgDn)")
                         visible: player.engine.chapters.length > 0
@@ -469,6 +474,13 @@ ApplicationWindow {
         }
     }
 
+    TrackMenu {
+        id: trackMenu
+        engine: player.engine
+        onAboutToShow: root.menuOpen = true
+        onClosed: root.menuOpen = false
+    }
+
     // --- Idle auto-hide + cursor -----------------------------------------------
     Timer {
         id: hideTimer
@@ -520,6 +532,8 @@ ApplicationWindow {
     Shortcut { sequence: "Z";            enabled: player.hasMedia; onActivated: player.engine.setSpeed(1.0) }
     Shortcut { sequence: "Period";       enabled: player.hasMedia; onActivated: player.engine.stepFrame(1) }
     Shortcut { sequence: "Comma";        enabled: player.hasMedia; onActivated: player.engine.stepFrame(-1) }
+    Shortcut { sequence: "G";            enabled: player.hasMedia; onActivated: player.engine.setSubtitleDelay(player.engine.subtitleDelay - 0.1) }
+    Shortcut { sequence: "H";            enabled: player.hasMedia; onActivated: player.engine.setSubtitleDelay(player.engine.subtitleDelay + 0.1) }
     Shortcut { sequence: "PgDown";       enabled: player.hasMedia; onActivated: root.stepChapter(1) }
     Shortcut { sequence: "PgUp";         enabled: player.hasMedia; onActivated: root.stepChapter(-1) }
     Shortcut { sequence: "P";            onActivated: root.playlistOpen = !root.playlistOpen }

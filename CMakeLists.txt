@@ -70,6 +70,7 @@ qt_add_qml_module(lumina
         ui/Components/IconButton.qml
         ui/Components/TimeSlider.qml
         ui/Components/VolumeSlider.qml
+        ui/Components/TrackMenu.qml
         ui/Components/ThemedMenuItem.qml
         ui/Components/PlaylistPanel.qml
     RESOURCES
@@ -85,6 +86,7 @@ qt_add_qml_module(lumina
         resources/icons/skip-previous.svg
         resources/icons/playlist.svg
         resources/icons/chapters.svg
+        resources/icons/subtitles.svg
 )
 
 target_include_directories(lumina PRIVATE

@@ -35,6 +35,12 @@ class MpvEngine : public QObject
     Q_PROPERTY(QVariantList subtitleTracks READ subtitleTracks NOTIFY tracksChanged FINAL)
     // [{title, time}] from the container; empty when the file has no chapters.
     Q_PROPERTY(QVariantList chapters READ chapters NOTIFY chaptersChanged FINAL)
+    // Currently selected track ids (0 = none/off), derived from track-list.
+    Q_PROPERTY(int audioTrackId READ audioTrackId NOTIFY tracksChanged FINAL)
+    Q_PROPERTY(int subtitleTrackId READ subtitleTrackId NOTIFY tracksChanged FINAL)
+    // Seconds; positive delays the subtitles/audio.
+    Q_PROPERTY(double subtitleDelay READ subtitleDelay WRITE setSubtitleDelay NOTIFY subtitleDelayChanged FINAL)
+    Q_PROPERTY(double audioDelay READ audioDelay WRITE setAudioDelay NOTIFY audioDelayChanged FINAL)
 
 public:
     explicit MpvEngine(QObject *parent = nullptr);
@@ -56,12 +62,18 @@ public:
     QVariantList videoTracks() const { return m_videoTracks; }
     QVariantList subtitleTracks() const { return m_subtitleTracks; }
     QVariantList chapters() const { return m_chapters; }
+    int audioTrackId() const { return selectedId(m_audioTracks); }
+    int subtitleTrackId() const { return selectedId(m_subtitleTracks); }
+    double subtitleDelay() const { return m_subDelay; }
+    double audioDelay() const { return m_audioDelay; }
 
 public slots:
     void setPaused(bool paused);
     void setVolume(int volume);
     void setMuted(bool muted);
     void setSpeed(double speed);
+    void setSubtitleDelay(double seconds);
+    void setAudioDelay(double seconds);
 
 public:
     // QML-facing playback control.
@@ -81,6 +93,10 @@ public:
     Q_INVOKABLE void cycleSubtitleTrack();
     Q_INVOKABLE void setSubtitlesVisible(bool visible);
     Q_INVOKABLE void seekChapter(int index);
+    Q_INVOKABLE void setAudioTrack(int id);
+    // id 0 turns subtitles off.
+    Q_INVOKABLE void setSubtitleTrack(int id);
+    Q_INVOKABLE void loadExternalSubtitle(const QUrl &url);
 
 signals:
     void playingChanged();
@@ -97,6 +113,8 @@ signals:
     void chaptersChanged();
     // Emitted when a file played to its natural end (not stopped/replaced/errored).
     void endOfFile();
+    void subtitleDelayChanged();
+    void audioDelayChanged();
 
 private:
     // Drains the mpv event queue; runs on the GUI thread via the wakeup callback.
@@ -115,6 +133,7 @@ private:
 
     static QVariant nodeToVariant(const mpv_node &node);
     void refreshTrackLists();
+    static int selectedId(const QVariantList &tracks);
 
     mpv_handle *m_mpv = nullptr;
 
@@ -133,4 +152,6 @@ private:
     QVariantList m_videoTracks;
     QVariantList m_subtitleTracks;
     QVariantList m_chapters;
+    double m_subDelay = 0.0;
+    double m_audioDelay = 0.0;
 };
