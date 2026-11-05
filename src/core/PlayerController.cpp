@@ -49,13 +49,10 @@ PlayerController::PlayerController(QObject *parent)
     // Restore persisted state; keep volume/mute in sync from here on.
     QSettings settings;
     m_recentFiles = settings.value(QStringLiteral("recentFiles")).toStringList();
-<<<<<<< HEAD
     m_shuffle = settings.value(QStringLiteral("playback/shuffle"), false).toBool();
     m_repeat = qBound(0, settings.value(QStringLiteral("playback/repeat"), 0).toInt(), 2);
-=======
     migrateLegacy();
     reloadHistory();
->>>>>>> main
     m_engine->setVolume(settings.value(QStringLiteral("playback/volume"), 100).toInt());
     m_engine->setMuted(settings.value(QStringLiteral("playback/muted"), false).toBool());
     connect(m_engine, &MpvEngine::volumeChanged, this, [this] {

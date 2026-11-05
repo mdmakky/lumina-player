@@ -90,14 +90,11 @@ private:
     QString m_currentPath;
     double m_resumeTarget = 0.0;
     QStringList m_recentFiles;
-<<<<<<< HEAD
     bool m_shuffle = false;
     int m_repeat = 0;
-=======
     std::unique_ptr<Database> m_database;
     HistoryRepository m_repo{nullptr};
     HistoryModel *m_history = nullptr;
     HistoryModel *m_continue = nullptr;
     HistoryModel *m_favorites = nullptr;
->>>>>>> main
 };
