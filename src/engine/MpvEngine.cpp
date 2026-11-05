@@ -53,6 +53,9 @@ MpvEngine::MpvEngine(QObject *parent)
     mpv_set_option_string(m_mpv, "volume-max", "150");
     mpv_set_option_string(m_mpv, "audio-pitch-correction", "yes");
     mpv_set_option_string(m_mpv, "sub-auto", "fuzzy"); // auto-load external subs next to the file
+    // Pick a subtitle track automatically when one matches a common language
+    // (embedded tracks without a "default" flag were otherwise never shown).
+    mpv_set_option_string(m_mpv, "slang", "bn,ben,en,eng");
 
     // Seek responsiveness: exact seeks, deep demuxer cache (keeps backward
     // seeks in-memory), direct rendering, and A/V-synced display timing.
