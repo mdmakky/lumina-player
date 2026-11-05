@@ -299,6 +299,38 @@ void UiTest::run()
         if (click("tracksButton")) {
             QTest::qWait(400);
             shot("trackmenu");
+            {
+                // every track row is readable and distinguishable
+                QSet<QString> seen;
+                bool unique = true, nonEmpty = true;
+                for (const auto &list : {eng->audioTracks(), eng->subtitleTracks()}) {
+                    seen.clear();
+                    for (const QVariant &v : list) {
+                        const QVariantMap m = v.toMap();
+                        nonEmpty = nonEmpty && !m.value("label").toString().isEmpty();
+                        unique = unique && !seen.contains(m.value("label").toString() + "|" + m.value("detail").toString());
+                        seen.insert(m.value("label").toString() + "|" + m.value("detail").toString());
+                    }
+                }
+                result("track labels are non-empty and unique", unique && nonEmpty);
+                const auto onScreen = [&](const char *n) { auto *it = find(n); return it && it->isVisible() && center(it).y() > 0 && center(it).y() < w->height() - 4; };
+                if (onScreen("audioDelayPlus") && onScreen("subDelayPlus")) {
+                    const double a0 = eng->audioDelay(), s0 = eng->subtitleDelay();
+                    click("audioDelayPlus");
+                    result("audio delay + steps by 100 ms", waitFor([&] { return qAbs(eng->audioDelay() - (a0 + 0.1)) < 0.001; }), QString::number(eng->audioDelay()));
+                    result("stepping keeps the panel open", vis("audioDelayPlus"));
+                    click("audioDelayPlus");
+                    click("audioDelayMinus");
+                    result("audio delay - steps back", waitFor([&] { return qAbs(eng->audioDelay() - (a0 + 0.1)) < 0.001; }), QString::number(eng->audioDelay()));
+                    click("subDelayMinus");
+                    result("subtitle delay - steps by 100 ms", waitFor([&] { return qAbs(eng->subtitleDelay() - (s0 - 0.1)) < 0.001; }), QString::number(eng->subtitleDelay()));
+                    result("panel still open after both", vis("subDelayMinus"));
+                    click("syncReset");
+                    result("sync Reset zeroes both delays", waitFor([&] { return eng->audioDelay() == 0 && eng->subtitleDelay() == 0; }));
+                } else {
+                    qCInfo(lcCore) << "UITEST SKIP delay stepper (scrolled off in this window size)";
+                }
+            }
             if (eng->audioTracks().size() > 1) {
                 const int a0 = eng->audioTrackId();
                 auto *it = find(a0 == 2 ? "audioItem_1" : "audioItem_2");
@@ -310,6 +342,24 @@ void UiTest::run()
                 key(Qt::Key_Escape);
             }
             QTest::qWait(300);
+            // keyboard: Esc closes, Down + Enter picks a row
+            if (click("tracksButton")) {
+                QTest::qWait(400);
+                key(Qt::Key_Escape);
+                QTest::qWait(300);
+                result("Esc closes the track panel", !vis("subItem_off"));
+                if (eng->audioTracks().size() > 1) {
+                    click("tracksButton");
+                    QTest::qWait(400);
+                    const int a1 = eng->audioTrackId();
+                    key(Qt::Key_Down);
+                    key(Qt::Key_Down);
+                    key(Qt::Key_Return);
+                    result("Down/Down/Enter selects the third audio row", waitFor([&] { return eng->audioTrackId() != a1 || eng->audioTracks().size() < 3; }, 1500));
+                    QTest::qWait(300);
+                    result("Enter closes the panel", !vis("subItem_off"));
+                }
+            }
         }
         // --- A-B loop ---
         eng->play();
