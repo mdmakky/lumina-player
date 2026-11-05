@@ -48,8 +48,11 @@ endif()
 # ---------------------------------------------------------------------------
 # Main application target
 # ---------------------------------------------------------------------------
-# bin/ avoids a clash with the Lumina/ QML module dir on case-insensitive filesystems (macOS).
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+# bin/ avoids a clash with the Lumina/ QML module dir on case-insensitive filesystems
+# (macOS, Windows). Linux keeps the binary at <build>/lumina.
+if(APPLE OR WIN32)
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+endif()
 
 qt_add_executable(lumina
     app/main.cpp

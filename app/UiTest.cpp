@@ -973,7 +973,8 @@ void UiTest::run()
                     sock->setProperty("done", true);
                     const QString req = QString::fromLatin1(sock->readAll());
                     QFile f(mediaPath);
-                    f.open(QIODevice::ReadOnly);
+                    if (!f.open(QIODevice::ReadOnly))
+                        return;
                     qint64 from = 0, to = f.size() - 1;
                     bool ranged = false;
                     const auto m = QRegularExpression("Range: bytes=(\\d+)-(\\d*)", QRegularExpression::CaseInsensitiveOption).match(req);

@@ -4,7 +4,8 @@
 # Paste the whole output back (it contains no personal data besides file names).
 MOVIE="$1"
 BIN="${2:-build/linux-debug/lumina}"
-[ -z "$MOVIE" ] && { echo "usage: $0 movie-file [lumina-binary]"; exit 1; }
+[ -x "$BIN" ] || BIN="$(dirname "$BIN")/bin/lumina"   # older builds put it in bin/
+[ -z "$MOVIE" ] || [ ! -f "$MOVIE" ] && { echo "usage: $0 /real/path/to/movie.mkv [lumina-binary]  (file not found: $MOVIE)"; exit 1; }
 sec() { printf '\n===== %s =====\n' "$1"; }
 
 sec "system"
