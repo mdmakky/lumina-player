@@ -1,4 +1,6 @@
 #include "MpvEngine.h"
+
+#include <QSysInfo>
 #include "utilities/TrackLabels.h"
 
 #include "utilities/Logger.h"
@@ -352,8 +354,15 @@ void MpvEngine::checkAudioPipeline()
         || log.contains(QLatin1String("audio driver"), Qt::CaseInsensitive)) {
         reason = tr("The audio output could not be opened. Check that PipeWire/PulseAudio is running and not used exclusively by another app.");
     } else {
-        reason = tr("No decoder for the %1 audio track. Your FFmpeg build may lack it; install the full FFmpeg (e.g. RPM Fusion) and restart.")
-                     .arg(codec.isEmpty() ? tr("selected") : codec.toUpper());
+        QString fix = tr("install the full FFmpeg codec set and restart.");
+#ifdef Q_OS_LINUX
+        if (QSysInfo::productType() == QLatin1String("fedora"))
+            fix = tr("run: sudo dnf install libavcodec-freeworld (needs RPM Fusion), then restart.");
+        else if (QSysInfo::productType() == QLatin1String("ubuntu") || QSysInfo::productType() == QLatin1String("debian"))
+            fix = tr("run: sudo apt install ffmpeg libavcodec-extra, then restart.");
+#endif
+        reason = tr("No decoder for the %1 audio track (your FFmpeg build lacks it): %2")
+                     .arg(codec.isEmpty() ? tr("selected") : codec.toUpper(), fix);
     }
     qCWarning(lcEngine).noquote() << "No audio output after load; codec" << codec << "log:" << log;
     setMediaError(tr("No sound. %1").arg(reason));

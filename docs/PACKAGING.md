@@ -29,3 +29,14 @@ Verified on macOS: both bundle ON/OFF build; bundle plist/icns valid; `macdeploy
 - `.desktop` / metainfo: `desktop-file-validate` and `appstreamcli validate` not available here (XML well-formedness only); screenshots missing (Flathub requires them).
 - macOS: bundled app launch/playback not tested; macdeployqt prints rpath errors for QML plugins whose Qt modules are not installed (VirtualKeyboard, Multimedia); libmpv dylib rewriting is best-effort; signing is ad-hoc only (no Developer ID/notarization, Gatekeeper warns); Finder "Open With" not exercised.
 - Windows packaging: see docs/WINDOWS.md (experimental, never built on Windows).
+
+## Codecs and dependencies (what gets installed for the user)
+
+- **Flatpak (primary Linux package):** FFmpeg (all native decoders incl. E-AC3/DTS) and libmpv are built into the app,
+  so codecs work out of the box; nothing for the user to install.
+- **From source on Fedora:** run `tools/install-deps-fedora.sh` (build deps + RPM Fusion `libavcodec-freeworld`).
+  Fedora's default `ffmpeg-free` lacks E-AC3/DTS/H.264 software decoders; Lumina shows a banner with the fix command if a
+  file's audio can't be decoded.
+- **RPM (if we ship one):** `Requires: mpv-libs`, `Recommends: libavcodec-freeworld` (a hard Require on RPM Fusion is not
+  allowed by Fedora policy).
+- **macOS / Windows bundles:** libmpv + FFmpeg are bundled with the app.
