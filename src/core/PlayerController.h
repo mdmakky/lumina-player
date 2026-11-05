@@ -56,6 +56,7 @@ public slots:
     void clearRecentFiles();
     void toggleFavorite(const QString &path);
     void openHistory(const QString &path); // opens and resumes
+    void saveResume();                      // persist position (timer, file switch, quit)
 
     // Generic persisted UI settings (QSettings-backed), e.g. window geometry.
     QVariant setting(const QString &key, const QVariant &fallback = {}) const;
@@ -69,7 +70,6 @@ private:
     void rememberFile(const QUrl &url);
     // Resume support: remember where each local file stopped and seek back on reopen.
     static QString resumeKey(const QString &path);
-    void saveResume();
     void reloadHistory();
     void migrateLegacy();
 
