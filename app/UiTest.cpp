@@ -496,8 +496,8 @@ void UiTest::run()
                 pick(2); // বাংলা
                 result("switch to Bengali relabels the page title", txt("settingsPageTitle") == QStringLiteral("সাধারণ"), txt("settingsPageTitle"));
                 shot("settings-general-bn");
-                pick(1); // English
-                result("switch back to English", txt("settingsPageTitle") == "General", txt("settingsPageTitle"));
+                pick(0); // system default (LUMINA_LANG, English in tests)
+                result("switch back to default language", txt("settingsPageTitle") == (qEnvironmentVariable("LUMINA_LANG") == "bn" ? QStringLiteral("সাধারণ") : QStringLiteral("General")), txt("settingsPageTitle"));
             }
 
             // global search: finds a setting on another page, shows it, hides the rest

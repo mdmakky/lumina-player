@@ -395,27 +395,27 @@
 <context>
     <name>PlayerController</name>
     <message>
-        <location filename="../src/core/PlayerController.cpp" line="138"/>
+        <location filename="../src/core/PlayerController.cpp" line="151"/>
         <source>Bookmarks unavailable</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/core/PlayerController.cpp" line="145"/>
+        <location filename="../src/core/PlayerController.cpp" line="158"/>
         <source>Bookmark added at %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/core/PlayerController.cpp" line="312"/>
+        <location filename="../src/core/PlayerController.cpp" line="325"/>
         <source>unknown</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/core/PlayerController.cpp" line="328"/>
+        <location filename="../src/core/PlayerController.cpp" line="341"/>
         <source>Screenshot failed</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/core/PlayerController.cpp" line="331"/>
+        <location filename="../src/core/PlayerController.cpp" line="344"/>
         <source>Saved screenshot</source>
         <translation type="unfinished"></translation>
     </message>

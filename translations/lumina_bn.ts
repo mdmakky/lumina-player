@@ -395,27 +395,27 @@
 <context>
     <name>PlayerController</name>
     <message>
-        <location filename="../src/core/PlayerController.cpp" line="138"/>
+        <location filename="../src/core/PlayerController.cpp" line="151"/>
         <source>Bookmarks unavailable</source>
         <translation>বুকমার্ক পাওয়া যাচ্ছে না</translation>
     </message>
     <message>
-        <location filename="../src/core/PlayerController.cpp" line="145"/>
+        <location filename="../src/core/PlayerController.cpp" line="158"/>
         <source>Bookmark added at %1</source>
         <translation>%1 এ বুকমার্ক যোগ হয়েছে</translation>
     </message>
     <message>
-        <location filename="../src/core/PlayerController.cpp" line="312"/>
+        <location filename="../src/core/PlayerController.cpp" line="325"/>
         <source>unknown</source>
         <translation>অজানা</translation>
     </message>
     <message>
-        <location filename="../src/core/PlayerController.cpp" line="328"/>
+        <location filename="../src/core/PlayerController.cpp" line="341"/>
         <source>Screenshot failed</source>
         <translation>স্ক্রিনশট নেওয়া যায়নি</translation>
     </message>
     <message>
-        <location filename="../src/core/PlayerController.cpp" line="331"/>
+        <location filename="../src/core/PlayerController.cpp" line="344"/>
         <source>Saved screenshot</source>
         <translation>স্ক্রিনশট সংরক্ষিত হয়েছে</translation>
     </message>
