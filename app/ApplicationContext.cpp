@@ -79,6 +79,48 @@ void ApplicationContext::startPlaybackSelfTest()
         stress->start();
         return;
     }
+    if (qEnvironmentVariableIntValue("LUMINA_SPEED_TEST") == 1) {
+        // For each speed: 4 s window, then compare media-time progress to the expected rate.
+        struct State { int step = -1, tick = 0; double startPos = 0, startDrops = 0; bool ok = true; };
+        static const double speeds[] = {1.0, 1.5, 2.0, 0.5, 1.0};
+        auto st = QSharedPointer<State>::create();
+        engine->setStatsEnabled(true);
+        auto *t = new QTimer(this);
+        t->setInterval(1000);
+        QObject::connect(t, &QTimer::timeout, this, [engine, st, t]() {
+            if (engine->idle() || engine->duration() <= 0.0)
+                return;
+            const auto drops = [engine]() {
+                const QVariantMap m = engine->stats();
+                return m.value(QStringLiteral("droppedFrames")).toDouble()
+                       + m.value(QStringLiteral("decoderDroppedFrames")).toDouble();
+            };
+            if (st->step >= 0 && ++st->tick == 4) {
+                const double rate = (engine->position() - st->startPos) / 4.0;
+                const double want = speeds[st->step];
+                const bool good = qAbs(rate - want) < want * 0.15;
+                st->ok = st->ok && good;
+                qCInfo(lcCore) << "SPEEDTEST speed=" << want << "measured=" << rate
+                               << "drops=" << (drops() - st->startDrops)
+                               << "avsync=" << engine->stats().value(QStringLiteral("avsync"))
+                               << (good ? "OK" : "BAD");
+            }
+            if (st->step < 0 || st->tick >= 4) {
+                if (++st->step >= 5) {
+                    t->stop();
+                    qCInfo(lcCore) << "Playback self test" << (st->ok ? "PASSED" : "FAILED");
+                    QCoreApplication::exit(st->ok ? 0 : 1);
+                    return;
+                }
+                engine->setSpeed(speeds[st->step]);
+                st->tick = 0;
+                st->startPos = engine->position();
+                st->startDrops = drops();
+            }
+        });
+        t->start();
+        return;
+    }
     // Shared counter: both lambdas own a reference; freed when the last dies.
     const auto elapsed = QSharedPointer<int>::create(0);
     auto *timer = new QTimer(this);

@@ -53,6 +53,19 @@ MpvEngine::MpvEngine(QObject *parent)
     mpv_set_option_string(m_mpv, "vd-lavc-dr", "yes");
     mpv_set_option_string(m_mpv, "video-sync", "audio");
 
+#ifdef Q_OS_MACOS
+    // mpv's default macOS output (avfoundation) queues ~4 s of audio, so speed
+    // changes took seconds to be heard and A/V desynced (dropped frames at 0.5x).
+    mpv_set_option_string(m_mpv, "ao", "coreaudio");
+#endif
+
+    // Debug hook: LUMINA_MPV_OPTS="key=val,key=val" overrides options before init.
+    for (const QString &kv : QString::fromLocal8Bit(qgetenv("LUMINA_MPV_OPTS")).split(QLatin1Char(','), Qt::SkipEmptyParts)) {
+        const int eq = kv.indexOf(QLatin1Char('='));
+        if (eq > 0)
+            mpv_set_option_string(m_mpv, kv.left(eq).toUtf8().constData(), kv.mid(eq + 1).toUtf8().constData());
+    }
+
     const int rc = mpv_initialize(m_mpv);
     if (rc < 0) {
         setMediaError(QStringLiteral("mpv initialization failed: %1").arg(mpv_error_string(rc)));
