@@ -5,7 +5,7 @@
 - CMake ≥ 3.28
 - Ninja
 - GCC ≥ 13 or Clang ≥ 16 (C++20)
-- Qt 6.8+ (Quick, QuickControls2, Svg)
+- Qt 6.4+ (Core, Gui, Quick — QuickControls2 QML module at runtime)
 - libmpv ≥ 2.2 (client + render APIs)
 - libva (optional, hardware acceleration probing)
 
