@@ -44,9 +44,10 @@ private:
 int main(int argc, char *argv[])
 {
     QGuiApplication::setOrganizationName(QStringLiteral("mdmakky"));
-    // UI tests get their own pristine settings/database so runs are repeatable
+    // UI/self tests get their own pristine settings/database so runs are repeatable
     // and never touch the user's real history.
-    const bool uiTest = qEnvironmentVariableIsSet("LUMINA_UI_TEST");
+    const bool uiTest = qEnvironmentVariableIsSet("LUMINA_UI_TEST")
+        || qEnvironmentVariableIsSet("LUMINA_PLAYBACK_TEST");
     QGuiApplication::setApplicationName(uiTest ? QStringLiteral("Lumina Player UITest")
                                                : QStringLiteral("Lumina Player"));
     if (uiTest) {
