@@ -401,7 +401,7 @@ ApplicationWindow {
                         anchors.fill: parent
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
-                        onClicked: player.openFiles([Qt.url("file://" + legacyRow.modelData)])
+                        onClicked: player.openFiles([player.fileUrl(legacyRow.modelData)])
                     }
                 }
             }
@@ -533,7 +533,8 @@ ApplicationWindow {
                     color: Theme.primaryText
                     font.family: Theme.fontFamily
                     font.pixelSize: Theme.fontSizeSmall
-                    font.features: { "tnum": 1 }
+                    // font.features (tnum) needs Qt 6.6; reserve width so digits do not jitter on 6.4.
+                    Layout.minimumWidth: 56
                 }
                 TimeSlider {
                     id: timeline
@@ -545,7 +546,8 @@ ApplicationWindow {
                     color: Theme.secondaryText
                     font.family: Theme.fontFamily
                     font.pixelSize: Theme.fontSizeSmall
-                    font.features: { "tnum": 1 }
+                    // font.features (tnum) needs Qt 6.6; reserve width so digits do not jitter on 6.4.
+                    Layout.minimumWidth: 56
                 }
             }
 
