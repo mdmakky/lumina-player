@@ -25,7 +25,7 @@ sec "movie streams"
 ffprobe -hide_banner "$MOVIE" 2>&1 | grep -E 'Stream|Duration'
 
 sec "can this ffmpeg decode the audio codecs? (needs to list the decoder)"
-for c in aac ac3 eac3 dts truehd flac opus vorbis mp3; do
+for c in aac ac3 eac3 dca truehd flac opus vorbis mp3; do   # dca = DTS
   printf '%-8s ' "$c"; ffmpeg -hide_banner -decoders 2>/dev/null | grep -qE " $c " && echo yes || echo "NO"
 done
 
