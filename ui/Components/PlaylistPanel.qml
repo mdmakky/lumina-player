@@ -5,7 +5,7 @@ import QtQuick.Dialogs
 import Lumina.Player
 
 // Right-side play queue. Talks to the controller only (player.playlist model,
-// player.playIndex). Reorder uses up/down buttons and is disabled while a
+// player.playIndex). Rows reorder by dragging the grip; disabled while a
 // search filter is active (visible rows no longer map 1:1 to queue positions).
 Rectangle {
     id: panel
@@ -30,6 +30,22 @@ Rectangle {
                 font.pixelSize: Theme.fontSizeLarge
                 font.weight: Font.DemiBold
                 Layout.fillWidth: true
+            }
+            IconButton {
+                objectName: "shuffleButton"
+                iconSource: "qrc:/qt/qml/Lumina/Player/icons/shuffle.svg"
+                implicitWidth: 32
+                active: player.shuffle
+                tip: qsTr("Shuffle (Shift+S)")
+                onClicked: player.shuffle = !player.shuffle
+            }
+            IconButton {
+                objectName: "repeatButton"
+                iconSource: "qrc:/qt/qml/Lumina/Player/icons/" + (player.repeatMode === 2 ? "repeat-one.svg" : "repeat.svg")
+                implicitWidth: 32
+                active: player.repeatMode !== 0
+                tip: qsTr("Repeat: off / all / one (R)")
+                onClicked: player.repeatMode = (player.repeatMode + 1) % 3
             }
             IconButton {
                 objectName: "playlistSaveButton"
@@ -72,6 +88,8 @@ Rectangle {
             model: player.playlist
             boundsBehavior: Flickable.StopAtBounds
             ScrollBar.vertical: ScrollBar {}
+            property int dragFrom: -1
+            property int dropTarget: -1
 
             delegate: Rectangle {
                 id: row
@@ -90,9 +108,21 @@ Rectangle {
                 radius: Theme.radius
                 color: current ? Theme.accentSoft : (hover.hovered ? Theme.elevated : "transparent")
 
+                property real dragY: 0
+                transform: Translate { y: row.dragY }
+                z: grip.active ? 10 : 0
                 HoverHandler { id: hover }
                 TapHandler {
                     onDoubleTapped: player.playIndex(row.index)
+                }
+
+                Rectangle { // drop indicator
+                    visible: list.dropTarget === row.index && list.dragFrom !== row.index
+                    width: parent.width
+                    height: 2
+                    color: Theme.accent
+                    y: list.dragFrom > row.index ? 0 : parent.height - 2
+                    z: 20
                 }
 
                 RowLayout {
@@ -101,6 +131,39 @@ Rectangle {
                     anchors.rightMargin: Theme.spacingSmall
                     spacing: 2
 
+                    Text { // drag grip
+                        objectName: "rowGrip_" + row.index
+                        text: "⋮⋮"
+                        visible: !panel.filtering
+                        color: Theme.secondaryText
+                        font.pixelSize: Theme.fontSizeMedium
+                        Layout.rightMargin: Theme.spacingSmall
+                        Layout.preferredHeight: row.height
+                        verticalAlignment: Text.AlignVCenter
+                        HoverHandler { cursorShape: Qt.OpenHandCursor }
+                        DragHandler {
+                            id: grip
+                            target: null
+                            xAxis.enabled: false
+                            enabled: !panel.filtering
+                            onTranslationChanged: {
+                                if (!active) return
+                                row.dragY = translation.y
+                                list.dragFrom = row.index
+                                list.dropTarget = Math.max(0, Math.min(list.count - 1,
+                                    row.index + Math.round(translation.y / row.height)))
+                            }
+                            onActiveChanged: {
+                                if (active) return
+                                const to = list.dropTarget
+                                row.dragY = 0
+                                list.dragFrom = -1
+                                list.dropTarget = -1
+                                if (to >= 0 && to !== row.index)
+                                    player.playlist.move(row.index, to)
+                            }
+                        }
+                    }
                     Text {
                         Layout.fillWidth: true
                         text: row.title
@@ -109,20 +172,6 @@ Rectangle {
                         font.family: Theme.fontFamily
                         font.pixelSize: Theme.fontSizeMedium
                         font.weight: row.current ? Font.DemiBold : Font.Normal
-                    }
-                    IconButton {
-                        objectName: "rowUp_" + row.index
-                        implicitWidth: 28
-                        label: "▲"
-                        enabled: !panel.filtering && row.index > 0
-                        onClicked: player.playlist.move(row.index, row.index - 1)
-                    }
-                    IconButton {
-                        objectName: "rowDown_" + row.index
-                        implicitWidth: 28
-                        label: "▼"
-                        enabled: !panel.filtering && row.index < player.playlist.count - 1
-                        onClicked: player.playlist.move(row.index, row.index + 1)
                     }
                     IconButton {
                         objectName: "rowRemove_" + row.index

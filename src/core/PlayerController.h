@@ -29,6 +29,8 @@ class PlayerController : public QObject
     Q_PROPERTY(HistoryModel *favorites READ favorites CONSTANT FINAL)
     Q_PROPERTY(bool historyAvailable READ historyAvailable CONSTANT FINAL)
     Q_PROPERTY(bool hasMedia READ hasMedia NOTIFY hasMediaChanged FINAL)
+    Q_PROPERTY(bool shuffle READ shuffle WRITE setShuffle NOTIFY shuffleChanged FINAL)
+    Q_PROPERTY(int repeatMode READ repeatMode WRITE setRepeatMode NOTIFY repeatModeChanged FINAL)
     Q_PROPERTY(QStringList recentFiles READ recentFiles NOTIFY recentFilesChanged FINAL)
 
 public:
@@ -42,6 +44,10 @@ public:
     HistoryModel *favorites() const { return m_favorites; }
     bool historyAvailable() const { return m_repo.available(); }
     QStringList recentFiles() const { return m_recentFiles; }
+    bool shuffle() const { return m_shuffle; }
+    void setShuffle(bool on);
+    int repeatMode() const { return m_repeat; }
+    void setRepeatMode(int mode); // 0 off, 1 all, 2 one
 
 public slots:
     // Accepts a JS array of URLs (from file dialogs or drag & drop).
@@ -72,8 +78,11 @@ signals:
     void toast(const QString &text);
     void hasMediaChanged();
     void recentFilesChanged();
+    void shuffleChanged();
+    void repeatModeChanged();
 
 private:
+    void advance(bool autoAdvance);
     void rememberFile(const QUrl &url);
     // Resume support: remember where each local file stopped and seek back on reopen.
     static QString resumeKey(const QString &path);
@@ -85,6 +94,8 @@ private:
     QString m_currentPath;
     double m_resumeTarget = 0.0;
     QStringList m_recentFiles;
+    bool m_shuffle = false;
+    int m_repeat = 0;
     std::unique_ptr<Database> m_database;
     HistoryRepository m_repo{nullptr};
     HistoryModel *m_history = nullptr;

@@ -12,6 +12,8 @@ Button {
     property string label: ""
     // Optional hover tooltip text.
     property string tip: ""
+    // Toggle highlight (e.g. shuffle on).
+    property bool active: false
 
     implicitWidth: iconSource !== "" ? 40 : 56
     implicitHeight: Theme.controlHeight
@@ -44,7 +46,7 @@ Button {
 
     background: Rectangle {
         radius: Theme.radius
-        color: control.pressed ? Theme.surfacePressed : (control.hovered ? Theme.surfaceHover : "transparent")
+        color: control.pressed ? Theme.surfacePressed : (control.hovered ? Theme.surfaceHover : (control.active ? Theme.accentSoft : "transparent"))
         border.width: control.visualFocus ? 2 : 0
         border.color: Theme.focusRing
         Behavior on color { ColorAnimation { duration: Theme.animationFast } }

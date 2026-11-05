@@ -355,6 +355,7 @@ void UiTest::run()
 
         // --- playlist (queue: argv file + short1 + short2, kept paused) ---
         auto *pl = p->playlist();
+        p->setShuffle(false); p->setRepeatMode(0); // persisted settings must not leak into the test
         p->openFiles({QUrl::fromLocalFile(files.first()), QUrl::fromLocalFile("/tmp/short1.mp4"),
                       QUrl::fromLocalFile("/tmp/short2.mp4")});
         waitFor([&] { return pl->rowCount() == 3 && !eng->idle(); }, 6000);
@@ -396,10 +397,30 @@ void UiTest::run()
             pause();
         } else result("double-click row plays entry", false, "row missing");
         const QUrl u0 = pl->urlAt(0), u1 = pl->urlAt(1);
-        click("rowDown_0");
-        result("row down reorders", waitFor([&] { return pl->urlAt(0) == u1 && pl->urlAt(1) == u0; }));
-        click("rowUp_1");
-        result("row up reorders", waitFor([&] { return pl->urlAt(0) == u0 && pl->urlAt(1) == u1; }));
+        // drag row 0's grip down two rows (rows are 36px) -> row 0 ends at index 2
+        if (auto *g = find("rowGrip_0")) {
+            wake();
+            const QPoint a = center(g);
+            QTest::mouseMove(w, a); QTest::qWait(60);
+            QTest::mousePress(w, Qt::LeftButton, {}, a); QTest::qWait(60);
+            for (int dy = 6; dy <= 74; dy += 8) { QTest::mouseMove(w, a + QPoint(0, dy)); QTest::qWait(25); }
+            QTest::mouseRelease(w, Qt::LeftButton, {}, a + QPoint(0, 74)); QTest::qWait(200);
+            result("drag reorders row", waitFor([&] { return pl->urlAt(2) == u0 && pl->urlAt(0) == u1; }),
+                   pl->urlAt(2).fileName());
+        } else result("drag reorders row", false, "grip missing");
+        pl->move(2, 0);
+        // shuffle / repeat toggles
+        p->setShuffle(false); p->setRepeatMode(0);
+        click("shuffleButton");
+        result("shuffle button toggles on", p->shuffle());
+        key(Qt::Key_S, Qt::ShiftModifier);
+        result("Shift+S toggles shuffle off", !p->shuffle());
+        click("repeatButton");
+        result("repeat button -> all", p->repeatMode() == 1);
+        key(Qt::Key_R);
+        result("R cycles repeat -> one", p->repeatMode() == 2);
+        key(Qt::Key_R);
+        result("R cycles repeat -> off", p->repeatMode() == 0);
         if (auto *sf = find("playlistSearch")) {
             clickAt(center(sf));
             for (auto k : {Qt::Key_S, Qt::Key_H, Qt::Key_O, Qt::Key_R, Qt::Key_T}) QTest::keyClick(w, k);

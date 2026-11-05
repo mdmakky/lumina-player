@@ -856,6 +856,8 @@ ApplicationWindow {
     Shortcut { sequence: "]";            enabled: player.hasMedia; onActivated: player.engine.setLoopB() }
     Shortcut { sequence: "Backspace";    enabled: player.hasMedia; onActivated: player.engine.clearLoop() }
     Shortcut { sequence: "Ctrl+S";       enabled: player.hasMedia; onActivated: player.takeScreenshot() }
+    Shortcut { sequence: "Shift+S";      onActivated: player.shuffle = !player.shuffle }
+    Shortcut { sequence: "R";            onActivated: player.repeatMode = (player.repeatMode + 1) % 3 }
     Shortcut { sequence: "Ctrl+O";       onActivated: fileDialog.open() }
     Shortcut { sequence: "Esc";          enabled: root.visibility === Window.FullScreen; onActivated: root.showNormal() }
 }

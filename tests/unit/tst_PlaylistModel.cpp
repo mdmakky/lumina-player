@@ -64,6 +64,54 @@ private slots:
         m.remove(2); // remove current
         QCOMPARE(m.currentIndex(), -1);
     }
+    void sequentialNextRepeat()
+    {
+        PlaylistModel m;
+        m.append(urls({"a", "b", "c"}));
+        m.setCurrentIndex(1);
+        QCOMPARE(m.nextIndex(false, 0, true), 2);
+        m.setCurrentIndex(2);
+        QCOMPARE(m.nextIndex(false, 0, true), -1);
+        QCOMPARE(m.nextIndex(false, 1, true), 0);
+        QCOMPARE(m.nextIndex(false, 2, true), 2);  // repeat one: EOF replays
+        QCOMPARE(m.nextIndex(false, 2, false), -1); // manual next ignores repeat one
+        QCOMPARE(m.previousIndex(false), 1);
+        m.setCurrentIndex(0);
+        QCOMPARE(m.previousIndex(false), -1);
+    }
+    void shuffleVisitsAllOnceThenStops()
+    {
+        PlaylistModel m;
+        m.append(urls({"a", "b", "c", "d", "e"}));
+        for (int round = 0; round < 20; ++round) {
+            PlaylistModel s;
+            s.append(urls({"a", "b", "c", "d", "e"}));
+            s.setCurrentIndex(round % 5);
+            QSet<int> seen{s.currentIndex()};
+            for (int k = 0; k < 4; ++k) {
+                const int n = s.nextIndex(true, 0, true);
+                QVERIFY(n >= 0 && !seen.contains(n));
+                seen.insert(n);
+                s.setCurrentIndex(n);
+            }
+            QCOMPARE(s.nextIndex(true, 0, true), -1);
+        }
+    }
+    void shuffleRepeatAllNoImmediateRepeatAndHistory()
+    {
+        PlaylistModel m;
+        m.append(urls({"a", "b", "c"}));
+        m.setCurrentIndex(0);
+        QList<int> path{0};
+        for (int k = 0; k < 12; ++k) {
+            const int n = m.nextIndex(true, 1, true);
+            QVERIFY(n >= 0 && n != m.currentIndex());
+            m.setCurrentIndex(n);
+            path << n;
+        }
+        // previous walks the history backwards
+        QCOMPARE(m.previousIndex(true), path.at(path.size() - 2));
+    }
     void clearResets()
     {
         PlaylistModel m;

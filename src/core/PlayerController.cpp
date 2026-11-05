@@ -20,7 +20,7 @@ PlayerController::PlayerController(QObject *parent)
 {
     connect(m_engine, &MpvEngine::endOfFile, this, [this]() {
         if (m_playlist->currentIndex() >= 0) // -1: current entry was removed; don't restart the queue
-            next();
+            advance(true);
     });
     connect(m_engine, &MpvEngine::idleChanged, this, &PlayerController::hasMediaChanged);
 
@@ -51,6 +51,8 @@ PlayerController::PlayerController(QObject *parent)
     // Restore persisted state; keep volume/mute in sync from here on.
     QSettings settings;
     m_recentFiles = settings.value(QStringLiteral("recentFiles")).toStringList();
+    m_shuffle = settings.value(QStringLiteral("playback/shuffle"), false).toBool();
+    m_repeat = qBound(0, settings.value(QStringLiteral("playback/repeat"), 0).toInt(), 2);
     migrateLegacy();
     reloadHistory();
     m_engine->setVolume(settings.value(QStringLiteral("playback/volume"), 100).toInt());
@@ -121,18 +123,42 @@ void PlayerController::playIndex(int index)
     m_engine->loadFile(url);
 }
 
+void PlayerController::advance(bool autoAdvance)
+{
+    const int i = m_playlist->nextIndex(m_shuffle, m_repeat, autoAdvance);
+    if (i >= 0)
+        playIndex(i);
+}
+
 void PlayerController::next()
 {
-    const int i = m_playlist->currentIndex();
-    if (i >= 0 && i + 1 < m_playlist->rowCount())
-        playIndex(i + 1);
+    advance(false);
 }
 
 void PlayerController::previous()
 {
-    const int i = m_playlist->currentIndex();
-    if (i > 0)
-        playIndex(i - 1);
+    const int i = m_playlist->previousIndex(m_shuffle);
+    if (i >= 0)
+        playIndex(i);
+}
+
+void PlayerController::setShuffle(bool on)
+{
+    if (on == m_shuffle)
+        return;
+    m_shuffle = on;
+    setSetting(QStringLiteral("playback/shuffle"), on);
+    emit shuffleChanged();
+}
+
+void PlayerController::setRepeatMode(int mode)
+{
+    mode = qBound(0, mode, 2);
+    if (mode == m_repeat)
+        return;
+    m_repeat = mode;
+    setSetting(QStringLiteral("playback/repeat"), mode);
+    emit repeatModeChanged();
 }
 
 QString PlayerController::takeScreenshot()
