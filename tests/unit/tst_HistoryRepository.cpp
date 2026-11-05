@@ -81,7 +81,7 @@ private slots:
         { Database db(path); QVERIFY(db.valid()); QCOMPARE(db.schemaVersion(), Database::kSchemaVersion); }
         Database db(path); // reopen: no re-migration errors, version stays
         QVERIFY(db.valid());
-        QCOMPARE(db.schemaVersion(), 1);
+        QCOMPARE(db.schemaVersion(), Database::kSchemaVersion);
         HistoryRepository r(&db);
         HistoryEntry e;
         e.path = "/old"; e.title = "old"; e.position = 42; e.playCount = 1; e.lastPlayed = 10;

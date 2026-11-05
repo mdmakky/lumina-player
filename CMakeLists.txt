@@ -48,6 +48,12 @@ qt_add_executable(lumina
     src/storage/HistoryRepository.cpp
     src/storage/HistoryModel.h
     src/storage/HistoryModel.cpp
+    src/storage/LibraryRepository.h
+    src/storage/LibraryRepository.cpp
+    src/storage/LibraryModel.h
+    src/storage/LibraryModel.cpp
+    src/services/LibraryScanner.h
+    src/services/LibraryScanner.cpp
     src/engine/MpvEngine.h
     src/engine/MpvEngine.cpp
     src/engine/MpvVideoItem.h
@@ -84,6 +90,7 @@ qt_add_qml_module(lumina
         ui/Settings/SettingsDialog.qml
         ui/Components/Toast.qml
         ui/Components/VideoAdjustPopup.qml
+        ui/Library/LibraryView.qml
     RESOURCES
         resources/icons/play.svg
         resources/icons/pause.svg
@@ -110,6 +117,7 @@ target_include_directories(lumina PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src/core
     ${CMAKE_CURRENT_SOURCE_DIR}/src/engine
     ${CMAKE_CURRENT_SOURCE_DIR}/src/storage
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/services
     ${CMAKE_CURRENT_SOURCE_DIR}/src/utilities
     ${CMAKE_CURRENT_SOURCE_DIR}/app
 )
@@ -169,4 +177,16 @@ if(BUILD_TESTING)
     target_include_directories(tst_historyrepository PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
     target_link_libraries(tst_historyrepository PRIVATE Qt6::Core Qt6::Sql Qt6::Test)
     add_test(NAME HistoryRepository COMMAND tst_historyrepository)
+
+    add_executable(tst_libraryscanner
+        tests/unit/tst_LibraryScanner.cpp
+        src/services/LibraryScanner.cpp
+        src/storage/Database.cpp
+        src/storage/LibraryRepository.cpp
+        src/storage/LibraryModel.cpp
+        src/utilities/Logger.cpp
+    )
+    target_include_directories(tst_libraryscanner PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+    target_link_libraries(tst_libraryscanner PRIVATE Qt6::Core Qt6::Sql Qt6::Test)
+    add_test(NAME LibraryScanner COMMAND tst_libraryscanner)
 endif()
