@@ -1,5 +1,9 @@
 #include "PlaylistModel.h"
 
+#include <QFile>
+#include <QFileInfo>
+#include <QTextStream>
+
 #include <QFileInfo>
 
 PlaylistModel::PlaylistModel(QObject *parent) : QAbstractListModel(parent) {}
@@ -109,4 +113,51 @@ void PlaylistModel::clear()
     endResetModel();
     emit countChanged();
     emit currentIndexChanged();
+}
+
+QString PlaylistModel::toM3u() const
+{
+    QString out = QStringLiteral("#EXTM3U\n");
+    for (const QUrl &u : m_items)
+        out += (u.isLocalFile() ? u.toLocalFile() : u.toString()) + QLatin1Char('\n');
+    return out;
+}
+
+QList<QUrl> PlaylistModel::parseM3u(const QString &text, const QDir &baseDir)
+{
+    QList<QUrl> urls;
+    const auto lines = text.split(QLatin1Char('\n'));
+    for (QString line : lines) {
+        line = line.trimmed();
+        if (line.isEmpty() || line.startsWith(QLatin1Char('#')))
+            continue;
+        if (line.contains(QStringLiteral("://")) && !line.startsWith(QStringLiteral("file://")))
+            urls << QUrl(line); // http(s):// etc.
+        else if (line.startsWith(QStringLiteral("file://")))
+            urls << QUrl(line);
+        else
+            urls << QUrl::fromLocalFile(QDir::isAbsolutePath(line) ? line : baseDir.absoluteFilePath(line));
+    }
+    return urls;
+}
+
+bool PlaylistModel::saveToFile(const QUrl &file) const
+{
+    QFile f(file.toLocalFile());
+    if (!f.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text))
+        return false;
+    f.write(toM3u().toUtf8());
+    return true;
+}
+
+QVariantList PlaylistModel::loadFromFile(const QUrl &file)
+{
+    QFile f(file.toLocalFile());
+    QVariantList result;
+    if (!f.open(QIODevice::ReadOnly | QIODevice::Text))
+        return result;
+    const QDir base = QFileInfo(f).dir();
+    for (const QUrl &u : parseM3u(QString::fromUtf8(f.readAll()), base))
+        result << u;
+    return result;
 }

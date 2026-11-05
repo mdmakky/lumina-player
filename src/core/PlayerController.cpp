@@ -111,3 +111,17 @@ void PlayerController::rememberFile(const QUrl &url)
     emit recentFilesChanged();
     qCDebug(lcCore) << "Recent file added:" << path;
 }
+
+bool PlayerController::savePlaylist(const QUrl &file)
+{
+    return m_playlist->saveToFile(file);
+}
+
+bool PlayerController::loadPlaylist(const QUrl &file)
+{
+    const QVariantList urls = PlaylistModel::loadFromFile(file);
+    if (urls.isEmpty())
+        return false;
+    openFiles(urls);
+    return true;
+}

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QAbstractListModel>
+#include <QDir>
 #include <QUrl>
 #include <QVariantList>
 
@@ -29,6 +30,13 @@ public:
     // Moves the item so it ends up at row `to`.
     Q_INVOKABLE void move(int from, int to);
     Q_INVOKABLE void clear();
+
+    // M3U/M3U8 persistence. Relative entries resolve against `baseDir`.
+    QString toM3u() const;
+    static QList<QUrl> parseM3u(const QString &text, const QDir &baseDir);
+    Q_INVOKABLE bool saveToFile(const QUrl &file) const;
+    // Returns the entries found; the caller decides whether to replace the queue.
+    static QVariantList loadFromFile(const QUrl &file);
 
 signals:
     void currentIndexChanged();

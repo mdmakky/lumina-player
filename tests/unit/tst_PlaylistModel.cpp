@@ -19,6 +19,22 @@ class TestPlaylistModel : public QObject
     }
 
 private slots:
+    void m3uRoundTrip()
+    {
+        PlaylistModel m;
+        m.append(urls({"a.mp4", "b.mp4"}));
+        const QList<QUrl> back = PlaylistModel::parseM3u(m.toM3u(), QDir("/nowhere"));
+        QCOMPARE(back.size(), 2);
+        QCOMPARE(back.at(1).toLocalFile(), QStringLiteral("/tmp/b.mp4"));
+    }
+    void m3uRelativeAndComments()
+    {
+        const QList<QUrl> u = PlaylistModel::parseM3u(
+            QStringLiteral("#EXTM3U\n#EXTINF:1,x\nsub/c.mkv\n\nhttps://h/x.mp4\r\n"), QDir("/media"));
+        QCOMPARE(u.size(), 2);
+        QCOMPARE(u.at(0).toLocalFile(), QStringLiteral("/media/sub/c.mkv"));
+        QCOMPARE(u.at(1).toString(), QStringLiteral("https://h/x.mp4"));
+    }
     void appendAndRoles()
     {
         PlaylistModel m;

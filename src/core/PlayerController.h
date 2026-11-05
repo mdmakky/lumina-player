@@ -34,6 +34,9 @@ public slots:
     // Appends to the queue; starts playing the first one if nothing is current.
     void enqueue(const QVariantList &urls);
     void playIndex(int index);
+    // M3U playlists: save the queue, or replace the queue and play from the start.
+    bool savePlaylist(const QUrl &file);
+    bool loadPlaylist(const QUrl &file);
     void next();
     void previous();
     void clearRecentFiles();
