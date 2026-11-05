@@ -14,6 +14,7 @@
 #include "storage/HistoryRepository.h"
 #include "storage/LibraryModel.h"
 #include "services/LibraryScanner.h"
+#include "media/ThumbnailService.h"
 
 #include <memory>
 
@@ -26,6 +27,8 @@ class PlayerController : public QObject
 
     Q_PROPERTY(MpvEngine *engine READ engine CONSTANT FINAL)
     Q_PROPERTY(PlaylistModel *playlist READ playlist CONSTANT FINAL)
+    // Seek-bar hover preview frames (disabled automatically when not applicable).
+    Q_PROPERTY(ThumbnailService *thumbs READ thumbs CONSTANT FINAL)
     // Optional library (SQLite). Models are empty and historyAvailable is false if the DB can't open.
     Q_PROPERTY(HistoryModel *history READ history CONSTANT FINAL)
     Q_PROPERTY(HistoryModel *continueWatching READ continueWatching CONSTANT FINAL)
@@ -52,6 +55,7 @@ public:
 
     MpvEngine *engine() const { return m_engine; }
     PlaylistModel *playlist() const { return m_playlist; }
+    ThumbnailService *thumbs() const { return m_thumbs; }
     bool hasMedia() const;
     HistoryModel *history() const { return m_history; }
     HistoryModel *continueWatching() const { return m_continue; }
@@ -159,6 +163,7 @@ private:
 
     MpvEngine *m_engine = nullptr;
     PlaylistModel *m_playlist = nullptr;
+    ThumbnailService *m_thumbs = nullptr;
     QString m_currentPath;
     double m_resumeTarget = 0.0;
     QStringList m_recentFiles;

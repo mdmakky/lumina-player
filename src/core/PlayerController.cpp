@@ -42,6 +42,18 @@ PlayerController::PlayerController(QObject *parent)
     connect(m_engine, &MpvEngine::tracksChanged, this, updateInhibit);
 #endif
 
+    m_thumbs = new ThumbnailService(this);
+    m_thumbs->setEnabled(setting(QStringLiteral("ui/seekPreview"), true).toBool());
+    connect(m_engine, &MpvEngine::idleChanged, this, [this] { if (m_engine->idle()) m_thumbs->setSource({}); });
+    connect(m_engine, &MpvEngine::tracksChanged, this, [this] {
+        bool video = false; // cover art / still images are not worth a preview
+        for (const QVariant &t : m_engine->videoTracks()) {
+            const QVariantMap m = t.toMap();
+            video = video || (!m.value(QStringLiteral("albumart")).toBool() && !m.value(QStringLiteral("image")).toBool());
+        }
+        m_thumbs->setHasVideo(video);
+    });
+
     // Library is optional: LUMINA_PLAYBACK_TEST never touches it; LUMINA_DB_PATH redirects it (tests).
     if (!qEnvironmentVariableIsSet("LUMINA_PLAYBACK_TEST"))
         m_database = std::make_unique<Database>(qEnvironmentVariable("LUMINA_DB_PATH"));
@@ -312,6 +324,7 @@ void PlayerController::playIndex(int index)
         }
         m_hadProfile = !m_pendingProfile.isEmpty();
     }
+    m_thumbs->setSource(m_currentPath); // "" for network streams -> time-only tooltip
     reloadBookmarks();
     m_playlist->setCurrentIndex(index);
     qCInfo(lcCore) << "Playing playlist entry" << index << url.toString();

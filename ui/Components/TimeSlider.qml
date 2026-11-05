@@ -107,20 +107,92 @@ Slider {
         Behavior on width { NumberAnimation { duration: Theme.animationFast; easing.type: Easing.OutCubic } }
     }
 
+    // Hover/drag preview: time under the pointer (or the drag target) and, when
+    // available, a frame from the background thumbnailer. Works without a thumb.
+    HoverHandler { id: hover }
+    readonly property double hoverTime: availableWidth > 0
+        ? Math.max(0, Math.min(1, (hover.point.position.x - leftPadding) / availableWidth)) * to : 0
+    readonly property double tipTime: dragging ? preview : hoverTime
+    readonly property real tipX: dragging ? leftPadding + visualPosition * availableWidth : hover.point.position.x
+    property string thumbUrl: ""
+    property int wantedBucket: -1
+    readonly property string chapterTitle: {
+        let t = ""
+        if (player.engine.duration > 0)
+            for (const c of player.engine.chapters)
+                if (c.time <= tipTime) t = c.title
+        return t
+    }
+    function wantThumb() {
+        if (!active || !player.thumbs.available) { thumbUrl = ""; return }
+        wantedBucket = player.thumbs.bucketFor(tipTime)
+        const u = player.thumbs.request(tipTime)
+        if (u !== "") thumbUrl = u
+    }
+    onTipTimeChanged: wantThumb()
+    onActiveChanged: { thumbUrl = ""; wantThumb() }
+    Connections {
+        target: player.thumbs
+        function onReady(bucket) { if (bucket === control.wantedBucket) control.thumbUrl = player.thumbs.urlFor(bucket) }
+        function onAvailableChanged() { control.thumbUrl = ""; control.wantThumb() }
+    }
+
     ToolTip {
-        parent: control.handle
+        objectName: "timelineTip"
+        parent: control
         visible: control.hovered || control.dragging
+        // keep the whole tip inside the window
+        x: Math.max(4 - control.mapToItem(null, 0, 0).x,
+                    Math.min(control.tipX - width / 2,
+                             control.Window.width - control.mapToItem(null, 0, 0).x - width - 4))
         y: -height - 8
         background: Rectangle {
             color: Theme.elevated
             border.color: Theme.border
             radius: Theme.radiusSmall
         }
-        contentItem: Text {
-            text: timefmt.formatDuration(control.dragging ? control.preview : control.value)
-            color: Theme.primaryText
-            font.family: Theme.fontFamily
-            font.pixelSize: Theme.fontSizeSmall
+        contentItem: Column {
+            spacing: 4
+            Item {
+                visible: control.thumbUrl !== ""
+                anchors.horizontalCenter: parent.horizontalCenter
+                width: 200
+                height: thumb.implicitWidth > 0 ? Math.round(width * thumb.implicitHeight / thumb.implicitWidth) : 112
+                Image {
+                    id: thumb
+                    objectName: "timelineThumb"
+                    anchors.fill: parent
+                    source: control.thumbUrl
+                    cache: true
+                    asynchronous: true
+                    smooth: true
+                    opacity: status === Image.Ready ? 1 : 0
+                    Behavior on opacity { NumberAnimation { duration: Theme.animationMedium } }
+                }
+                Rectangle { // frame; the frame itself is pre-rounded
+                    anchors.fill: parent
+                    color: "transparent"
+                    radius: Theme.radiusSmall + 2
+                    border.color: Theme.border
+                }
+            }
+            Text {
+                anchors.horizontalCenter: parent.horizontalCenter
+                text: timefmt.formatDuration(control.tipTime)
+                color: Theme.primaryText
+                font.family: Theme.fontFamily
+                font.pixelSize: Theme.fontSizeSmall
+            }
+            Text {
+                visible: control.chapterTitle !== ""
+                anchors.horizontalCenter: parent.horizontalCenter
+                width: Math.min(implicitWidth, 200)
+                elide: Text.ElideRight
+                text: control.chapterTitle
+                color: Theme.secondaryText
+                font.family: Theme.fontFamily
+                font.pixelSize: Theme.fontSizeSmall
+            }
         }
     }
 }

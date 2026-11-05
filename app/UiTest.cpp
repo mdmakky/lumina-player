@@ -4,6 +4,8 @@
 #include "utilities/Logger.h"
 
 #include <QDir>
+#include <QElapsedTimer>
+#include <algorithm>
 #include <QFile>
 #include <QFileInfo>
 #include "core/PlaylistModel.h"
@@ -230,6 +232,43 @@ void UiTest::run()
             result("timeline click seeks", waitFor([&] { return qAbs(eng->position() - target) < dur * 0.1; }),
                    QString("pos=%1 target=%2").arg(eng->position()).arg(target));
         } else result("timeline click seeks", false, "missing");
+        // seek preview: hovering the timeline fetches a thumbnail without disturbing playback
+        if (auto *t = find("timeline")) {
+            if (eng->paused()) { eng->play(); waitFor([&] { return !eng->paused(); }); }
+            wake();
+            const QPointF tl = t->mapToScene(QPointF(0, t->height() / 2));
+            const auto prop = [&](const char *n) { char *v = mpv_get_property_string(eng->handle(), n); const double d = v ? QString(v).toDouble() : 0; mpv_free(v); return d; };
+            QTest::qWait(1500); // let the preceding seek settle before counting drops
+            const double drops0 = prop("frame-drop-count") + prop("decoder-frame-drop-count");
+            const double pos0 = eng->position();
+            QElapsedTimer wall; wall.start();
+            QList<qint64> lat;
+            bool allReady = true;
+            for (int i = 0; i < 8; ++i) {
+                const double frac = 0.08 + 0.84 * ((i * 37) % 8) / 8.0 + (i % 3) * 0.013;
+                QElapsedTimer l; l.start();
+                QTest::mouseMove(w, QPoint(int(tl.x() + t->width() * frac), int(tl.y())));
+                QTest::qWait(30);
+                const QString want = "/" + QString::number(int(t->property("hoverTime").toDouble() / 2.0));
+                auto *img = find("timelineThumb");
+                const bool ok = waitFor([&] {
+                    img = find("timelineThumb");
+                    return img && img->property("status").toInt() == 1 && img->property("source").toUrl().toString().endsWith(want);
+                }, 2000);
+                lat.append(l.elapsed());
+                allReady = allReady && ok;
+                QTest::qWait(250);
+                if (i == 3) shot("seek-preview");
+            }
+            std::sort(lat.begin(), lat.end());
+            result("timeline hover shows a thumbnail within 2 s", allReady, QString("p50=%1ms max=%2ms").arg(lat[lat.size() / 2]).arg(lat.last()));
+            result("hover thumbnail visible", vis("timelineThumb"));
+            const double drift = (eng->position() - pos0) - wall.elapsed() / 1000.0 * eng->speed();
+            const double drops = prop("frame-drop-count") + prop("decoder-frame-drop-count") - drops0;
+            result("hovering does not disturb playback", qAbs(drift) < 1.0 && drops == 0,
+                   QString("drift=%1s drops=%2").arg(drift, 0, 'f', 2).arg(drops));
+            wake();
+        }
         // speed menu
         if (click("speedButton")) {
             QTest::qWait(400);
@@ -532,6 +571,9 @@ void UiTest::run()
             click("autoNextSwitch");
             result("seek step persisted", p->setting("playback/seekStep").toInt() == 7, p->setting("playback/seekStep").toString());
             result("auto-next off persisted", p->setting("playback/autoNext").isValid() && !p->setting("playback/autoNext").toBool());
+            click("seekPreviewSwitch");
+            result("seek preview off persisted + disables service",
+                   p->setting("ui/seekPreview").isValid() && !p->setting("ui/seekPreview").toBool() && !p->thumbs()->available());
             click("settingsReset_1");
             result("reset asks for confirmation", waitFor([&] { return vis("settingsResetConfirm"); }));
             shot("settings-reset-confirm");
@@ -541,6 +583,7 @@ void UiTest::run()
             click("settingsResetConfirm");
             result("reset page restores seek step", waitFor([&] { return p->setting("playback/seekStep").toInt() == 5; }));
             result("reset page restores auto-next", p->setting("playback/autoNext").toBool());
+            result("reset page restores seek preview", p->setting("ui/seekPreview").toBool() && p->thumbs()->available());
             result("reset page leaves other pages alone", p->setting("playback/hwdec").toString() == "auto-safe");
 
             // a new setting changes engine state: seek step drives the arrow keys

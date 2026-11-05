@@ -16,6 +16,7 @@ Item {
     // Current values (loaded from QSettings at startup so Main.qml can use hideDelay / seekStep).
     property bool resume: true
     property bool autoNext: true
+    property bool seekPreview: true
     property string hwdec: "auto-safe"
     property real defaultSpeed: 1.0
     property int seekStep: 5
@@ -72,6 +73,7 @@ Item {
 
     function setResume(v) { resume = v; set("playback/resume", v) }
     function setAutoNext(v) { autoNext = v; set("playback/autoNext", v) }
+    function setSeekPreview(v) { seekPreview = v; set("ui/seekPreview", v); player.thumbs.enabled = v }
     function setHwdec(v) { hwdec = v; set("playback/hwdec", v); player.engine.setHwdec(v) }
     function setDefaultSpeed(v) { defaultSpeed = v; set("playback/defaultSpeed", v); player.engine.setSpeed(v) }
     function setSeekStep(v) { seekStep = v; set("playback/seekStep", v) }
@@ -114,7 +116,7 @@ Item {
         case 0: setResume(true); app.setLanguage("system"); break
         case 1:
             player.rememberFileSettings = true
-            setHwdec("auto-safe"); setDefaultSpeed(1.0); setSeekStep(5); setAutoNext(true)
+            setHwdec("auto-safe"); setDefaultSpeed(1.0); setSeekStep(5); setAutoNext(true); setSeekPreview(true)
             break
         case 2:
             setVideoAspect("auto"); setDeinterlace(false); setShotFormat("png"); setShotDir("")
@@ -138,6 +140,7 @@ Item {
     Component.onCompleted: {
         resume = getBool("playback/resume", true)
         autoNext = getBool("playback/autoNext", true)
+        seekPreview = getBool("ui/seekPreview", true)
         hwdec = player.setting("playback/hwdec", "auto-safe")
         defaultSpeed = getNum("playback/defaultSpeed", 1.0)
         seekStep = getNum("playback/seekStep", 5)
@@ -595,6 +598,14 @@ Item {
                                     keywords: "autoplay queue playlist advance"
                                     checked: dlg.autoNext
                                     onToggled: (v) => dlg.setAutoNext(v)
+                                }
+                                SwitchRow {
+                                    name: "seekPreviewSwitch"
+                                    title: qsTr("Show seek preview")
+                                    description: qsTr("Show a thumbnail of the frame under the pointer when hovering or dragging the timeline.")
+                                    keywords: "thumbnail hover timeline scrub tooltip frame"
+                                    checked: dlg.seekPreview
+                                    onToggled: (v) => dlg.setSeekPreview(v)
                                 }
                             }
                         }
