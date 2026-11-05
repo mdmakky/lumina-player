@@ -31,6 +31,8 @@ class PlayerController : public QObject
     Q_PROPERTY(bool hasMedia READ hasMedia NOTIFY hasMediaChanged FINAL)
     Q_PROPERTY(bool shuffle READ shuffle WRITE setShuffle NOTIFY shuffleChanged FINAL)
     Q_PROPERTY(int repeatMode READ repeatMode WRITE setRepeatMode NOTIFY repeatModeChanged FINAL)
+    // Bookmarks of the current file: [{id, time, label}], ordered by time.
+    Q_PROPERTY(QVariantList bookmarks READ bookmarks NOTIFY bookmarksChanged FINAL)
     Q_PROPERTY(QStringList recentFiles READ recentFiles NOTIFY recentFilesChanged FINAL)
 
 public:
@@ -43,6 +45,7 @@ public:
     HistoryModel *continueWatching() const { return m_continue; }
     HistoryModel *favorites() const { return m_favorites; }
     bool historyAvailable() const { return m_repo.available(); }
+    QVariantList bookmarks() const { return m_bookmarks; }
     QStringList recentFiles() const { return m_recentFiles; }
     bool shuffle() const { return m_shuffle; }
     void setShuffle(bool on);
@@ -60,6 +63,8 @@ public slots:
     // M3U playlists: save the queue, or replace the queue and play from the start.
     bool savePlaylist(const QUrl &file);
     bool loadPlaylist(const QUrl &file);
+    void addBookmark(const QString &label = {}); // at the current position
+    void removeBookmark(qint64 id);
     void next();
     void previous();
     void clearRecentFiles();
@@ -77,11 +82,14 @@ signals:
     // Transient user-facing message; the UI shows it as a toast.
     void toast(const QString &text);
     void hasMediaChanged();
+    void bookmarksChanged();
     void recentFilesChanged();
     void shuffleChanged();
     void repeatModeChanged();
 
 private:
+    void reloadBookmarks();
+    QVariantList m_bookmarks;
     void advance(bool autoAdvance);
     void rememberFile(const QUrl &url);
     // Resume support: remember where each local file stopped and seek back on reopen.

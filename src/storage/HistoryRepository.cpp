@@ -100,3 +100,36 @@ QList<HistoryEntry> HistoryRepository::list(Filter filter, int limit) const
             out << fromQuery(q);
     return out;
 }
+
+qint64 HistoryRepository::addBookmark(const QString &path, double time, const QString &label)
+{
+    if (!available()) return 0;
+    QSqlQuery q(m_db->db());
+    q.prepare(QStringLiteral("INSERT INTO bookmarks(path,time,label) VALUES(?,?,?)"));
+    q.addBindValue(path);
+    q.addBindValue(time);
+    q.addBindValue(label.isNull() ? QStringLiteral("") : label); // NOT NULL column
+    return q.exec() ? q.lastInsertId().toLongLong() : 0;
+}
+
+void HistoryRepository::removeBookmark(qint64 id)
+{
+    if (!available()) return;
+    QSqlQuery q(m_db->db());
+    q.prepare(QStringLiteral("DELETE FROM bookmarks WHERE id=?"));
+    q.addBindValue(id);
+    q.exec();
+}
+
+QList<Bookmark> HistoryRepository::bookmarks(const QString &path) const
+{
+    QList<Bookmark> out;
+    if (!available()) return out;
+    QSqlQuery q(m_db->db());
+    q.prepare(QStringLiteral("SELECT id,time,label FROM bookmarks WHERE path=? ORDER BY time, id"));
+    q.addBindValue(path);
+    if (q.exec())
+        while (q.next())
+            out.append({q.value(0).toLongLong(), q.value(1).toDouble(), q.value(2).toString()});
+    return out;
+}

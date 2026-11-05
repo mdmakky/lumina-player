@@ -84,6 +84,8 @@ qt_add_qml_module(lumina
         ui/Settings/SettingsDialog.qml
         ui/Components/Toast.qml
         ui/Components/VideoAdjustPopup.qml
+        ui/Components/EqualizerPopup.qml
+        ui/Components/BookmarksPopup.qml
     RESOURCES
         resources/icons/play.svg
         resources/icons/pause.svg

@@ -82,5 +82,20 @@ bool Database::migrate()
         }
         d.commit();
     }
+    if (v < 2) {
+        d.transaction();
+        const bool ok = q.exec(QStringLiteral(
+            "CREATE TABLE bookmarks (id INTEGER PRIMARY KEY, path TEXT NOT NULL,"
+            " time REAL NOT NULL, label TEXT NOT NULL DEFAULT '')"))
+            && q.exec(QStringLiteral("CREATE INDEX bookmarks_path ON bookmarks(path, time)"))
+            && q.exec(QStringLiteral("DELETE FROM schema_version"))
+            && q.exec(QStringLiteral("INSERT INTO schema_version VALUES (2)"));
+        if (!ok) {
+            qCWarning(lcCore) << "Library migration failed:" << q.lastError().text();
+            d.rollback();
+            return false;
+        }
+        d.commit();
+    }
     return true;
 }

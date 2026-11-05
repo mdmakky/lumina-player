@@ -65,6 +65,21 @@ Slider {
             }
         }
 
+        // Bookmark markers
+        Repeater {
+            model: player.engine.duration > 0 ? player.bookmarks : []
+            delegate: Rectangle {
+                required property var modelData
+                objectName: "bookmarkMarker"
+                x: modelData.time / control.to * parent.width - 3
+                y: parent.height / 2 - 3
+                width: 6
+                height: 6
+                radius: 3
+                color: Theme.primaryText
+            }
+        }
+
         // Chapter markers
         Repeater {
             model: player.engine.duration > 0 ? player.engine.chapters : []

@@ -539,6 +539,35 @@ void MpvEngine::resetVideoAdjust()
         setVideoAdjust(name, 0);
 }
 
+void MpvEngine::setEqualizer(const QVariantList &gains)
+{
+    for (int i = 0; i < 10; ++i)
+        m_eqGains[i] = i < gains.size() ? qBound(-12.0, gains[i].toDouble(), 12.0) : 0.0;
+    applyEq();
+    emit eqChanged();
+}
+
+void MpvEngine::setEqEnabled(bool on)
+{
+    if (on == m_eqEnabled)
+        return;
+    m_eqEnabled = on;
+    applyEq();
+    emit eqChanged();
+}
+
+// Rebuilds the whole audio filter chain (the equalizer is the only af we use).
+void MpvEngine::applyEq()
+{
+    static const int freqs[10] = {31, 62, 125, 250, 500, 1000, 2000, 4000, 8000, 16000};
+    QStringList f;
+    for (int i = 0; i < 10; ++i)
+        if (qAbs(m_eqGains[i].toDouble()) > 0.05)
+            f << QStringLiteral("equalizer=f=%1:t=o:w=1:g=%2").arg(freqs[i]).arg(m_eqGains[i].toDouble(), 0, 'f', 1);
+    command({QStringLiteral("set"), QStringLiteral("af"),
+             m_eqEnabled && !f.isEmpty() ? QStringLiteral("lavfi=[%1]").arg(f.join(',')) : QString()});
+}
+
 bool MpvEngine::screenshot(const QString &path)
 {
     return command({QStringLiteral("screenshot-to-file"), path, QStringLiteral("video")});

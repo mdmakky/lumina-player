@@ -81,7 +81,7 @@ private slots:
         { Database db(path); QVERIFY(db.valid()); QCOMPARE(db.schemaVersion(), Database::kSchemaVersion); }
         Database db(path); // reopen: no re-migration errors, version stays
         QVERIFY(db.valid());
-        QCOMPARE(db.schemaVersion(), 1);
+        QCOMPARE(db.schemaVersion(), Database::kSchemaVersion);
         HistoryRepository r(&db);
         HistoryEntry e;
         e.path = "/old"; e.title = "old"; e.position = 42; e.playCount = 1; e.lastPlayed = 10;
@@ -89,6 +89,26 @@ private slots:
         e.position = 1;
         r.importEntry(e); // never overwrites
         QCOMPARE(r.entry("/old").position, 42.0);
+    }
+
+    void bookmarks()
+    {
+        Database db(":memory:");
+        HistoryRepository r(&db);
+        const qint64 b = r.addBookmark("/a", 30, "late");
+        r.addBookmark("/a", 10);
+        r.addBookmark("/b", 5);
+        auto l = r.bookmarks("/a");
+        QCOMPARE(l.size(), 2);
+        QCOMPARE(l.first().time, 10.0); // ordered by time
+        QCOMPARE(l.last().label, QString("late"));
+        r.removeBookmark(b);
+        QCOMPARE(r.bookmarks("/a").size(), 1);
+        QCOMPARE(r.bookmarks("/b").size(), 1);
+        Database none("/nonexistent-dir/x/y.db");
+        HistoryRepository off(&none);
+        QCOMPARE(off.addBookmark("/a", 1), qint64(0));
+        QVERIFY(off.bookmarks("/a").isEmpty());
     }
 
     void newerSchemaDisablesLibrary()

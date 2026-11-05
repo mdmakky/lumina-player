@@ -2,6 +2,7 @@
 
 #include "engine/MpvEngine.h"
 #include "utilities/Logger.h"
+#include "utilities/TimeUtils.h"
 
 #include <QCoreApplication>
 #include <QCryptographicHash>
@@ -67,12 +68,47 @@ PlayerController::PlayerController(QObject *parent)
     if (settings.contains(QStringLiteral("subtitles/position")))
         m_engine->setSubtitlePosition(settings.value(QStringLiteral("subtitles/position")).toInt());
     m_engine->setMuted(settings.value(QStringLiteral("playback/muted"), false).toBool());
+    m_engine->setEqualizer(settings.value(QStringLiteral("eq/gains"), QVariantList(10, 0.0)).toList());
+    m_engine->setEqEnabled(settings.value(QStringLiteral("eq/enabled"), false).toBool());
+    connect(m_engine, &MpvEngine::eqChanged, this, [this] {
+        setSetting(QStringLiteral("eq/gains"), m_engine->eqGains());
+        setSetting(QStringLiteral("eq/enabled"), m_engine->eqEnabled());
+    });
     connect(m_engine, &MpvEngine::volumeChanged, this, [this] {
         setSetting(QStringLiteral("playback/volume"), m_engine->volume());
     });
     connect(m_engine, &MpvEngine::mutedChanged, this, [this] {
         setSetting(QStringLiteral("playback/muted"), m_engine->muted());
     });
+}
+
+void PlayerController::reloadBookmarks()
+{
+    m_bookmarks.clear();
+    for (const Bookmark &b : m_repo.bookmarks(m_currentPath))
+        m_bookmarks.append(QVariantMap{{"id", b.id}, {"time", b.time}, {"label", b.label}});
+    emit bookmarksChanged();
+}
+
+void PlayerController::addBookmark(const QString &label)
+{
+    if (m_currentPath.isEmpty() || m_engine->idle())
+        return;
+    if (!m_repo.available()) {
+        emit toast(tr("Bookmarks unavailable"));
+        return;
+    }
+    const double t = m_engine->position();
+    if (!m_repo.addBookmark(m_currentPath, t, label))
+        return;
+    reloadBookmarks();
+    emit toast(tr("Bookmark added at %1").arg(Lumina::TimeUtils::formatDuration(t)));
+}
+
+void PlayerController::removeBookmark(qint64 id)
+{
+    m_repo.removeBookmark(id);
+    reloadBookmarks();
 }
 
 QVariant PlayerController::setting(const QString &key, const QVariant &fallback) const
@@ -129,6 +165,7 @@ void PlayerController::playIndex(int index)
         m_repo.recordPlay(m_currentPath, QFileInfo(m_currentPath).completeBaseName());
         reloadHistory();
     }
+    reloadBookmarks();
     m_playlist->setCurrentIndex(index);
     qCInfo(lcCore) << "Playing playlist entry" << index << url.toString();
     m_engine->loadFile(url);

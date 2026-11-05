@@ -756,6 +756,17 @@ ApplicationWindow {
             onTriggered: adjustPopup.open()
         }
         ThemedMenuItem {
+            objectName: "equalizerItem"
+            text: qsTr("Equalizer…")
+            onTriggered: eqPopup.open()
+        }
+        ThemedMenuItem {
+            objectName: "bookmarksItem"
+            text: qsTr("Bookmarks… (B to add)")
+            enabled: player.hasMedia
+            onTriggered: bookmarksPopup.open()
+        }
+        ThemedMenuItem {
             objectName: "onTopItem"
             text: qsTr("Always on top (T)")
             checkable: true
@@ -772,6 +783,24 @@ ApplicationWindow {
     VideoAdjustPopup {
         id: adjustPopup
         objectName: "adjustPopup"
+        x: root.width - width - Theme.spacingLarge
+        y: root.height - height - 150
+        onAboutToShow: root.menuOpen = true
+        onClosed: root.menuOpen = false
+    }
+
+    EqualizerPopup {
+        id: eqPopup
+        objectName: "eqPopup"
+        x: root.width - width - Theme.spacingLarge
+        y: root.height - height - 150
+        onAboutToShow: root.menuOpen = true
+        onClosed: root.menuOpen = false
+    }
+
+    BookmarksPopup {
+        id: bookmarksPopup
+        objectName: "bookmarksPopup"
         x: root.width - width - Theme.spacingLarge
         y: root.height - height - 150
         onAboutToShow: root.menuOpen = true
@@ -860,6 +889,7 @@ ApplicationWindow {
     Shortcut { sequence: "H";            enabled: player.hasMedia; onActivated: player.engine.setSubtitleDelay(player.engine.subtitleDelay + 0.1) }
     Shortcut { sequence: "PgDown";       enabled: player.hasMedia; onActivated: root.stepChapter(1) }
     Shortcut { sequence: "PgUp";         enabled: player.hasMedia; onActivated: root.stepChapter(-1) }
+    Shortcut { sequence: "B";            enabled: player.hasMedia; onActivated: player.addBookmark() }
     Shortcut { sequence: "P";            onActivated: root.playlistOpen = !root.playlistOpen }
     Shortcut { sequence: "Ctrl+Right";   enabled: player.hasMedia; onActivated: player.next() }
     Shortcut { sequence: "Ctrl+Left";    enabled: player.hasMedia; onActivated: player.previous() }

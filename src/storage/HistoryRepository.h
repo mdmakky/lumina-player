@@ -14,6 +14,13 @@ struct HistoryEntry
     bool favorite = false;
 };
 
+struct Bookmark
+{
+    qint64 id = 0;
+    double time = 0;
+    QString label;
+};
+
 // All methods are safe no-ops (empty/false results) when the database is unavailable.
 class HistoryRepository
 {
@@ -34,6 +41,11 @@ public:
     HistoryEntry entry(const QString &path) const; // empty path field if unknown
     // Continue = started (>5 s) and not within 10 s of the end.
     QList<HistoryEntry> list(Filter filter, int limit = 50) const;
+
+    // Per-file bookmarks, ordered by time. addBookmark returns the new id (0 if unavailable).
+    qint64 addBookmark(const QString &path, double time, const QString &label = {});
+    void removeBookmark(qint64 id);
+    QList<Bookmark> bookmarks(const QString &path) const;
 
 private:
     Database *m_db;

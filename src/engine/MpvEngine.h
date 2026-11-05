@@ -55,6 +55,9 @@ class MpvEngine : public QObject
     Q_PROPERTY(bool deinterlace READ deinterlace NOTIFY videoOptionsChanged FINAL)
     // {brightness, contrast, saturation, gamma, hue} each -100..100.
     Q_PROPERTY(QVariantMap videoAdjust READ videoAdjust NOTIFY videoOptionsChanged FINAL)
+    // 10-band graphic equalizer (31 Hz .. 16 kHz), gains in dB (-12..12).
+    Q_PROPERTY(bool eqEnabled READ eqEnabled WRITE setEqEnabled NOTIFY eqChanged FINAL)
+    Q_PROPERTY(QVariantList eqGains READ eqGains NOTIFY eqChanged FINAL)
 
 public:
     explicit MpvEngine(QObject *parent = nullptr);
@@ -141,8 +144,13 @@ public:
     Q_INVOKABLE void setSubtitleColor(const QString &color);
     Q_INVOKABLE void setSubtitleBorderSize(double size);
     Q_INVOKABLE void setSubtitlePosition(int percent);
+    Q_INVOKABLE void setEqualizer(const QVariantList &gains); // 10 values, dB
+    void setEqEnabled(bool on);
+    bool eqEnabled() const { return m_eqEnabled; }
+    QVariantList eqGains() const { return m_eqGains; }
 
 signals:
+    void eqChanged();
     void playingChanged();
     void pausedChanged();
     void idleChanged();
@@ -178,6 +186,9 @@ private:
     bool command(const QStringList &args);
     void setMediaError(const QString &message);
     void checkEndOfFile();
+    void applyEq();
+    bool m_eqEnabled = false;
+    QVariantList m_eqGains = QVariantList(10, 0.0);
 
     static QVariant nodeToVariant(const mpv_node &node);
     void refreshTrackLists();
