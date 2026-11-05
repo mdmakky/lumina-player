@@ -110,6 +110,12 @@ int main(int argc, char *argv[])
     // exists by then. Loading earlier lets short files hit EOF before any
     // video output is up, so the playlist skips them.
     auto *rootWindow = qobject_cast<QQuickWindow *>(engine.rootObjects().first());
+    // Hidden QA switch: LUMINA_WINDOW_SIZE=WxH sizes the window (screenshots).
+    {
+        const QStringList wh = qEnvironmentVariable("LUMINA_WINDOW_SIZE").split('x');
+        if (wh.size() == 2 && wh[0].toInt() > 0 && wh[1].toInt() > 0)
+            rootWindow->resize(wh[0].toInt(), wh[1].toInt());
+    }
     if (UiTest::requested()) {
         // UiTest loads the media itself so it can capture the empty state first.
         (new UiTest(rootWindow, context.player(), QGuiApplication::arguments().mid(1), &app))->start();

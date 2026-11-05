@@ -168,6 +168,16 @@ void UiTest::run()
     }
     QTest::qWait(2000);
     shot("playing");
+    wake();
+    shot("playing-chrome");
+    if (!eng->subtitleTracks().isEmpty()) { // subtitle readability / Bengali glyph QA
+        for (double t : {3.0, 11.0, 20.0}) {
+            eng->seek(t);
+            waitFor([&] { return qAbs(eng->position() - t) < 1.5; });
+            QTest::qWait(700);
+            shot(QStringLiteral("subtitle-%1s").arg(int(t)));
+        }
+    }
     pause();
     shot("paused");
     eng->play();
