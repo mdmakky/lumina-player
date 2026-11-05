@@ -24,6 +24,12 @@ QByteArray hwdecValue(const QString &mode)
     if (mode == QLatin1String("auto-safe"))
         return "vaapi,nvdec,auto-safe";
 #endif
+#ifdef Q_OS_MACOS
+    // Zero-copy VideoToolbox frames cannot be read back for screenshots; the copy
+    // variant costs little and keeps 'Take screenshot' working.
+    if (mode == QLatin1String("auto-safe"))
+        return "videotoolbox-copy,auto-safe";
+#endif
     return mode.toUtf8();
 }
 } // namespace

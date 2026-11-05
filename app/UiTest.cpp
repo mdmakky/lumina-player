@@ -613,7 +613,7 @@ void UiTest::run()
             result("hwdec Off applies to engine", waitFor([&] { return prop("hwdec") == "no"; }), prop("hwdec"));
             result("hwdec persisted", p->setting("playback/hwdec").toString() == "no");
             click("hwdecOption_auto-safe");
-            result("hwdec restored", waitFor([&] { return prop("hwdec") == "auto-safe"; }));
+            result("hwdec restored", waitFor([&] { return prop("hwdec").contains("auto-safe"); }), prop("hwdec"));
 
             // reset page: change settings, cancel keeps them, confirm restores defaults
             click("seekStepPlus");
