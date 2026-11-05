@@ -85,7 +85,7 @@ MpvEngine::MpvEngine(QObject *parent)
     // Observe the properties the UI needs.
     const char *properties[] = {
         "time-pos", "duration", "pause", "idle-active", "media-title",
-        "volume", "mute", "speed", "track-list", "chapter-list", "eof-reached", "sub-delay", "audio-delay",
+        "volume", "mute", "speed", "track-list", "chapter-list", "eof-reached", "sub-delay", "audio-delay", "ab-loop-a", "ab-loop-b",
     };
     for (const char *name : properties) {
         mpv_format format = MPV_FORMAT_DOUBLE;
@@ -166,6 +166,11 @@ void MpvEngine::processEvents()
             } else if (name == QLatin1String("sub-delay") && prop->format == MPV_FORMAT_DOUBLE) {
                 m_subDelay = *static_cast<double *>(prop->data);
                 emit subtitleDelayChanged();
+            } else if (name == QLatin1String("ab-loop-a") || name == QLatin1String("ab-loop-b")) {
+                // Unset loop points report "no" (format NONE), not a double.
+                const double v = prop->format == MPV_FORMAT_DOUBLE ? *static_cast<double *>(prop->data) : -1.0;
+                (name.endsWith(u'a') ? m_loopA : m_loopB) = v;
+                emit loopChanged();
             } else if (name == QLatin1String("audio-delay") && prop->format == MPV_FORMAT_DOUBLE) {
                 m_audioDelay = *static_cast<double *>(prop->data);
                 emit audioDelayChanged();
@@ -471,6 +476,72 @@ void MpvEngine::setAudioDelay(double seconds)
 {
     if (m_mpv)
         command({QStringLiteral("set"), QStringLiteral("audio-delay"), QString::number(seconds, 'f', 3)});
+}
+
+void MpvEngine::setLoopA()
+{
+    command({QStringLiteral("set"), QStringLiteral("ab-loop-a"), QString::number(m_position, 'f', 3)});
+}
+
+void MpvEngine::setLoopB()
+{
+    command({QStringLiteral("set"), QStringLiteral("ab-loop-b"), QString::number(m_position, 'f', 3)});
+}
+
+void MpvEngine::clearLoop()
+{
+    command({QStringLiteral("set"), QStringLiteral("ab-loop-a"), QStringLiteral("no")});
+    command({QStringLiteral("set"), QStringLiteral("ab-loop-b"), QStringLiteral("no")});
+}
+
+void MpvEngine::setAspect(const QString &ratio)
+{
+    // "-1" restores the file's own aspect.
+    if (command({QStringLiteral("set"), QStringLiteral("video-aspect-override"),
+                 ratio == QLatin1String("auto") ? QStringLiteral("-1") : ratio})) {
+        m_aspect = ratio;
+        emit videoOptionsChanged();
+    }
+}
+
+void MpvEngine::setRotate(int degrees)
+{
+    degrees = ((degrees % 360) + 360) % 360;
+    if (command({QStringLiteral("set"), QStringLiteral("video-rotate"), QString::number(degrees)})) {
+        m_rotate = degrees;
+        emit videoOptionsChanged();
+    }
+}
+
+void MpvEngine::setDeinterlace(bool on)
+{
+    if (command({QStringLiteral("set"), QStringLiteral("deinterlace"),
+                 on ? QStringLiteral("yes") : QStringLiteral("no")})) {
+        m_deinterlace = on;
+        emit videoOptionsChanged();
+    }
+}
+
+void MpvEngine::setVideoAdjust(const QString &name, int value)
+{
+    if (!m_adjust.contains(name))
+        return;
+    value = qBound(-100, value, 100);
+    if (command({QStringLiteral("set"), name, QString::number(value)})) {
+        m_adjust[name] = value;
+        emit videoOptionsChanged();
+    }
+}
+
+void MpvEngine::resetVideoAdjust()
+{
+    for (const QString &name : m_adjust.keys())
+        setVideoAdjust(name, 0);
+}
+
+bool MpvEngine::screenshot(const QString &path)
+{
+    return command({QStringLiteral("screenshot-to-file"), path, QStringLiteral("video")});
 }
 
 void MpvEngine::setHwdec(const QString &mode)

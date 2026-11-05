@@ -5,7 +5,11 @@
 
 #include <QCoreApplication>
 #include <QCryptographicHash>
+#include <QDateTime>
+#include <QDir>
+#include <QFileInfo>
 #include <QSettings>
+#include <QStandardPaths>
 #include <QTimer>
 #include <QUrl>
 
@@ -19,6 +23,15 @@ PlayerController::PlayerController(QObject *parent)
             next();
     });
     connect(m_engine, &MpvEngine::idleChanged, this, &PlayerController::hasMediaChanged);
+
+    // Library is optional: LUMINA_PLAYBACK_TEST never touches it; LUMINA_DB_PATH redirects it (tests).
+    if (!qEnvironmentVariableIsSet("LUMINA_PLAYBACK_TEST"))
+        m_database = std::make_unique<Database>(qEnvironmentVariable("LUMINA_DB_PATH"));
+    m_repo = HistoryRepository(m_database.get());
+    m_history = new HistoryModel(&m_repo, HistoryRepository::Filter::All, 50, this);
+    m_continue = new HistoryModel(&m_repo, HistoryRepository::Filter::Continue, 12, this);
+    m_favorites = new HistoryModel(&m_repo, HistoryRepository::Filter::Favorites, 50, this);
+    connect(m_engine, &MpvEngine::idleChanged, this, [this] { if (m_engine->idle()) reloadHistory(); });
 
     // Resume where the file was left (disabled in self-test for determinism).
     connect(m_engine, &MpvEngine::durationChanged, this, [this]() {
@@ -38,6 +51,8 @@ PlayerController::PlayerController(QObject *parent)
     // Restore persisted state; keep volume/mute in sync from here on.
     QSettings settings;
     m_recentFiles = settings.value(QStringLiteral("recentFiles")).toStringList();
+    migrateLegacy();
+    reloadHistory();
     m_engine->setVolume(settings.value(QStringLiteral("playback/defaultVolume"),
                                        settings.value(QStringLiteral("playback/volume"), 100)).toInt());
     m_engine->setHwdec(settings.value(QStringLiteral("playback/hwdec"), QStringLiteral("auto-safe")).toString());
@@ -104,9 +119,14 @@ void PlayerController::playIndex(int index)
         return;
     saveResume();
     m_currentPath = url.isLocalFile() ? url.toLocalFile() : QString();
-    m_resumeTarget = (!m_currentPath.isEmpty() && !qEnvironmentVariableIsSet("LUMINA_PLAYBACK_TEST")
-                      && setting(QStringLiteral("playback/resume"), true).toBool())
-        ? setting(resumeKey(m_currentPath), 0.0).toDouble() : 0.0;
+    m_resumeTarget = 0.0;
+    if (!m_currentPath.isEmpty() && !qEnvironmentVariableIsSet("LUMINA_PLAYBACK_TEST")
+        && setting(QStringLiteral("playback/resume"), true).toBool()) {
+        m_resumeTarget = m_repo.available() ? m_repo.entry(m_currentPath).position
+                                            : setting(resumeKey(m_currentPath), 0.0).toDouble();
+        m_repo.recordPlay(m_currentPath, QFileInfo(m_currentPath).completeBaseName());
+        reloadHistory();
+    }
     m_playlist->setCurrentIndex(index);
     qCInfo(lcCore) << "Playing playlist entry" << index << url.toString();
     m_engine->loadFile(url);
@@ -124,6 +144,21 @@ void PlayerController::previous()
     const int i = m_playlist->currentIndex();
     if (i > 0)
         playIndex(i - 1);
+}
+
+QString PlayerController::takeScreenshot()
+{
+    const QString dir = QStandardPaths::writableLocation(QStandardPaths::PicturesLocation)
+                        + QStringLiteral("/Lumina");
+    const QString path = dir + QStringLiteral("/Lumina-")
+                         + QDateTime::currentDateTime().toString(QStringLiteral("yyyyMMdd-HHmmss-zzz"))
+                         + QStringLiteral(".png");
+    if (!QDir().mkpath(dir) || !m_engine->screenshot(path)) {
+        emit toast(tr("Screenshot failed"));
+        return {};
+    }
+    emit toast(tr("Saved screenshot"));
+    return path;
 }
 
 void PlayerController::clearRecentFiles()
@@ -171,9 +206,54 @@ void PlayerController::saveResume()
         || !setting(QStringLiteral("playback/resume"), true).toBool())
         return;
     const double pos = m_engine->position(), dur = m_engine->duration();
-    QSettings s;
-    if (pos > 5.0 && dur - pos > 10.0)
+    const bool resumable = pos > 5.0 && dur - pos > 10.0;
+    if (m_repo.available()) {
+        m_repo.updateProgress(m_currentPath, resumable ? pos : 0.0, dur);
+        return;
+    }
+    QSettings s; // fallback when the library DB is unavailable
+    if (resumable)
         s.setValue(resumeKey(m_currentPath), pos);
     else
         s.remove(resumeKey(m_currentPath));
+}
+
+void PlayerController::reloadHistory()
+{
+    m_history->reload();
+    m_continue->reload();
+    m_favorites->reload();
+}
+
+// One-time import of QSettings recents + resume positions (resume keys are path hashes,
+// so only files still in the recent list can be recovered).
+void PlayerController::migrateLegacy()
+{
+    QSettings s;
+    if (!m_repo.available() || s.value(QStringLiteral("history/migrated")).toBool())
+        return;
+    qint64 t = QDateTime::currentSecsSinceEpoch();
+    for (const QString &path : std::as_const(m_recentFiles)) {
+        if (path.contains(QStringLiteral("://")))
+            continue;
+        HistoryEntry e;
+        e.path = path;
+        e.title = QFileInfo(path).completeBaseName();
+        e.position = s.value(resumeKey(path), 0.0).toDouble();
+        e.lastPlayed = t--; // preserves recents order
+        e.playCount = 1;
+        m_repo.importEntry(e);
+    }
+    s.setValue(QStringLiteral("history/migrated"), true);
+}
+
+void PlayerController::toggleFavorite(const QString &path)
+{
+    m_repo.setFavorite(path, !m_repo.entry(path).favorite);
+    reloadHistory();
+}
+
+void PlayerController::openHistory(const QString &path)
+{
+    openFiles({QUrl::fromLocalFile(path)});
 }
