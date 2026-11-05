@@ -11,6 +11,10 @@ find_package(PkgConfig REQUIRED)
 pkg_check_modules(MPV REQUIRED IMPORTED_TARGET mpv)
 
 qt_standard_project_setup(REQUIRES 6.4)
+# Resources under :/qt/qml/<URI> (the paths main.cpp and QML icons use).
+if(QT_KNOWN_POLICY_QTP0001)
+    qt_policy(SET QTP0001 NEW)
+endif()
 
 # ---------------------------------------------------------------------------
 # Main application target
@@ -30,6 +34,12 @@ qt_add_executable(lumina
     src/engine/MpvVideoItem.h
     src/engine/MpvVideoItem.cpp
 )
+
+# macOS filesystems are case-insensitive: the QML module dir "Lumina/" would
+# collide with the "lumina" binary, so put binaries in bin/ there.
+if(APPLE)
+    set_target_properties(lumina PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+endif()
 
 target_compile_definitions(lumina PRIVATE
     LUMINA_VERSION="${PROJECT_VERSION}"
