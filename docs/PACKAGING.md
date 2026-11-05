@@ -28,4 +28,4 @@ Verified on macOS: both bundle ON/OFF build; bundle plist/icns valid; `macdeploy
 - Flatpak manifest: NOT built (YAML syntax only); mpv/FFmpeg tags, runtime version and module options are guesses; libass tarball sha256 unchecked.
 - `.desktop` / metainfo: `desktop-file-validate` and `appstreamcli validate` not available here (XML well-formedness only); screenshots missing (Flathub requires them).
 - macOS: bundled app launch/playback not tested; macdeployqt prints rpath errors for QML plugins whose Qt modules are not installed (VirtualKeyboard, Multimedia); libmpv dylib rewriting is best-effort; signing is ad-hoc only (no Developer ID/notarization, Gatekeeper warns); Finder "Open With" not exercised.
-- Windows packaging: not started.
+- Windows packaging: see docs/WINDOWS.md (experimental, never built on Windows).
