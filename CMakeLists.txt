@@ -81,6 +81,7 @@ qt_add_qml_module(lumina
         ui/Components/ThemedMenuItem.qml
         ui/Components/PlaylistPanel.qml
         ui/Components/StatsOverlay.qml
+        ui/Settings/SettingsDialog.qml
         ui/Components/Toast.qml
         ui/Components/VideoAdjustPopup.qml
     RESOURCES
@@ -97,6 +98,7 @@ qt_add_qml_module(lumina
         resources/icons/playlist.svg
         resources/icons/chapters.svg
         resources/icons/subtitles.svg
+        resources/icons/settings.svg
         resources/icons/more.svg
         resources/icons/shuffle.svg
         resources/icons/repeat.svg

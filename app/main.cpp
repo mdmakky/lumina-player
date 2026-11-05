@@ -59,7 +59,8 @@ int main(int argc, char *argv[])
     // Second launch hands its files to the running instance and exits
     // (skipped for self-tests so they can run alongside a normal session).
     const bool selfTest = qEnvironmentVariableIsSet("LUMINA_PLAYBACK_TEST")
-        || qEnvironmentVariableIsSet("LUMINA_UI_TEST");
+        || qEnvironmentVariableIsSet("LUMINA_UI_TEST")
+        || qEnvironmentVariableIsSet("LUMINA_NO_SINGLE_INSTANCE");
     SingleInstance single(QStringLiteral("lumina-player-%1").arg(QDir::home().dirName()));
     if (!selfTest && !UiTest::requested()) {
         if (single.forward(QGuiApplication::arguments().mid(1))) {

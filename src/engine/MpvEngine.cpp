@@ -553,6 +553,30 @@ void MpvEngine::setHwdec(const QString &mode)
     mpv_set_property_string(m_mpv, "hwdec", v.constData());
 }
 
+void MpvEngine::setSubtitleFontSize(int size)
+{
+    if (m_mpv && size > 0)
+        command({QStringLiteral("set"), QStringLiteral("sub-font-size"), QString::number(size)});
+}
+
+void MpvEngine::setSubtitleColor(const QString &color)
+{
+    if (m_mpv && color.startsWith(QLatin1Char('#')))
+        command({QStringLiteral("set"), QStringLiteral("sub-color"), color});
+}
+
+void MpvEngine::setSubtitleBorderSize(double size)
+{
+    if (m_mpv && size >= 0)
+        command({QStringLiteral("set"), QStringLiteral("sub-border-size"), QString::number(size, 'f', 1)});
+}
+
+void MpvEngine::setSubtitlePosition(int percent)
+{
+    if (m_mpv && percent >= 0 && percent <= 100)
+        command({QStringLiteral("set"), QStringLiteral("sub-pos"), QString::number(percent)});
+}
+
 void MpvEngine::setStatsEnabled(bool enabled)
 {
     if (enabled == m_statsTimer.isActive())

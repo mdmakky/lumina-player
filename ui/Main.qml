@@ -477,6 +477,12 @@ ApplicationWindow {
                 tip: qsTr("Playlist (P)")
                 onClicked: root.playlistOpen = !root.playlistOpen
             }
+            IconButton {
+                objectName: "settingsButton"
+                iconSource: root.iconBase + "settings.svg"
+                tip: qsTr("Settings (Ctrl+,)")
+                onClicked: settingsDialog.open()
+            }
         }
     }
 
@@ -796,7 +802,7 @@ ApplicationWindow {
     // --- Idle auto-hide + cursor -----------------------------------------------
     Timer {
         id: hideTimer
-        interval: 2600
+        interval: settingsDialog.hideDelay * 1000
         repeat: false
         onTriggered: {
             if (player.engine.playing && !root.chromeHovered && !root.menuOpen && !root.playlistOpen)
@@ -812,6 +818,11 @@ ApplicationWindow {
     HoverHandler {
         cursorShape: root.chromeVisible || !player.hasMedia ? Qt.ArrowCursor : Qt.BlankCursor
         onPointChanged: root.showChrome()
+    }
+
+    SettingsDialog {
+        id: settingsDialog
+        objectName: "settingsDialog"
     }
 
     // --- Drag & drop ----------------------------------------------------------
@@ -859,5 +870,6 @@ ApplicationWindow {
     Shortcut { sequence: "Shift+S";      onActivated: player.shuffle = !player.shuffle }
     Shortcut { sequence: "R";            onActivated: player.repeatMode = (player.repeatMode + 1) % 3 }
     Shortcut { sequence: "Ctrl+O";       onActivated: fileDialog.open() }
-    Shortcut { sequence: "Esc";          enabled: root.visibility === Window.FullScreen; onActivated: root.showNormal() }
+    Shortcut { sequence: "Ctrl+,";       onActivated: settingsDialog.open() }
+    Shortcut { sequence: "Esc";          enabled: root.visibility === Window.FullScreen && !settingsDialog.opened; onActivated: root.showNormal() }
 }

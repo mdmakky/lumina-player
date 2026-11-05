@@ -135,6 +135,12 @@ public:
     // Saves the current video frame (no subtitles/OSD) as an image file.
     Q_INVOKABLE bool screenshot(const QString &path);
     Q_INVOKABLE void setHwdec(const QString &mode);
+    // Subtitle styling, applied live. color is "#RRGGBB"; size/border in mpv scaled pixels,
+    // pos is 0 (top) .. 100 (bottom).
+    Q_INVOKABLE void setSubtitleFontSize(int size);
+    Q_INVOKABLE void setSubtitleColor(const QString &color);
+    Q_INVOKABLE void setSubtitleBorderSize(double size);
+    Q_INVOKABLE void setSubtitlePosition(int percent);
 
 signals:
     void playingChanged();
