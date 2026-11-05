@@ -483,6 +483,23 @@ void UiTest::run()
                 shot(QString("settings-page-%1-%2").arg(i).arg(titles[i]).toLower());
             }
 
+            // live language switch: Bengali title + back to English, no restart
+            {
+                page(0);
+                QTest::qWait(200);
+                auto pick = [&](int idx) {
+                    if (auto *cb = find("languageCombo"))
+                        QMetaObject::invokeMethod(cb, "activated", Q_ARG(int, idx));
+                    QTest::qWait(400);
+                };
+                result("language combo present", vis("languageCombo"));
+                pick(2); // বাংলা
+                result("switch to Bengali relabels the page title", txt("settingsPageTitle") == QStringLiteral("সাধারণ"), txt("settingsPageTitle"));
+                shot("settings-general-bn");
+                pick(1); // English
+                result("switch back to English", txt("settingsPageTitle") == "General", txt("settingsPageTitle"));
+            }
+
             // global search: finds a setting on another page, shows it, hides the rest
             page(0);
             setSearch("equalizer");

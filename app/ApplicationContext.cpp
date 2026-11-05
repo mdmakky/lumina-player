@@ -378,6 +378,9 @@ void ApplicationContext::applyLanguage(const QString &code)
     QString lang = code;
     if (lang == QLatin1String("system")) {
         lang = qEnvironmentVariable("LUMINA_LANG");
+        // Self-tests assert on English text.
+        if (lang.isEmpty() && (qEnvironmentVariableIsSet("LUMINA_UI_TEST") || qEnvironmentVariableIsSet("LUMINA_PLAYBACK_TEST")))
+            lang = QStringLiteral("en");
         if (lang.isEmpty())
             lang = QLocale::system().uiLanguages().value(0).startsWith(QLatin1String("bn")) ? QStringLiteral("bn")
                                                                                               : QStringLiteral("en");
