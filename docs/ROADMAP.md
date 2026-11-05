@@ -35,18 +35,18 @@ Source of truth for milestone status. Spec §18 defines the full milestone plan;
 - [x] Seek timeline with buffered preview + hover time tooltip
 - [x] Fullscreen (F), always-on-top (T), borderless
 - [x] Keyboard shortcuts (spec §10 defaults)
-- [ ] Playlist panel (queue, reorder, save/load, search)
-- [ ] Drag & drop playlist reordering
+- [x] Playlist panel (queue, reorder, search, auto-advance; save/load m3u pending)
+- [ ] Drag & drop playlist reordering (up/down buttons today)
 - [x] Chapters UI (timeline markers, chapter menu, PgUp/PgDn)
-- [ ] Multiple instance / single-instance behavior decision
+- [x] Single-instance: second launch forwards files to the running window
 - [x] Window state persistence (geometry, volume, mute, recent files)
 
 ## Milestone 4 — Subtitle & Audio ⬜
 
-- [ ] Subtitle track management UI (mpv renders; we manage)
-- [ ] External subtitle loading + auto-discovery
-- [ ] Subtitle delay / sync controls
-- [ ] Audio track selection UI, audio delay
+- [x] Subtitle track management UI (mpv renders; we manage)
+- [x] External subtitle loading + auto-discovery
+- [x] Subtitle delay / sync controls (G/H)
+- [x] Audio track selection UI, audio delay
 - [ ] Subtitle style preferences (persisted)
 
 ## Milestone 5 — Performance ⬜
@@ -54,7 +54,7 @@ Source of truth for milestone status. Spec §18 defines the full milestone plan;
 - [ ] Hardware acceleration manager (VAAPI → NVDEC → software fallback ladder)
 - [ ] Decoder selection UI (auto / hw-preferred / sw / manual)
 - [ ] Seek optimization + rapid-seek stress testing
-- [ ] Statistics overlay (decoder, renderer, dropped frames, FPS, bitrate)
+- [x] Statistics overlay (key I)
 - [ ] Benchmark suite vs mpv/VLC on identical hardware
 
 ## Milestone 6 — Advanced Features ⬜

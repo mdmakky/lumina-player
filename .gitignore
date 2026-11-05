@@ -31,3 +31,4 @@ tests/media/
 *.mp4
 *.mkv
 !resources/**
+.claude/

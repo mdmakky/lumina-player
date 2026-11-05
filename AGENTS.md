@@ -50,8 +50,10 @@ Rules:
 
 - **Milestone 1 — Foundation:** ✅ DONE (repo, CMake, Qt bootstrap, main window, theme system, logging, CI)
 - **Milestone 2 — Playback Engine:** ✅ DONE AND VERIFIED — automated playback self-test (`LUMINA_PLAYBACK_TEST=1`) passes: load → play → accurate seek → pause → resume, mpv render context created on OpenGL scene graph. GitHub repo: `mdmakky/lumina-player` (main).
-- **Milestone 3 — Core UX:** 🚧 in progress (controls overlay + timeline + shortcuts + idle auto-hide + drag&drop present; next: playlist panel, chapters UI, window state persistence)
-- **Milestones 4–9:** ⬜ not started
+- **Milestone 3 — Core UX:** ✅ essentially done (floating overlay controls, timeline + chapters, playlist panel, window/volume persistence, single-instance; remaining: drag-reorder, m3u save/load)
+- **Milestone 4 — Subtitle & Audio:** 🚧 track menu, external subs, delays done; subtitle style prefs pending
+- **Milestone 5 — Performance:** 🚧 stats overlay (I), seek/cache tuning, `LUMINA_SEEK_STRESS=1` test done; hwdec ladder UI pending
+- **Milestones 6–9:** ⬜ not started
 
 ### Continuation on macOS (dev machine moved)
 
@@ -65,6 +67,8 @@ cmake --preset linux-debug   # preset works; rename/copy to a mac preset if desi
 cmake --build --preset linux-debug
 LUMINA_PLAYBACK_TEST=1 ./build/linux-debug/lumina <some-video-file>
 ```
+
+On macOS the presets are not used: `cmake -S . -B build/mac -G Ninja -DCMAKE_PREFIX_PATH=$(brew --prefix qt)`; binary is `build/mac/bin/lumina` (case-insensitive FS clash with the `Lumina/` QML dir).
 
 macOS notes: mpv's OpenGL render API works with Qt's GL scene graph on macOS; consider `QQuickWindow::setGraphicsApi(OpenGLRaster)` if the default Metal path interferes — do NOT switch the app to Metal rendering without re-doing ADR-002. The playback self-test harness is the fastest way to verify the engine after any environment change.
 
