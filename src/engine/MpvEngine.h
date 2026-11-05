@@ -2,6 +2,8 @@
 
 #include <QObject>
 #include <QString>
+#include <QTimer>
+#include <QVariantMap>
 #include <QVariantList>
 
 #include <mpv/client.h>
@@ -41,6 +43,9 @@ class MpvEngine : public QObject
     // Seconds; positive delays the subtitles/audio.
     Q_PROPERTY(double subtitleDelay READ subtitleDelay WRITE setSubtitleDelay NOTIFY subtitleDelayChanged FINAL)
     Q_PROPERTY(double audioDelay READ audioDelay WRITE setAudioDelay NOTIFY audioDelayChanged FINAL)
+    // Read-only decoder/render statistics; refreshed ~2x/s only while statsEnabled.
+    Q_PROPERTY(QVariantMap stats READ stats NOTIFY statsChanged FINAL)
+    Q_PROPERTY(bool statsEnabled READ statsEnabled WRITE setStatsEnabled NOTIFY statsEnabledChanged FINAL)
 
 public:
     explicit MpvEngine(QObject *parent = nullptr);
@@ -66,6 +71,9 @@ public:
     int subtitleTrackId() const { return selectedId(m_subtitleTracks); }
     double subtitleDelay() const { return m_subDelay; }
     double audioDelay() const { return m_audioDelay; }
+    QVariantMap stats() const { return m_stats; }
+    bool statsEnabled() const { return m_statsTimer.isActive(); }
+    void setStatsEnabled(bool enabled);
 
 public slots:
     void setPaused(bool paused);
@@ -97,6 +105,8 @@ public:
     // id 0 turns subtitles off.
     Q_INVOKABLE void setSubtitleTrack(int id);
     Q_INVOKABLE void loadExternalSubtitle(const QUrl &url);
+    // mode: "auto-safe" | "no" | "auto". Applies to the current and next files.
+    Q_INVOKABLE void setHwdec(const QString &mode);
 
 signals:
     void playingChanged();
@@ -115,6 +125,8 @@ signals:
     void endOfFile();
     void subtitleDelayChanged();
     void audioDelayChanged();
+    void statsChanged();
+    void statsEnabledChanged();
 
 private:
     // Drains the mpv event queue; runs on the GUI thread via the wakeup callback.
@@ -134,6 +146,8 @@ private:
     static QVariant nodeToVariant(const mpv_node &node);
     void refreshTrackLists();
     static int selectedId(const QVariantList &tracks);
+    void refreshStats();
+    QVariant getProp(const char *name) const;
 
     mpv_handle *m_mpv = nullptr;
 
@@ -154,4 +168,6 @@ private:
     QVariantList m_chapters;
     double m_subDelay = 0.0;
     double m_audioDelay = 0.0;
+    QVariantMap m_stats;
+    QTimer m_statsTimer;
 };

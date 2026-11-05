@@ -7,6 +7,7 @@
 #include <QCoreApplication>
 #include <QQmlContext>
 #include <QQmlEngine>
+#include <QRandomGenerator>
 #include <QSharedPointer>
 #include <QTimer>
 
@@ -47,6 +48,37 @@ void ApplicationContext::startPlaybackSelfTest()
     }
 
     qCInfo(lcCore) << "Playback self test started";
+    if (qEnvironmentVariableIntValue("LUMINA_SEEK_STRESS") == 1) {
+        // 50 random absolute seeks at 50 ms intervals, then verdict.
+        auto *stress = new QTimer(this);
+        const auto count = QSharedPointer<int>::create(0);
+        stress->setInterval(50);
+        QObject::connect(stress, &QTimer::timeout, this, [engine, count, stress]() {
+            if (engine->idle() || engine->duration() <= 0.0)
+                return; // wait for load
+            if (*count < 50) {
+                ++*count;
+                // Stay clear of EOF: keep-open pauses there.
+                engine->seek(QRandomGenerator::global()->generateDouble() * (engine->duration() - 5.0));
+                return;
+            }
+            stress->stop();
+            stress->deleteLater();
+            QTimer::singleShot(1000, engine, [engine]() {
+                engine->setStatsEnabled(true);
+                const QVariantMap st = engine->stats();
+                engine->setStatsEnabled(false);
+                const bool ok = engine->mediaError().isEmpty() && !engine->idle() && !engine->paused();
+                qCInfo(lcCore) << "SEEKSTRESS frame-drop-count=" << st.value(QStringLiteral("droppedFrames"))
+                               << "decoder-drops=" << st.value(QStringLiteral("decoderDroppedFrames"))
+                               << "hwdec=" << st.value(QStringLiteral("hwdec"));
+                qCInfo(lcCore) << "Playback self test" << (ok ? "PASSED" : "FAILED");
+                QCoreApplication::exit(ok ? 0 : 1);
+            });
+        });
+        stress->start();
+        return;
+    }
     // Shared counter: both lambdas own a reference; freed when the last dies.
     const auto elapsed = QSharedPointer<int>::create(0);
     auto *timer = new QTimer(this);

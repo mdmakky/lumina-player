@@ -52,6 +52,7 @@ QtObject {
     readonly property int radius: 8
     readonly property int radiusSmall: 4
     readonly property int radiusLarge: 14
+    readonly property string fontMono: "Menlo"
     readonly property int controlHeight: 36
 
     // Motion (restrained; respects nothing special for now — reduced-motion

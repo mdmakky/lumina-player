@@ -29,6 +29,9 @@ endif()
 # ---------------------------------------------------------------------------
 # Main application target
 # ---------------------------------------------------------------------------
+# bin/ avoids a clash with the Lumina/ QML module dir on case-insensitive filesystems (macOS).
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+
 qt_add_executable(lumina
     app/main.cpp
     app/ApplicationContext.h
@@ -81,6 +84,7 @@ qt_add_qml_module(lumina
         ui/Components/TrackMenu.qml
         ui/Components/ThemedMenuItem.qml
         ui/Components/PlaylistPanel.qml
+        ui/Components/StatsOverlay.qml
     RESOURCES
         resources/icons/play.svg
         resources/icons/pause.svg

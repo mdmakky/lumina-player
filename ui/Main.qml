@@ -109,6 +109,15 @@ ApplicationWindow {
         onTriggered: player.engine.togglePlayPause()
     }
 
+    StatsOverlay {
+        engine: player.engine
+        anchors.left: parent.left
+        anchors.top: parent.top
+        anchors.margins: Theme.spacingLarge
+        anchors.topMargin: 72
+        visible: player.hasMedia && player.engine.statsEnabled
+    }
+
     // --- Home / empty state -----------------------------------------------
     Rectangle {
         anchors.fill: parent
@@ -521,6 +530,7 @@ ApplicationWindow {
     Shortcut { sequence: "Up";           enabled: player.hasMedia; onActivated: player.engine.setVolume(Math.min(150, player.engine.volume + 5)) }
     Shortcut { sequence: "Down";         enabled: player.hasMedia; onActivated: player.engine.setVolume(Math.max(0, player.engine.volume - 5)) }
     Shortcut { sequence: "M";            enabled: player.hasMedia; onActivated: player.engine.setMuted(!player.engine.muted) }
+    Shortcut { sequence: "I";            enabled: player.hasMedia; onActivated: player.engine.statsEnabled = !player.engine.statsEnabled }
     Shortcut { sequence: "F";            onActivated: root.toggleFullscreen() }
     Shortcut { sequence: "T";            onActivated: root.flags = root.flags ^ Qt.WindowStaysOnTopHint }
     Shortcut { sequence: "A";            enabled: player.hasMedia; onActivated: player.engine.cycleAudioTrack() }

@@ -63,6 +63,9 @@ MpvEngine::MpvEngine(QObject *parent)
 
     mpv_set_wakeup_callback(m_mpv, &MpvEngine::onWakeup, this);
 
+    m_statsTimer.setInterval(500);
+    connect(&m_statsTimer, &QTimer::timeout, this, &MpvEngine::refreshStats);
+
     // Observe the properties the UI needs.
     const char *properties[] = {
         "time-pos", "duration", "pause", "idle-active", "media-title",
@@ -454,4 +457,55 @@ void MpvEngine::setAudioDelay(double seconds)
 {
     if (m_mpv)
         command({QStringLiteral("set"), QStringLiteral("audio-delay"), QString::number(seconds, 'f', 3)});
+}
+
+void MpvEngine::setHwdec(const QString &mode)
+{
+    if (!m_mpv || (mode != QLatin1String("auto-safe") && mode != QLatin1String("no")
+                   && mode != QLatin1String("auto")))
+        return;
+    const QByteArray v = mode.toUtf8();
+    mpv_set_property_string(m_mpv, "hwdec", v.constData());
+}
+
+void MpvEngine::setStatsEnabled(bool enabled)
+{
+    if (enabled == m_statsTimer.isActive())
+        return;
+    if (enabled) {
+        refreshStats();
+        m_statsTimer.start();
+    } else {
+        m_statsTimer.stop();
+    }
+    emit statsEnabledChanged();
+}
+
+QVariant MpvEngine::getProp(const char *name) const
+{
+    mpv_node node;
+    // Failure (e.g. property unavailable before the first frame) yields an invalid QVariant.
+    if (!m_mpv || mpv_get_property(m_mpv, name, MPV_FORMAT_NODE, &node) < 0)
+        return {};
+    const QVariant v = nodeToVariant(node);
+    mpv_free_node_contents(&node);
+    return v;
+}
+
+void MpvEngine::refreshStats()
+{
+    static const struct { const char *key; const char *prop; } items[] = {
+        {"hwdec", "hwdec-current"}, {"codec", "video-codec"}, {"format", "video-format"},
+        {"width", "video-params/w"}, {"height", "video-params/h"},
+        {"containerFps", "container-fps"}, {"fps", "estimated-vf-fps"},
+        {"droppedFrames", "frame-drop-count"}, {"decoderDroppedFrames", "decoder-frame-drop-count"},
+        {"videoBitrate", "video-bitrate"}, {"audioBitrate", "audio-bitrate"},
+        {"avsync", "avsync"}, {"cacheSpeed", "cache-speed"},
+        {"cacheDuration", "demuxer-cache-duration"},
+    };
+    QVariantMap m;
+    for (const auto &it : items)
+        m.insert(QLatin1String(it.key), getProp(it.prop));
+    m_stats = m;
+    emit statsChanged();
 }

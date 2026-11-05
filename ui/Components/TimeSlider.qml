@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Controls.Basic
+import Lumina.Player
 
 // Seek timeline. While dragging, shows a preview position and only seeks once
 // released — prevents seek flooding and keeps mpv responsive.
