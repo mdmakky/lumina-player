@@ -9,10 +9,10 @@ ApplicationWindow {
 
     width: 1280
     height: 760
-    minimumWidth: 760
-    minimumHeight: 500
+    minimumWidth: miniMode ? 240 : 760
+    minimumHeight: miniMode ? 135 : 500
     visible: true
-    color: "black"
+    color: Theme.videoBackdrop
     title: player.hasMedia && player.engine.mediaTitle !== ""
            ? player.engine.mediaTitle + " — Lumina" : "Lumina Player"
 
@@ -25,12 +25,17 @@ ApplicationWindow {
         const max = player.setting("window/maximized", false)
         if (max === true || max === "true")
             showMaximized()
+        const mini = player.setting("window/mini", false)
+        if (mini === true || mini === "true")
+            Qt.callLater(toggleMini)
     }
     onClosing: {
         if (visibility === Window.FullScreen)
             return
         player.setSetting("window/maximized", visibility === Window.Maximized)
-        if (visibility === Window.Windowed)
+        if (miniMode && normalGeom)
+            player.setSetting("window/geometry", normalGeom)
+        else if (visibility === Window.Windowed)
             player.setSetting("window/geometry", { x: x, y: y, width: width, height: height })
     }
 
@@ -38,6 +43,9 @@ ApplicationWindow {
     property bool chromeVisible: true
     property bool menuOpen: false
     property bool playlistOpen: false
+    property bool miniMode: false
+    property var normalGeom: null
+    property bool miniPrevOnTop: false
     readonly property bool chromeHovered: topHover.hovered || bottomHover.hovered
     readonly property string iconBase: "qrc:/qt/qml/Lumina/Player/icons/"
 
@@ -58,7 +66,33 @@ ApplicationWindow {
             player.engine.seekChapter(target)
     }
 
+    // Mini-player: ~480 px wide at the video's aspect ratio, always on top, minimal chrome.
+    function toggleMini() {
+        if (!miniMode) {
+            if (visibility !== Window.Windowed) return
+            normalGeom = { x: x, y: y, width: width, height: height }
+            miniPrevOnTop = (flags & Qt.WindowStaysOnTopHint) !== 0
+            const vt = player.engine.videoTracks
+            const ar = vt.length > 0 && vt[0]["demux-w"] > 0 && vt[0]["demux-h"] > 0
+                     ? vt[0]["demux-w"] / vt[0]["demux-h"] : 16 / 9
+            miniMode = true
+            playlistOpen = false
+            width = 480
+            height = Math.round(480 / ar)
+            flags = flags | Qt.WindowStaysOnTopHint
+        } else {
+            miniMode = false
+            if (!miniPrevOnTop) flags = flags & ~Qt.WindowStaysOnTopHint
+            if (normalGeom) {
+                x = normalGeom.x; y = normalGeom.y
+                width = normalGeom.width; height = normalGeom.height
+            }
+        }
+        player.setSetting("window/mini", miniMode)
+    }
+
     function toggleFullscreen() {
+        if (miniMode) toggleMini()
         if (visibility === Window.FullScreen)
             showNormal()
         else
@@ -125,7 +159,7 @@ ApplicationWindow {
         anchors.top: parent.top
         anchors.margins: Theme.spacingLarge
         anchors.topMargin: 72
-        visible: player.hasMedia && player.engine.statsEnabled
+        visible: player.hasMedia && player.engine.statsEnabled && !root.miniMode
     }
 
     // --- Home / empty state -----------------------------------------------
@@ -178,7 +212,7 @@ ApplicationWindow {
                 contentItem: Text {
                     text: parent.text
                     font: parent.font
-                    color: Theme.primaryText
+                    color: Theme.accentText
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter
                 }
@@ -460,7 +494,7 @@ ApplicationWindow {
         anchors.right: parent.right
         anchors.top: parent.top
         height: 96
-        opacity: root.chromeVisible && player.hasMedia ? 1 : 0
+        opacity: root.chromeVisible && player.hasMedia && !root.miniMode ? 1 : 0
         visible: opacity > 0
         Behavior on opacity { NumberAnimation { duration: Theme.animationMedium } }
         gradient: Gradient {
@@ -482,7 +516,7 @@ ApplicationWindow {
             Text {
                 Layout.fillWidth: true
                 text: player.engine.mediaTitle
-                color: Theme.primaryText
+                color: Theme.videoText
                 elide: Text.ElideRight
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSizeHeading
@@ -509,11 +543,63 @@ ApplicationWindow {
         }
     }
 
+    // --- Mini-player chrome: drag the video to move; controls on hover ------------
+    DragHandler {
+        enabled: root.miniMode
+        target: null
+        onActiveChanged: if (active) root.startSystemMove()
+    }
+    Item {
+        id: miniChrome
+        objectName: "miniChrome"
+        anchors.fill: parent
+        visible: root.miniMode && player.hasMedia
+        HoverHandler { id: miniHover }
+        Rectangle {
+            anchors.fill: parent
+            color: Theme.scrimSoft
+            opacity: miniHover.hovered ? 1 : 0
+            Behavior on opacity { NumberAnimation { duration: Theme.animationFast } }
+            IconButton {
+                objectName: "miniPlayButton"
+                anchors.centerIn: parent
+                iconSize: 28
+                iconSource: root.iconBase + (player.engine.playing ? "pause.svg" : "play.svg")
+                onClicked: player.engine.togglePlayPause()
+            }
+            Row {
+                anchors.top: parent.top
+                anchors.right: parent.right
+                anchors.margins: Theme.spacingSmall
+                IconButton {
+                    objectName: "miniExpandButton"
+                    iconSource: root.iconBase + "fullscreen-exit.svg"
+                    tip: qsTr("Back to normal (Ctrl+M)")
+                    onClicked: root.toggleMini()
+                }
+                IconButton {
+                    objectName: "miniCloseButton"
+                    label: "✕"
+                    implicitWidth: 40
+                    tip: qsTr("Close")
+                    onClicked: root.close()
+                }
+            }
+        }
+        Rectangle { // thin progress bar, always visible
+            anchors.left: parent.left
+            anchors.bottom: parent.bottom
+            width: player.engine.duration > 0 ? parent.width * player.engine.position / player.engine.duration : 0
+            height: 3
+            color: Theme.accent
+        }
+    }
+
     // --- Playlist panel ---------------------------------------------------
     PlaylistPanel {
         id: playlistPanel
         objectName: "playlistPanel"
-        visible: root.playlistOpen
+        visible: root.playlistOpen && !root.miniMode
         anchors.top: parent.top
         anchors.topMargin: 56
         anchors.right: parent.right
@@ -533,7 +619,7 @@ ApplicationWindow {
         anchors.right: parent.right
         anchors.bottom: parent.bottom
         height: 136
-        opacity: root.chromeVisible && player.hasMedia ? 1 : 0
+        opacity: root.chromeVisible && player.hasMedia && !root.miniMode ? 1 : 0
         visible: opacity > 0
         Behavior on opacity { NumberAnimation { duration: Theme.animationMedium } }
         gradient: Gradient {
@@ -559,7 +645,7 @@ ApplicationWindow {
 
                 Text {
                     text: timefmt.formatDuration(player.engine.position)
-                    color: Theme.primaryText
+                    color: Theme.videoText
                     font.family: Theme.fontFamily
                     font.pixelSize: Theme.fontSizeSmall
                     // font.features (tnum) needs Qt 6.6; reserve width so digits do not jitter on 6.4.
@@ -572,7 +658,7 @@ ApplicationWindow {
                 }
                 Text {
                     text: timefmt.formatDuration(player.engine.duration)
-                    color: Theme.secondaryText
+                    color: Theme.videoTextSecondary
                     font.family: Theme.fontFamily
                     font.pixelSize: Theme.fontSizeSmall
                     // font.features (tnum) needs Qt 6.6; reserve width so digits do not jitter on 6.4.
@@ -797,6 +883,13 @@ ApplicationWindow {
             onTriggered: root.flags = root.flags ^ Qt.WindowStaysOnTopHint
         }
         ThemedMenuItem {
+            objectName: "miniItem"
+            text: qsTr("Mini player (Ctrl+M)")
+            checkable: true
+            checked: root.miniMode
+            onTriggered: root.toggleMini()
+        }
+        ThemedMenuItem {
             objectName: "screenshotItem"
             text: qsTr("Screenshot (Ctrl+S)")
             onTriggered: player.takeScreenshot()
@@ -903,6 +996,7 @@ ApplicationWindow {
     Shortcut { sequence: "M";            enabled: player.hasMedia; onActivated: player.engine.setMuted(!player.engine.muted) }
     Shortcut { sequence: "I";            enabled: player.hasMedia; onActivated: player.engine.statsEnabled = !player.engine.statsEnabled }
     Shortcut { sequence: "F";            onActivated: root.toggleFullscreen() }
+    Shortcut { sequence: "Ctrl+M";       enabled: player.hasMedia; onActivated: root.toggleMini() }
     Shortcut { sequence: "T";            onActivated: root.flags = root.flags ^ Qt.WindowStaysOnTopHint }
     Shortcut { sequence: "A";            enabled: player.hasMedia; onActivated: player.engine.cycleAudioTrack() }
     Shortcut { sequence: "S";            enabled: player.hasMedia; onActivated: player.engine.cycleSubtitleTrack() }
@@ -930,5 +1024,6 @@ ApplicationWindow {
     Shortcut { sequence: "Ctrl+O";       onActivated: fileDialog.open() }
     Shortcut { sequence: "L";            enabled: !libraryView.opened && !settingsDialog.opened; onActivated: libraryView.open() }
     Shortcut { sequence: "Ctrl+,";      onActivated: settingsDialog.open() }
+    Shortcut { sequence: "Esc";          enabled: root.miniMode; onActivated: root.toggleMini() }
     Shortcut { sequence: "Esc";          enabled: root.visibility === Window.FullScreen && !settingsDialog.opened && !libraryView.opened; onActivated: root.showNormal() }
 }

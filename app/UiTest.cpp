@@ -115,6 +115,14 @@ void UiTest::run()
         return shown;
     };
 
+    // LUMINA_THEME=light|oled|dark: run the whole flow (screenshots) in that theme; reset to dark at the end.
+    const QString envTheme = qEnvironmentVariable("LUMINA_THEME");
+    auto setTheme = [&](const QString &mode) {
+        if (auto *sd = find("settingsDialog"))
+            QMetaObject::invokeMethod(sd, "setThemeMode", Q_ARG(QVariant, mode));
+    };
+    if (!envTheme.isEmpty()) setTheme(envTheme);
+
     // --- home / empty state ---
     shot("home");
     if (doTest) {
@@ -468,12 +476,58 @@ void UiTest::run()
                    p->setting("interface/hideDelay").toString());
             click("hideDelayMinus");
             shot("settings-interface");
+            // theme + reduced motion
+            auto *sd = find("settingsDialog");
+            const QString theme0 = sd ? sd->property("activeTheme").toString() : QString();
+            click("themeOption_light");
+            result("Light theme applies and persists",
+                   waitFor([&] { return sd && sd->property("activeTheme").toString() == "light"; })
+                       && p->setting("interface/theme").toString() == "light");
+            shot("settings-interface-light");
+            click("themeOption_oled");
+            result("OLED theme applies and persists",
+                   waitFor([&] { return sd && sd->property("activeTheme").toString() == "oled"; })
+                       && p->setting("interface/theme").toString() == "oled");
+            shot("settings-interface-oled");
+            click(("themeOption_" + (theme0.isEmpty() ? QStringLiteral("dark") : theme0)).toLatin1().constData());
+            result("Theme restored", sd && waitFor([&] { return sd->property("activeTheme").toString() == theme0; }));
+            result("animations on by default", sd && sd->property("animFast").toInt() == 120);
+            click("reducedMotionSwitch");
+            result("Reduce motion zeroes animation tokens and persists",
+                   sd && waitFor([&] { return sd->property("animFast").toInt() == 0; }) && sd->property("animMedium").toInt() == 0
+                       && p->setting("interface/reducedMotion").toBool());
+            click("reducedMotionSwitch");
+            result("Reduce motion off restores tokens",
+                   sd && waitFor([&] { return sd->property("animFast").toInt() == 120; }) && !p->setting("interface/reducedMotion").toBool());
             key(Qt::Key_Escape);
             result("Esc closes settings", waitFor([&] { return !vis("settingsPanel"); }));
             key(Qt::Key_Comma, Qt::ControlModifier);
             result("Ctrl+, opens settings", waitFor([&] { return vis("settingsPanel"); }));
             key(Qt::Key_Escape);
             waitFor([&] { return !vis("settingsPanel"); });
+        }
+
+        // --- mini player ---
+        {
+            const QRect geom0 = w->geometry();
+            const bool top0 = w->flags() & Qt::WindowStaysOnTopHint;
+            key(Qt::Key_M, Qt::ControlModifier);
+            result("Ctrl+M enters mini mode", waitFor([&] { return w->width() == 480; }), QString::number(w->width()));
+            result("mini mode is always on top", waitFor([&] { return w->flags() & Qt::WindowStaysOnTopHint; }));
+            result("mini keeps aspect ratio", w->height() > 150 && w->height() < 400, QString::number(w->height()));
+            result("mini hides top bar and controls", !vis("controlsBar"));
+            wake();
+            QTest::qWait(300);
+            shot("mini");
+            result("mini play button on hover", vis("miniPlayButton"));
+            click("miniExpandButton");
+            result("expand restores size", waitFor([&] { return w->width() == geom0.width() && w->height() == geom0.height(); }),
+                   QStringLiteral("%1x%2").arg(w->width()).arg(w->height()));
+            result("expand restores on-top flag", waitFor([&] { return bool(w->flags() & Qt::WindowStaysOnTopHint) == top0; }));
+            key(Qt::Key_M, Qt::ControlModifier);
+            waitFor([&] { return w->width() == 480; });
+            key(Qt::Key_M, Qt::ControlModifier);
+            result("Ctrl+M leaves mini mode", waitFor([&] { return w->width() == geom0.width(); }));
         }
 
         // --- playlist (queue: argv file + short1 + short2, kept paused) ---
@@ -604,5 +658,6 @@ void UiTest::run()
         } else qCInfo(lcCore) << "UITEST SKIP continue card flow (needs media >= 40s, e.g. /tmp/long.mp4)";
         qCInfo(lcCore) << "UITEST SUMMARY passes=" << passes << "fails=" << fails;
     }
+    if (!envTheme.isEmpty()) setTheme("dark");
     QCoreApplication::exit(fails ? 1 : 0);
 }

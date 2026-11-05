@@ -20,7 +20,7 @@ Slider {
         width: control.availableWidth
         height: control.hovered || control.pressed ? 5 : 3
         radius: height / 2
-        color: Theme.trackIdle
+        color: Theme.videoTrackIdle
         Behavior on height { NumberAnimation { duration: Theme.animationFast; easing.type: Easing.OutCubic } }
 
         Rectangle {
@@ -37,7 +37,7 @@ Slider {
         width: control.hovered || control.pressed ? 12 : 8
         height: width
         radius: width / 2
-        color: Theme.primaryText
+        color: Theme.videoText
         border.width: control.visualFocus ? 2 : 0
         border.color: Theme.focusRing
         Behavior on width { NumberAnimation { duration: Theme.animationFast; easing.type: Easing.OutCubic } }

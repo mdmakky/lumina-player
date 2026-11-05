@@ -20,6 +20,12 @@ Item {
     property real subBorder: 3
     property int subPos: 100
     property real hideDelay: 2.6
+    property string themeMode: "dark"
+    property bool reducedMotion: false
+    // Read-only probes for the UI self-test.
+    readonly property string activeTheme: Theme.mode
+    readonly property int animFast: Theme.animationFast
+    readonly property int animMedium: Theme.animationMedium
 
     readonly property var colorPresets: [
         { name: qsTr("White"),  value: "#FFFFFF" },
@@ -38,6 +44,8 @@ Item {
     function setSubBorder(v) { subBorder = v; set("subtitles/borderSize", v); player.engine.setSubtitleBorderSize(v) }
     function setSubPos(v) { subPos = v; set("subtitles/position", v); player.engine.setSubtitlePosition(v) }
     function setHideDelay(v) { hideDelay = v; set("interface/hideDelay", v) }
+    function setThemeMode(v) { themeMode = v; Theme.mode = v; set("interface/theme", v) }
+    function setReducedMotion(v) { reducedMotion = v; Theme.reducedMotion = v; set("interface/reducedMotion", v) }
 
     function open() { opened = true }
     function close() { opened = false }
@@ -52,6 +60,11 @@ Item {
         subBorder = Number(player.setting("subtitles/borderSize", 3))
         subPos = Number(player.setting("subtitles/position", 100))
         hideDelay = Number(player.setting("interface/hideDelay", 2.6))
+        themeMode = player.setting("interface/theme", "dark")
+        Theme.mode = themeMode
+        const rm = player.setting("interface/reducedMotion", false)
+        reducedMotion = rm === true || rm === "true"
+        Theme.reducedMotion = reducedMotion
     }
 
     anchors.fill: parent
@@ -288,7 +301,7 @@ Item {
                                 Rectangle {
                                     x: resumeSwitch.checked ? parent.width - width - 3 : 3
                                     y: 3; width: 16; height: 16; radius: 8
-                                    color: Theme.primaryText
+                                    color: Theme.accentText
                                     Behavior on x { NumberAnimation { duration: Theme.animationFast } }
                                 }
                             }
@@ -363,6 +376,51 @@ Item {
                 ColumnLayout {
                     spacing: Theme.spacingLarge
                     Section { text: qsTr("Interface") }
+                    Field {
+                        Layout.fillWidth: true
+                        label: qsTr("Theme")
+                        hint: qsTr("Video controls stay dark in every theme.")
+                        RowLayout {
+                            spacing: 4
+                            Repeater {
+                                model: [
+                                    { label: qsTr("Dark"), value: "dark" },
+                                    { label: qsTr("Light"), value: "light" },
+                                    { label: qsTr("OLED black"), value: "oled" }
+                                ]
+                                delegate: Pill {
+                                    required property var modelData
+                                    objectName: "themeOption_" + modelData.value
+                                    text: modelData.label
+                                    active: dlg.themeMode === modelData.value
+                                    onClicked: dlg.setThemeMode(modelData.value)
+                                }
+                            }
+                        }
+                    }
+                    Field {
+                        Layout.fillWidth: true
+                        label: qsTr("Reduce motion")
+                        hint: qsTr("Turns off fades and slide animations.")
+                        Switch {
+                            id: motionSwitch
+                            objectName: "reducedMotionSwitch"
+                            checked: dlg.reducedMotion
+                            onToggled: dlg.setReducedMotion(checked)
+                            indicator: Rectangle {
+                                implicitWidth: 40; implicitHeight: 22
+                                x: motionSwitch.leftPadding; y: parent.height / 2 - height / 2
+                                radius: height / 2
+                                color: motionSwitch.checked ? Theme.accent : Theme.trackIdle
+                                Rectangle {
+                                    x: motionSwitch.checked ? parent.width - width - 3 : 3
+                                    y: 3; width: 16; height: 16; radius: 8
+                                    color: Theme.accentText
+                                    Behavior on x { NumberAnimation { duration: Theme.animationFast } }
+                                }
+                            }
+                        }
+                    }
                     Field {
                         Layout.fillWidth: true
                         label: qsTr("Hide controls after")

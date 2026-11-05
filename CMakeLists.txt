@@ -115,6 +115,9 @@ qt_add_qml_module(lumina
         resources/icons/shuffle.svg
         resources/icons/repeat.svg
         resources/icons/repeat-one.svg
+        resources/icons/shuffle-dark.svg
+        resources/icons/repeat-dark.svg
+        resources/icons/repeat-one-dark.svg
         resources/icons/app/lumina-256.png
 )
 
