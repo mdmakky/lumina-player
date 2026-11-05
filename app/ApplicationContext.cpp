@@ -447,7 +447,7 @@ void ApplicationContext::applyLanguage(const QString &code)
     // en.qm only carries plural forms ("1 item" / "2 items"); source text is English.
     if (m_translator.load(QStringLiteral(":/i18n/lumina_%1.qm").arg(lang)))
         QCoreApplication::installTranslator(&m_translator);
-    else
-        qCWarning(lcCore) << "No translation for" << lang;
+    else if (lang != QLatin1String("en")) // English is the source language; a missing en.qm is fine
+        qCWarning(lcCore) << "No translation for" << lang << "(Qt LinguistTools missing at build time?)";
     QLocale::setDefault(QLocale(lang));
 }

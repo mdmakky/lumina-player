@@ -11,6 +11,7 @@
 #include <QDesktopServices>
 #include <QDir>
 #include <QFileInfo>
+#include <QJSValue>
 #include <QSettings>
 #include <QStandardPaths>
 #include <QSysInfo>
@@ -252,6 +253,12 @@ QVariant PlayerController::setting(const QString &key, const QVariant &fallback)
 
 void PlayerController::setSetting(const QString &key, const QVariant &value)
 {
+    // QML passes JS objects as QJSValue; QSettings would store an unreadable binary blob
+    // on some platforms (Linux warns on restore). Convert to plain QVariantMap/List first.
+    if (value.metaType() == QMetaType::fromType<QJSValue>()) {
+        QSettings().setValue(key, value.value<QJSValue>().toVariant());
+        return;
+    }
     QSettings().setValue(key, value);
 }
 
