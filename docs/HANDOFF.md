@@ -47,9 +47,39 @@ Test switches: see AGENTS.md ("Self-test env switches"). On macOS the binary is 
 - Flatpak manifest (`packaging/flatpak`) builds FFmpeg from source (all decoders) but has **never been built**.
 - Not done on purpose (needs the owner's accounts): OpenSubtitles download, code signing/notarization, auto-update.
 
+## Linux session (2026-11-06) — what was done on Fedora, and what the macOS agent must check
+Owner tested by hand on Fedora (GNOME/Wayland); only the items marked "tested" were seen working by the owner.
+
+**Verified on Fedora**
+- Seek benchmark, Fight Club 1080p H.264 mkv: hwdec `vaapi-copy` works; exact seek p50 ~265 ms / p95 ~430 ms, keyframe seek p50 ~35 ms,
+  0 dropped frames, spam settles ~1.7 s. **VLC comparison not done** (needs `sudo dnf install vlc python3-vlc` from a normal terminal, then `tools/vlc_seekbench.py`).
+- **Flatpak now builds** and runs (Wayland and X11 self-test pass, VAAPI works inside the sandbox, E-AC3/DTS decoders compiled in). Manifest fixes:
+  KDE runtime 6.8 -> 6.10 (6.8 is gone from Flathub), added a libplacebo module (mpv needs it), mpv `-Dx11=disabled` (xpresent missing; Lumina uses the render API).
+  Build: `flatpak run org.flatpak.Builder --user --force-clean --disable-rofiles-fuse <dir> packaging/flatpak/io.github.mdmakky.Lumina.yml`.
+  `desktop-file-validate` / `appstreamcli validate --no-net` pass. Still missing: Flathub screenshots; sound/MPRIS/portals inside the Flatpak not hand-tested.
+- The stale `build/linux-debug` (configured from another path) had to be recreated; if cmake complains about a different source dir, move the build dir aside and re-run `cmake --preset linux-debug`.
+
+**UI changes made from the owner's hands-on feedback (owner confirmed volume + preview work; the rest was built but not re-confirmed)**
+1. All menus (`PopupPanel`) are now `modal: true, dim: false`: clicking outside only closes the menu; before it also toggled pause.
+2. Auto-hide: `hideTimer` re-arms while a menu/playlist is open or the chrome is hovered (it used to give up and never hide again after the menu closed).
+3. Default subtitle size 55 -> 40 (`SettingsDialog.qml`); existing saved sizes are untouched.
+4. **Volume model (Linux):** `PlayerController.systemVolume` (-1 = unknown). When the OS backend reports it, the volume slider, Up/Down keys, mouse wheel and the OS volume keys
+   all drive/mirror the **OS sink volume** (`pactl`, 0-100), and the mpv volume is forced to 100 (no double attenuation). When it is -1 (macOS, Windows, no pactl)
+   everything falls back to the old mpv volume (0-150). Entry point: `PlayerController::setVolumePercent`. Linux code: `MprisIntegration::watchSystemVolume` (`pactl subscribe`)
+   and `setSystemVolume`; new `PlatformIntegration::systemVolumeChanged` signal + `setSystemVolume` virtual (no-op default).
+   **macOS agent: `systemVolume` stays -1 there, so verify the slider/keys/wheel still drive mpv volume exactly as before. If you want the same "slider = system volume" on macOS, implement it in `MacIntegration.mm`.**
+5. Volume OSD: any volume change shows the chrome and a "Volume N%" toast (`Main.qml volumeOsd`). Mute shows the slider at 0; changing volume while muted unmutes.
+6. Mouse wheel / touchpad over the video changes volume: accumulated, 1% per 24 angle units (a mouse notch = 5%), direction follows the gesture via `inverted`. Tune the `24` if too sensitive.
+7. `VolumeSlider.qml` redesigned (128 px, thin track that thickens on hover, handle only on hover, % bubble, always-visible `NN%`). No `font.features` (Qt 6.4 CI).
+8. Seek-preview card (`TimeSlider.qml` tooltip) restyled: neutral near-black card, one hairline border, no inner frame.
+9. Video adjustment popup: preset chips Default / Cinema / Vivid / Night (`VideoAdjustPopup.qml`); values are guesses, tune freely.
+
+**Tests:** `ctest` 11/11 passed on Fedora after items 1-9. `tools/run-ui-test.sh` was **not** run (owner asked not to run big suites); please run it once on macOS, since popups are now modal.
+Owner also asked what "Always on top" and "Deinterlace" do: top = window above others (may not work on GNOME Wayland, untested); deinterlace = removes comb lines from old interlaced TV/DVD video, useless for modern movies.
+
 ## Open work, in priority order
-1. Confirm hardware decode on Fedora (`I` overlay) and seek smoothness vs VLC; tune from `LUMINA_SEEK_BENCH` numbers.
-2. Build the Flatpak on Fedora (`flatpak-builder`), fix the manifest.
+1. Seek smoothness vs VLC on Fedora (VAAPI is confirmed via `LUMINA_SEEK_BENCH`; VLC numbers still missing).
+2. Flatpak: hand-test sound, MPRIS, portals, file dialogs; add Flathub screenshots. (Build itself is done.)
 3. Verify the new popup panels, Settings and Bengali (install LinguistTools) on Linux; fix whatever looks wrong there.
 4. Windows build (needs real Windows), macOS signing, translations review, crash reporting.
 5. Seek-preview thumbnails and library features only checked on macOS test patterns — check with real movies.
