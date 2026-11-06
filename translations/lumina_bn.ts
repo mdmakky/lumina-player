@@ -458,7 +458,7 @@
         <source>Add %n item(s) to playlist</source>
         <translation>
             <numerusform>%n টি আইটেম প্লেলিস্টে যোগ করুন</numerusform>
-            <numerusform></numerusform>
+            <numerusform>%n টি আইটেম প্লেলিস্টে যোগ করুন</numerusform>
         </translation>
     </message>
     <message>
@@ -675,7 +675,7 @@
         <source>%n selected</source>
         <translation>
             <numerusform>%n টি নির্বাচিত</numerusform>
-            <numerusform></numerusform>
+            <numerusform>%n টি নির্বাচিত</numerusform>
         </translation>
     </message>
     <message>
