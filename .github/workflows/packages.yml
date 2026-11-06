@@ -169,4 +169,5 @@ jobs:
       - name: Attach to release
         env:
           GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }} # this job has no checkout, so gh needs the repo named
         run: gh release upload "$TAG" *.flatpak --clobber
