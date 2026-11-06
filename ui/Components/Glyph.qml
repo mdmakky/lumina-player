@@ -35,7 +35,7 @@ Image {
     height: size
     sourceSize: Qt.size(size * 2, size * 2)
     smooth: true
-    source: "data:image/svg+xml;utf8," + encodeURIComponent(
+    source: d === "" ? "" : "data:image/svg+xml;utf8," + encodeURIComponent(
         '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="' + d + '" fill="'
         + (filled ? rgb : "none") + '" fill-opacity="' + tint.a + '" stroke="' + (filled ? "none" : rgb)
         + '" stroke-opacity="' + tint.a + '" stroke-width="' + stroke + '" stroke-linecap="round" stroke-linejoin="round"/></svg>')

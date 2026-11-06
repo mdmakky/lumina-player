@@ -96,3 +96,10 @@ Pushed up to `361696c`. Built and screenshot-checked on macOS only.
 **Check on Linux:** icons render, Home/Library/Settings/Open URL (Ctrl+U)/Media info (Ctrl+I) look right on Qt 6.11 + Wayland, window clamp does not misbehave on GNOME, Surface shadow cost, CI Qt 6.4 still green.
 Quick test (not the full suite): `LUMINA_UI_ONLY_HOME_LIBRARY=1 LUMINA_UI_TEST=1 LUMINA_SCREENSHOT=/tmp/shots ./build/linux-debug/lumina /path/to/real.mkv`
 Not seen on macOS either: Equalizer, Picture and Bookmarks popup interiors under the new chrome.
+
+## Linux check of the macOS UI redesign (2026-11-06, Fedora, Qt 6.11 + Wayland)
+Built `5df9950` cleanly. `LUMINA_UI_ONLY_HOME_LIBRARY=1 LUMINA_UI_TEST=1` passes (exit 0, no FAIL); Home, Library list/grid/tabs/search/chips render correctly (screenshots checked by eye).
+- **Gotcha:** that test needs `/tmp/short1.mp4` (a tiny file). Without it the fixture copies the first media argument 3 times — with a 5.7 GB movie it fills a 7.5 GB tmpfs `/tmp` and the library checks fail.
+  Make it with: `ffmpeg -f lavfi -i testsrc2=size=1280x720:rate=30 -f lavfi -i sine=f=440 -t 6 -c:v libx264 -pix_fmt yuv420p -c:a aac /tmp/short1.mp4`. (Consider making the fixture refuse files > 50 MB.)
+- **`qt.svg: Invalid path data` warning fixed:** it was not a bad path. `Glyph.qml` built an SVG with `d=""` while a bound `name` was still empty at creation. Now `source` stays empty until `d` is set; warnings 5 -> 0 on Linux (all 15 paths parse fine in QtSvg).
+- Not checked on Linux: Settings pages, Open URL / Media info dialogs, Equalizer/Picture/Bookmarks popup interiors, window clamp on GNOME, CI Qt 6.4.
