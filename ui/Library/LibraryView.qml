@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Controls.Basic
+import QtQuick.Controls as QC // Qt 6.4: the Overlay attached type is only found through QtQuick.Controls
 import QtQuick.Dialogs
 import QtQuick.Layouts
 import Lumina.Player
@@ -212,12 +213,12 @@ Item {
     component Card: Popup {
         modal: true
         focus: true
-        parent: Overlay.overlay
+        parent: QC.Overlay.overlay
         anchors.centerIn: parent
         width: Math.min(440, (parent ? parent.width : 440) - 48)
         padding: 24
         closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
-        Overlay.modal: Rectangle { color: Theme.scrimModal }
+        QC.Overlay.modal: Rectangle { color: Theme.scrimModal }
         background: Surface { elevation: 2 }
     }
     component CardTitle: Text {

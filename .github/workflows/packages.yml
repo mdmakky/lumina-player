@@ -85,7 +85,7 @@ jobs:
         run: |
           for p in libqt6sql6-sqlite qml6-module-qtquick qml6-module-qtquick-controls qml6-module-qtquick-layouts \
                    qml6-module-qtquick-window qml6-module-qtqml-workerscript qml6-module-qtquick-templates \
-                   qml6-module-qt-labs-platform qml6-module-qtcore qml6-module-qtquick-dialogs qml6-module-qtqml-models; do
+                   qml6-module-qt-labs-platform qml6-module-qtcore qml6-module-qtquick-dialogs qml6-module-qtqml-models libqt6svg6; do
             if apt-cache show "$p" >/dev/null 2>&1; then echo "ok      $p"; else echo "MISSING $p"; missing=1; fi
           done
           test -z "${missing:-}"

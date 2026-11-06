@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Controls.Basic
+import QtQuick.Controls as QC // Qt 6.4: the Overlay attached type is only found through QtQuick.Controls
 import QtQuick.Layouts
 import Lumina.Player
 
@@ -16,13 +17,13 @@ Popup {
 
     modal: true
     focus: true
-    parent: Overlay.overlay
+    parent: QC.Overlay.overlay
     anchors.centerIn: parent
     width: Math.min(cardWidth, (parent ? parent.width : cardWidth) - 48)
     padding: 0
     closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
 
-    Overlay.modal: Rectangle { color: Theme.scrimModal }
+    QC.Overlay.modal: Rectangle { color: Theme.scrimModal }
     enter: Transition {
         NumberAnimation { property: "opacity"; from: 0; to: 1; duration: Theme.animationMedium; easing.type: Easing.OutCubic }
         NumberAnimation { property: "scale"; from: 0.97; to: 1; duration: Theme.animationMedium; easing.type: Easing.OutCubic }

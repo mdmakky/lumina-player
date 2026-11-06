@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Controls.Basic
+import QtQuick.Controls as QC // Qt 6.4: the Overlay attached type is only found through QtQuick.Controls
 import QtQuick.Layouts
 import Lumina.Player
 
@@ -69,7 +70,7 @@ Popup {
         clip: true
         implicitWidth: popup.panelWidth - popup.leftPadding - popup.rightPadding
         implicitHeight: Math.min(col.implicitHeight,
-                                 (Overlay.overlay ? Overlay.overlay.height : 600) - 2 * popup.margins
+                                 (QC.Overlay.overlay ? QC.Overlay.overlay.height : 600) - 2 * popup.margins
                                  - popup.topPadding - popup.bottomPadding)
         contentWidth: width
         contentHeight: col.implicitHeight

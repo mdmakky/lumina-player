@@ -1,6 +1,5 @@
 pragma Singleton
 import QtQuick
-import Lumina.Player
 
 // Mouse/gesture bindings (spec 7.7): which action each click, wheel and drag runs.
 // Persisted as mouse/<key>; MouseActions.qml dispatches them, MouseSettingsPage edits them.

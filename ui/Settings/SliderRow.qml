@@ -62,7 +62,6 @@ SettingRow {
             color: Theme.primaryText
             font.family: Theme.fontFamily
             font.pixelSize: Theme.fontSizeMedium
-            font.features: { "tnum": 1 }
         }
     }
 }

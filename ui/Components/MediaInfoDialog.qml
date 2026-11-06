@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Controls.Basic
+import QtQuick.Controls as QC // Qt 6.4: the Overlay attached type is only found through QtQuick.Controls
 import QtQuick.Layouts
 import Lumina.Player
 
@@ -11,7 +12,7 @@ Popup {
 
     modal: true
     focus: true
-    parent: Overlay.overlay
+    parent: QC.Overlay.overlay
     anchors.centerIn: parent
     width: Math.min(680, (parent ? parent.width : 680) - 48)
     height: Math.min(640, (parent ? parent.height : 640) - 48)
@@ -143,7 +144,7 @@ Popup {
 
     onAboutToShow: sections = collect()
 
-    Overlay.modal: Rectangle { color: Theme.scrimModal }
+    QC.Overlay.modal: Rectangle { color: Theme.scrimModal }
     enter: Transition {
         NumberAnimation { property: "opacity"; from: 0; to: 1; duration: Theme.animationMedium; easing.type: Easing.OutCubic }
         NumberAnimation { property: "scale"; from: 0.97; to: 1; duration: Theme.animationMedium; easing.type: Easing.OutCubic }
