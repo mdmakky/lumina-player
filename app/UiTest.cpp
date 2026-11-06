@@ -140,7 +140,7 @@ void UiTest::run()
     if (doTest && !files.isEmpty()) {
         QTemporaryDir lib;
         const QString src = QFileInfo::exists("/tmp/short1.mp4") ? QStringLiteral("/tmp/short1.mp4") : files.first();
-        bool made = lib.isValid();
+        bool made = lib.isValid() && QFileInfo(src).size() <= 50 * 1024 * 1024; // never copy a big movie 3x into /tmp
         for (const char *n : {"sunrise_alpha.mp4", "Holiday/ocean_beta.mp4", "Holiday/ocean_gamma.mp4"}) {
             QDir().mkpath(QFileInfo(lib.filePath(n)).absolutePath());
             made = made && QFile::copy(src, lib.filePath(n));
