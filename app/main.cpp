@@ -23,6 +23,7 @@
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 #include <QQuickWindow>
+#include <QDateTime>
 #include <QTimer>
 #include "core/PlayerController.h"
 #include <QSGRendererInterface>
@@ -127,9 +128,9 @@ int main(int argc, char *argv[])
     ApplicationContext context(&app);
     app.installEventFilter(new FileOpenFilter(&context));
 
+    UpdateChecker updater{QStringLiteral(LUMINA_VERSION)}; // declared before the engine: it must outlive it (context property)
     QQmlApplicationEngine engine;
     context.registerOnEngine(&engine);
-    UpdateChecker updater{QStringLiteral(LUMINA_VERSION)};
     engine.rootContext()->setContextProperty(QStringLiteral("updater"), &updater);
 
     QObject::connect(
@@ -145,8 +146,14 @@ int main(int argc, char *argv[])
             context.player()->toast(QCoreApplication::translate("main", "Lumina closed unexpectedly last time. A report was saved in the logs folder."));
             qCWarning(lcCore) << "previous run crashed; report:" << previousCrash;
         });
-    if (!testRun && context.player()->setting(QStringLiteral("updates/auto"), false).toString() == QLatin1String("true"))
-        QTimer::singleShot(5000, &updater, &UpdateChecker::check);
+    if (!testRun && context.player()->setting(QStringLiteral("updates/auto"), false).toString() == QLatin1String("true")) {
+        // At most once a day: GitHub's unauthenticated API allows 60 calls/hour per address (shared networks hit it).
+        const qint64 now = QDateTime::currentSecsSinceEpoch();
+        if (now - context.player()->setting(QStringLiteral("updates/lastCheck"), 0).toLongLong() > 24 * 3600) {
+            context.player()->setSetting(QStringLiteral("updates/lastCheck"), now);
+            QTimer::singleShot(5000, &updater, &UpdateChecker::check);
+        }
+    }
 
     QObject::connect(&single, &SingleInstance::argumentsReceived, &app,
                      [&](const QStringList &files) {

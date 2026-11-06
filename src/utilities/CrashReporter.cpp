@@ -89,6 +89,10 @@ void install(const QString &logsDir, const QString &version)
     std::memset(&sa, 0, sizeof sa);
     sa.sa_handler = onSignal;
     sigemptyset(&sa.sa_mask);
+#ifdef LUMINA_HAVE_BACKTRACE
+    void *warm[1];
+    ::backtrace(warm, 1); // first call loads libgcc/allocates: do it now, not inside a crash handler (could deadlock on a heap crash)
+#endif
     for (int s : {SIGSEGV, SIGABRT, SIGBUS, SIGFPE, SIGILL})
         sigaction(s, &sa, nullptr);
 #endif

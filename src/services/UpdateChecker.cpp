@@ -42,12 +42,13 @@ bool UpdateChecker::isTrustedReleaseUrl(const QString &url)
     return url.startsWith(QLatin1String("https://github.com/mdmakky/lumina-player/"));
 }
 
-bool UpdateChecker::parseLatest(const QByteArray &json, QString *tag, QString *url)
+bool UpdateChecker::parseLatest(const QByteArray &json, QString *tag, QString *url, bool includePrerelease)
 {
     const QJsonArray arr = QJsonDocument::fromJson(json).array();
     for (const QJsonValue &v : arr) {
         const QJsonObject o = v.toObject();
         if (o.value(QLatin1String("draft")).toBool()) continue;
+        if (!includePrerelease && o.value(QLatin1String("prerelease")).toBool()) continue;
         const QString t = o.value(QLatin1String("tag_name")).toString();
         const QString u = o.value(QLatin1String("html_url")).toString();
         if (t.isEmpty() || !isTrustedReleaseUrl(u)) continue;
@@ -77,7 +78,7 @@ void UpdateChecker::check()
         QString tag, url;
         if (reply->error() != QNetworkReply::NoError) {
             m_status = tr("Could not check for updates (%1).").arg(reply->errorString());
-        } else if (!parseLatest(reply->readAll(), &tag, &url)) {
+        } else if (!parseLatest(reply->readAll(), &tag, &url, parse(m_current).pre)) {
             m_status = tr("No published release yet.");
         } else if (isNewer(tag, m_current)) {
             m_available = true;

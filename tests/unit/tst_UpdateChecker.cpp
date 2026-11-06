@@ -32,6 +32,17 @@ private slots:
         QCOMPARE(tag, QString("v0.3.1-preview"));
         QVERIFY(!UpdateChecker::parseLatest("[]", &tag, &url));
     }
+    void stableUsersSkipPrereleases()
+    {
+        const QByteArray json =
+            "[{\"tag_name\":\"v0.4.0-rc1\",\"draft\":false,\"prerelease\":true,\"html_url\":\"https://github.com/mdmakky/lumina-player/releases/tag/v0.4.0-rc1\"},"
+            "{\"tag_name\":\"v0.3.1\",\"draft\":false,\"prerelease\":false,\"html_url\":\"https://github.com/mdmakky/lumina-player/releases/tag/v0.3.1\"}]";
+        QString tag, url;
+        QVERIFY(UpdateChecker::parseLatest(json, &tag, &url, false));
+        QCOMPARE(tag, QString("v0.3.1"));
+        QVERIFY(UpdateChecker::parseLatest(json, &tag, &url, true));
+        QCOMPARE(tag, QString("v0.4.0-rc1"));
+    }
 };
 
 QTEST_GUILESS_MAIN(tst_UpdateChecker)

@@ -33,7 +33,8 @@ public:
     // Only our own repository's release pages are ever opened.
     static bool isTrustedReleaseUrl(const QString &url);
     // Picks the newest non-draft release from the API JSON; false if none.
-    static bool parseLatest(const QByteArray &json, QString *tag, QString *url);
+    // Pre-releases are skipped unless includePrerelease (set when the running build is itself a pre-release).
+    static bool parseLatest(const QByteArray &json, QString *tag, QString *url, bool includePrerelease = true);
 
 signals:
     void changed();
