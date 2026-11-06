@@ -833,7 +833,8 @@ ApplicationWindow {
         repeat: false
         onTriggered: {
             if (!player.engine.playing) return
-            if (root.chromeHovered || root.menuOpen || root.playlistOpen) restart()  // re-check once the menu closes
+            // A resting cursor over the bar must not keep it up (like mpv/VLC); only an open menu or an active drag does.
+            if (root.menuOpen || root.playlistOpen || timeline.pressed || volumeBar.pressed) restart()  // re-check later
             else root.chromeVisible = false
         }
     }
@@ -844,8 +845,10 @@ ApplicationWindow {
     }
 
     // Volume OSD: any volume change (keys, wheel, laptop keys, OS slider) shows the bar and a toast.
+    property bool osdArmed: false // startup volume restore / first OS reading must not flash the bar and a toast
+    Timer { interval: 2500; running: true; onTriggered: root.osdArmed = true }
     function volumeOsd() {
-        if (volumeBar.pressed || !player.hasMedia) return
+        if (!osdArmed || volumeBar.pressed || !player.hasMedia) return
         showChrome()
         toast.show(qsTr("Volume %1%").arg(player.systemVolume >= 0 ? player.systemVolume : player.engine.volume))
     }
@@ -860,8 +863,18 @@ ApplicationWindow {
     }
 
     HoverHandler {
+        // Qt re-delivers the (unchanged) pointer position every video frame; only a real move may wake the chrome,
+        // otherwise a resting cursor keeps the controls visible forever.
+        property real lastX: -1
+        property real lastY: -1
         cursorShape: root.chromeVisible || !player.hasMedia ? Qt.ArrowCursor : Qt.BlankCursor
-        onPointChanged: root.showChrome()
+        onPointChanged: {
+            const p = point.position
+            if (Math.abs(p.x - lastX) < 1 && Math.abs(p.y - lastY) < 1) return
+            lastX = p.x
+            lastY = p.y
+            root.showChrome()
+        }
     }
 
     SettingsDialog {
