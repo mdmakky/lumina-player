@@ -153,6 +153,18 @@ ApplicationWindow {
             clickTimer.stop()
             root.toggleFullscreen()
         }
+        // Accumulate so smooth touchpad scrolling gives fine 1% steps (a mouse notch = 120 units = 5%).
+        // `inverted` = natural scrolling: flip so fingers/wheel moving "up" always means louder.
+        property real wheelAcc: 0
+        onWheel: (w) => {
+            wheelAcc += w.angleDelta.y * (w.inverted ? -1 : 1)
+            const steps = Math.trunc(wheelAcc / 24)
+            if (steps === 0) return
+            wheelAcc -= steps * 24
+            const sys = player.systemVolume >= 0
+            const cur = sys ? player.systemVolume : player.engine.volume
+            player.setVolumePercent(Math.max(0, Math.min(sys ? 100 : 150, cur + steps)))
+        }
     }
     Timer {
         id: clickTimer
@@ -759,6 +771,7 @@ ApplicationWindow {
                         onClicked: player.engine.setMuted(!player.engine.muted)
                     }
                     VolumeSlider {
+                        id: volumeBar
                         objectName: "volumeSlider"
                         Layout.alignment: Qt.AlignVCenter
                     }
@@ -1057,6 +1070,22 @@ ApplicationWindow {
         function onPausedChanged() { root.showChrome() }
     }
 
+    // Volume OSD: any volume change (keys, wheel, laptop keys, OS slider) shows the bar and a toast.
+    function volumeOsd() {
+        if (volumeBar.pressed) return
+        showChrome()
+        toast.show(qsTr("Volume %1%").arg(player.systemVolume >= 0 ? player.systemVolume : player.engine.volume))
+    }
+    Connections {
+        target: player
+        function onSystemVolumeChanged() { root.volumeOsd() }
+    }
+    Connections {
+        target: player.engine
+        enabled: player.systemVolume < 0
+        function onVolumeChanged() { root.volumeOsd() }
+    }
+
     HoverHandler {
         cursorShape: root.chromeVisible || !player.hasMedia ? Qt.ArrowCursor : Qt.BlankCursor
         onPointChanged: root.showChrome()
@@ -1096,8 +1125,9 @@ ApplicationWindow {
         case "seekBack": e.seekRelative(-settingsDialog.seekStep); break
         case "seekForward": e.seekRelative(settingsDialog.seekStep); break
         case "volumeUp": case "volumeDown": {
-            const v = Math.max(0, Math.min(150, e.volume + (id === "volumeUp" ? 5 : -5)))
-            e.setVolume(v); root.showChrome(); toast.show(qsTr("Volume %1%").arg(v)); break
+            const cur = player.systemVolume >= 0 ? player.systemVolume : e.volume
+            const v = Math.max(0, Math.min(player.systemVolume >= 0 ? 100 : 150, cur + (id === "volumeUp" ? 5 : -5)))
+            player.setVolumePercent(v); break
         }
         case "mute": e.setMuted(!e.muted); break
         case "stats": e.statsEnabled = !e.statsEnabled; break

@@ -146,9 +146,17 @@ Slider {
         x: Math.max(4 - control.mapToItem(null, 0, 0).x,
                     Math.min(control.tipX - width / 2,
                              control.Window.width - control.mapToItem(null, 0, 0).x - width - 4))
-        y: -height - 8
+        y: -height - 10
+        padding: 6
+        // Neutral near-black card (matches the video chrome) instead of the grey-blue panel color.
+        background: Rectangle {
+            radius: 10
+            color: Qt.rgba(0.06, 0.06, 0.07, 0.94)
+            border.width: 1
+            border.color: Qt.rgba(1, 1, 1, 0.10)
+        }
         contentItem: Column {
-            spacing: 4
+            spacing: 6
             Item {
                 visible: control.thumbUrl !== ""
                 anchors.horizontalCenter: parent.horizontalCenter
@@ -165,19 +173,14 @@ Slider {
                     opacity: status === Image.Ready ? 1 : 0
                     Behavior on opacity { NumberAnimation { duration: Theme.animationMedium } }
                 }
-                Rectangle { // frame; the frame itself is pre-rounded
-                    anchors.fill: parent
-                    color: "transparent"
-                    radius: Theme.radiusSmall + 2
-                    border.color: Theme.border
-                }
             }
             Text {
                 anchors.horizontalCenter: parent.horizontalCenter
                 text: timefmt.formatDuration(control.tipTime)
-                color: Theme.primaryText
+                color: Theme.videoText
                 font.family: Theme.fontFamily
-                font.pixelSize: Theme.fontSizeSmall
+                font.pixelSize: Theme.fontSizeMedium
+                font.weight: Font.Medium
             }
             Text {
                 visible: control.chapterTitle !== ""
@@ -185,7 +188,7 @@ Slider {
                 width: Math.min(implicitWidth, 200)
                 elide: Text.ElideRight
                 text: control.chapterTitle
-                color: Theme.secondaryText
+                color: Theme.videoTextSecondary
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSizeSmall
             }

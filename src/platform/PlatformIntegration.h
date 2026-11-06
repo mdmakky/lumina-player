@@ -36,6 +36,8 @@ public:
     virtual void update(const MediaState &state) = 0;
     // Position jumped because of a seek (MPRIS Seeked).
     virtual void seeked(double) {}
+    // Sets the OS output volume (0..100). No-op where the OS has no backend.
+    virtual void setSystemVolume(int) {}
 
 signals:
     void playRequested();
@@ -48,4 +50,5 @@ signals:
     void seekToRequested(double seconds);
     void openUriRequested(const QUrl &url);
     void volumeRequested(double volume); // 0..1
+    void systemVolumeChanged(int percent); // OS output volume changed outside the app (e.g. laptop keys)
 };

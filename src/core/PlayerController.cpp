@@ -651,3 +651,26 @@ void PlayerController::clearRecentUrls()
     setSetting(QStringLiteral("recentUrls"), m_recentUrls);
     emit recentUrlsChanged();
 }
+
+void PlayerController::setSystemVolume(int percent)
+{
+    if (percent == m_systemVolume)
+        return;
+    if (m_systemVolume < 0)
+        m_engine->setVolume(100); // OS volume is the master from now on; avoid double attenuation
+    m_systemVolume = percent;
+    emit systemVolumeChanged();
+}
+
+void PlayerController::setVolumePercent(int percent)
+{
+    if (percent > 0 && m_engine->muted())
+        m_engine->setMuted(false); // changing the volume while muted means "I want to hear it"
+    if (m_systemVolume < 0) {
+        m_engine->setVolume(qBound(0, percent, 150));
+        return;
+    }
+    percent = qBound(0, percent, 100);
+    setSystemVolume(percent);
+    emit systemVolumeRequested(percent);
+}

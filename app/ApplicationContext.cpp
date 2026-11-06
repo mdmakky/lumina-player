@@ -223,6 +223,8 @@ void wirePlatform(PlayerController *player, PlatformIntegration *os)
     QObject::connect(os, &PlatformIntegration::seekToRequested, e, [e](double t) { e->seek(t); });
     QObject::connect(os, &PlatformIntegration::openUriRequested, player,
                      [player](const QUrl &u) { player->openFiles({u}); });
+    QObject::connect(os, &PlatformIntegration::systemVolumeChanged, player, &PlayerController::setSystemVolume);
+    QObject::connect(player, &PlayerController::systemVolumeRequested, os, &PlatformIntegration::setSystemVolume);
     QObject::connect(os, &PlatformIntegration::volumeRequested, e,
                      [e](double v) { e->setVolume(int(v * 100 + 0.5)); });
 }

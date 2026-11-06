@@ -40,6 +40,8 @@ class PlayerController : public QObject
     Q_PROPERTY(int libraryProgress READ libraryProgress NOTIFY libraryProgressChanged FINAL)
     Q_PROPERTY(bool libraryAvailable READ libraryAvailable CONSTANT FINAL)
     Q_PROPERTY(bool hasMedia READ hasMedia NOTIFY hasMediaChanged FINAL)
+    // OS output volume 0..100, or -1 when the OS backend cannot report it (the UI then drives the engine volume).
+    Q_PROPERTY(int systemVolume READ systemVolume NOTIFY systemVolumeChanged FINAL)
     Q_PROPERTY(bool shuffle READ shuffle WRITE setShuffle NOTIFY shuffleChanged FINAL)
     Q_PROPERTY(int repeatMode READ repeatMode WRITE setRepeatMode NOTIFY repeatModeChanged FINAL)
     // Bookmarks of the current file: [{id, time, label}], ordered by time.
@@ -54,6 +56,10 @@ public:
     explicit PlayerController(QObject *parent = nullptr);
 
     MpvEngine *engine() const { return m_engine; }
+    int systemVolume() const { return m_systemVolume; }
+    void setSystemVolume(int percent); // from the OS backend
+    // The one volume entry point for sliders/keys: OS volume when available, else the engine's.
+    Q_INVOKABLE void setVolumePercent(int percent);
     PlaylistModel *playlist() const { return m_playlist; }
     ThumbnailService *thumbs() const { return m_thumbs; }
     bool hasMedia() const;
@@ -129,6 +135,8 @@ signals:
     // Transient user-facing message; the UI shows it as a toast.
     void toast(const QString &text);
     void hasMediaChanged();
+    void systemVolumeChanged();
+    void systemVolumeRequested(int percent);
     void bookmarksChanged();
     void recentFilesChanged();
     void recentUrlsChanged();
@@ -162,6 +170,7 @@ private:
     void migrateLegacy();
 
     MpvEngine *m_engine = nullptr;
+    int m_systemVolume = -1;
     PlaylistModel *m_playlist = nullptr;
     ThumbnailService *m_thumbs = nullptr;
     QString m_currentPath;

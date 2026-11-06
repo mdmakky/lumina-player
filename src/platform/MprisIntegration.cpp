@@ -3,6 +3,9 @@
 #include "utilities/Logger.h"
 
 #include <QCoreApplication>
+#include <QProcess>
+#include <QRegularExpression>
+#include <QTimer>
 #include <QDBusConnection>
 #include <QDBusConnectionInterface>
 #include <QDBusMessage>
@@ -136,6 +139,7 @@ void MprisPlayerAdaptor::OpenUri(const QString &uri) { emit m_owner->openUriRequ
 MprisIntegration::MprisIntegration(QObject *parent)
     : PlatformIntegration(parent)
 {
+    watchSystemVolume();
     auto bus = QDBusConnection::sessionBus();
     if (!bus.isConnected()) {
         qCInfo(lcCore) << "No D-Bus session bus; MPRIS and screensaver inhibit disabled";
@@ -181,4 +185,43 @@ void MprisIntegration::emitPropertiesChanged(const QVariantMap &changed)
                                                   QStringLiteral("PropertiesChanged"));
     sig << kPlayerIface << props << QStringList();
     QDBusConnection::sessionBus().send(sig);
+}
+
+// shortcut: shells out to pactl (PulseAudio/PipeWire-pulse; also present in the Flatpak). Without pactl
+// the toast is simply absent. Upgrade to libpulse if more audio-device features are needed.
+void MprisIntegration::watchSystemVolume()
+{
+    auto *sub = new QProcess(this);
+    auto *debounce = new QTimer(this);
+    debounce->setSingleShot(true);
+    debounce->setInterval(120);
+    auto last = std::make_shared<int>(-1);
+    connect(debounce, &QTimer::timeout, this, [this, last] {
+        auto *get = new QProcess(this);
+        connect(get, &QProcess::finished, this, [this, get, last] {
+            const auto m = QRegularExpression(QStringLiteral("(\\d+)%")).match(QString::fromUtf8(get->readAllStandardOutput()));
+            get->deleteLater();
+            if (!m.hasMatch())
+                return;
+            const int pct = m.captured(1).toInt();
+            if (pct != *last)
+                emit systemVolumeChanged(pct);
+            *last = pct;
+        });
+        get->start(QStringLiteral("pactl"), {QStringLiteral("get-sink-volume"), QStringLiteral("@DEFAULT_SINK@")});
+    });
+    connect(sub, &QProcess::readyReadStandardOutput, this, [sub, debounce] {
+        const QByteArray out = sub->readAllStandardOutput();
+        if (out.contains(" on sink #") || out.contains(" on server"))
+            debounce->start();
+    });
+    sub->start(QStringLiteral("pactl"), {QStringLiteral("subscribe")});
+    debounce->start(); // baseline
+}
+
+void MprisIntegration::setSystemVolume(int percent)
+{
+    QProcess::startDetached(QStringLiteral("pactl"),
+                            {QStringLiteral("set-sink-volume"), QStringLiteral("@DEFAULT_SINK@"),
+                             QString::number(qBound(0, percent, 100)) + QLatin1Char('%')});
 }

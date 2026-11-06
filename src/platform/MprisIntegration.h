@@ -111,11 +111,13 @@ public:
     explicit MprisIntegration(QObject *parent = nullptr);
     void update(const MediaState &state) override;
     void seeked(double position) override;
+    void setSystemVolume(int percent) override;
     const MediaState &state() const { return m_state; }
 
 private:
     friend class MprisPlayerAdaptor;
     void emitPropertiesChanged(const QVariantMap &changed);
+    void watchSystemVolume();
 
     MediaState m_state;
     MprisPlayerAdaptor *m_player = nullptr;
