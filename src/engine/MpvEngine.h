@@ -192,6 +192,8 @@ public:
     Q_INVOKABLE void setReadahead(int seconds);
     // Advanced override: sets any mpv property; returns "" on success or mpv's error text.
     Q_INVOKABLE QString setMpvOption(const QString &name, const QString &value);
+    // True when mpv's `protocol-list` contains the scheme (smb/nfs/sftp depend on the FFmpeg build).
+    Q_INVOKABLE bool protocolSupported(const QString &scheme) const;
     Q_INVOKABLE QVariant mpvProperty(const QString &name) const { return getProp(name.toUtf8().constData()); }
     // Human-readable scene-graph renderer (set once the GL context exists).
     QString rendererInfo() const { return m_rendererInfo; }
