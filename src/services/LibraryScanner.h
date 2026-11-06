@@ -21,6 +21,7 @@ public:
 
     bool scanning() const { return m_scanning; }
     static bool isMediaFile(const QString &name);
+    static bool isAudioFile(const QString &name);
 
 public slots:
     // Starts (or, if one is running, cancels it and restarts with these roots).

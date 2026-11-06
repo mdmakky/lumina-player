@@ -88,6 +88,18 @@ qt_add_executable(lumina
     src/storage/LibraryModel.cpp
     src/services/LibraryScanner.h
     src/services/LibraryScanner.cpp
+    src/services/LibraryProber.h
+    src/services/LibraryProber.cpp
+    src/storage/PlaylistRepository.h
+    src/storage/PlaylistRepository.cpp
+    src/storage/PlaylistsModel.h
+    src/storage/PlaylistsModel.cpp
+    src/media/LibraryMeta.h
+    src/media/LibraryMeta.cpp
+    src/media/LibraryThumbs.h
+    src/media/LibraryThumbs.cpp
+    src/engine/MpvProbe.h
+    src/engine/MpvProbe.cpp
     src/engine/MpvEngine.h
     src/engine/MpvEngine.cpp
     src/engine/MpvVideoItem.h
@@ -383,11 +395,26 @@ if(BUILD_TESTING)
         src/storage/Database.cpp
         src/storage/LibraryRepository.cpp
         src/storage/LibraryModel.cpp
+        src/media/LibraryMeta.cpp
         src/utilities/Logger.cpp
     )
     target_include_directories(tst_libraryscanner PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
-    target_link_libraries(tst_libraryscanner PRIVATE Qt6::Core Qt6::Sql Qt6::Test)
+    target_link_libraries(tst_libraryscanner PRIVATE Qt6::Core Qt6::Gui Qt6::Sql Qt6::Test)
     add_test(NAME LibraryScanner COMMAND tst_libraryscanner)
+
+    add_executable(tst_libraryextras
+        tests/unit/tst_LibraryExtras.cpp
+        src/storage/Database.cpp
+        src/storage/LibraryRepository.cpp
+        src/storage/LibraryModel.cpp
+        src/storage/PlaylistRepository.cpp
+        src/storage/PlaylistsModel.cpp
+        src/media/LibraryMeta.cpp
+        src/utilities/Logger.cpp
+    )
+    target_include_directories(tst_libraryextras PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+    target_link_libraries(tst_libraryextras PRIVATE Qt6::Core Qt6::Gui Qt6::Sql Qt6::Test)
+    add_test(NAME LibraryExtras COMMAND tst_libraryextras)
 
     add_executable(tst_mpris
         tests/unit/tst_Mpris.cpp

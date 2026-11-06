@@ -72,9 +72,19 @@ PlayerController::PlayerController(QObject *parent)
         m_libraryProgress = n;
         emit libraryProgressChanged();
     });
-    connect(m_scanner, &LibraryScanner::finished, this, [this] {
+    m_prober = new LibraryProber(&m_libRepo, this);
+    m_plRepo = PlaylistRepository(m_database.get());
+    m_playlists = new PlaylistsModel(&m_plRepo, this);
+    connect(m_playlists, &PlaylistsModel::contentChanged, m_library, &LibraryModel::reload);
+    connect(m_prober, &LibraryProber::changed, m_library, &LibraryModel::reload);
+    connect(m_prober, &LibraryProber::finished, this, [this] { emit libraryProbingChanged(); });
+    connect(m_scanner, &LibraryScanner::finished, this, [this](bool canceled) {
         m_library->reload();
         emit libraryScanningChanged();
+        if (!canceled) {
+            m_prober->start();
+            emit libraryProbingChanged();
+        }
     });
 
     // Per-file profiles: restore tracks once the file is open; any later change marks the profile dirty.
@@ -125,6 +135,7 @@ PlayerController::PlayerController(QObject *parent)
     migrateLegacy();
     reloadHistory();
     m_library->reload();
+    m_playlists->reload();
     if (!m_libraryFolders.isEmpty())
         QTimer::singleShot(0, this, &PlayerController::rescanLibrary);
     m_engine->setVolume(settings.value(QStringLiteral("playback/defaultVolume"),
