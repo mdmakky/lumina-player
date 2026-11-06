@@ -20,7 +20,7 @@ It was started because seeking in other players stutters on Linux; fast, accurat
 | Any Linux | Flatpak | `flatpak install --user ./Lumina-Player-*.flatpak` |
 | Fedora 43, 44, 45 | RPM (one per release) | `sudo dnf install ./lumina-player-*.rpm` |
 | Ubuntu 24.04, 25.10, 26.04 | DEB (one per release) | `sudo apt install ./lumina-player_*.deb` |
-| macOS (Apple Silicon) | DMG | open it and drag to Applications |
+| macOS (Apple Silicon) | DMG, built on a Mac and attached to a release when ready (may lag the Linux packages) | open it and drag to Applications |
 | Windows | not available yet | |
 
 Download from the [Releases page](https://github.com/mdmakky/lumina-player/releases). Pick the

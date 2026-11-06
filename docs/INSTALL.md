@@ -10,7 +10,7 @@ Lumina Player is in **preview** (0.3.1-preview). All downloads are on the
 | **Any Linux** with Flatpak | `Lumina-Player-<version>.flatpak` | `flatpak install --user ./Lumina-Player-*.flatpak` |
 | **Fedora 43 / 44 / 45** | `lumina-player-<version>.fc<N>.x86_64.rpm` (N = your release) | `sudo dnf install ./lumina-player-*.rpm` |
 | **Ubuntu 24.04 / 25.10 / 26.04** | `lumina-player_<version>_ubuntu<N>_amd64.deb` (N = your release) | `sudo apt install ./lumina-player_*.deb` |
-| **macOS** (Apple Silicon) | `Lumina-Player-<version>-macOS.dmg` | open, drag to Applications |
+| **macOS** (Apple Silicon) | `Lumina-Player-<version>-macOS.dmg`, built on a Mac and attached to a release when ready (it may lag the Linux packages; if the release has none yet, build from source) | open, drag to Applications |
 | **Windows** | not available yet | see [WINDOWS.md](WINDOWS.md) to build it yourself |
 
 Check your release first: `rpm -E %fedora` (Fedora) or `lsb_release -rs` (Ubuntu).

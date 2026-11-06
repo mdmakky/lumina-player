@@ -5,7 +5,7 @@ Versions marked "preview" are pre-releases.
 
 ## [0.3.1-preview] - 2026-11-06
 
-First public preview. Linux (Flatpak, Fedora RPM, Ubuntu DEB) and macOS (DMG, ad-hoc signed). Windows is not released.
+First public preview. Linux (Flatpak, Fedora RPM, Ubuntu DEB). The macOS DMG (ad-hoc signed) is built on a Mac and attached after the Linux packages. Windows is not released.
 
 ### Added
 - Start screen and media library: video and music tabs, search, tags, thumbnails, duplicate detection, playlists, favorites
