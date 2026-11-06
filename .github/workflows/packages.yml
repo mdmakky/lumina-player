@@ -13,6 +13,9 @@ on:
 permissions:
   contents: write
 
+env:
+  TAG: ${{ inputs.tag }} # used as "$TAG" in scripts (never paste inputs into run: text)
+
 jobs:
   windows:
     name: Windows x64 (zip)
@@ -20,11 +23,9 @@ jobs:
     defaults:
       run:
         shell: msys2 {0}
-    env:
-      GH_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@v4
-      - uses: msys2/setup-msys2@v2
+      - uses: msys2/setup-msys2@ec48f7c5447b3140e2b088413ae3a55687bccb6e # v2
         with:
           msystem: MINGW64
           update: true
@@ -57,20 +58,20 @@ jobs:
           windeployqt6 --qmldir ui --no-translations dist/Lumina-Player/lumina.exe || windeployqt --qmldir ui dist/Lumina-Player/lumina.exe
           ldd dist/Lumina-Player/lumina.exe | awk '/mingw64/ {print $3}' | xargs -I{} cp -n {} dist/Lumina-Player/
           cp LICENSE THIRD_PARTY_NOTICES.md README.md dist/Lumina-Player/
-          cd dist && zip -qr ../Lumina-Player-${{ inputs.tag }}-windows-x64.zip Lumina-Player
+          cd dist && zip -qr "../Lumina-Player-${TAG}-windows-x64.zip" Lumina-Player
       - uses: actions/upload-artifact@v4
         with:
           name: windows-zip
           path: Lumina-Player-*.zip
       - name: Attach to release
         shell: pwsh
-        run: gh release upload "${{ inputs.tag }}" (Get-ChildItem Lumina-Player-*.zip).FullName --clobber
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload $env:TAG (Get-ChildItem Lumina-Player-*.zip).FullName --clobber
 
   deb:
     name: Debian / Ubuntu (.deb)
     runs-on: ubuntu-24.04
-    env:
-      GH_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@v4
       - name: Install build dependencies
@@ -85,27 +86,34 @@ jobs:
           for p in libqt6sql6-sqlite qml6-module-qtquick qml6-module-qtquick-controls qml6-module-qtquick-layouts \
                    qml6-module-qtquick-window qml6-module-qtqml-workerscript qml6-module-qtquick-templates \
                    qml6-module-qt-labs-platform qml6-module-qtcore qml6-module-qtquick-dialogs; do
-            apt-cache show "$p" >/dev/null 2>&1 && echo "ok      $p" || echo "MISSING $p"
+            if apt-cache show "$p" >/dev/null 2>&1; then echo "ok      $p"; else echo "MISSING $p"; missing=1; fi
           done
+          test -z "${missing:-}"
       - name: Build
         run: |
           ln -s packaging/deb/debian debian
           dpkg-buildpackage -us -uc -b -d
           mkdir -p out && cp ../lumina-player_*.deb out/
           ls -l out
+      - name: Install test (the package must install on a clean Ubuntu 24.04)
+        run: sudo apt-get install -y ./out/lumina-player_*.deb && dpkg -L lumina-player | head -5
       - uses: actions/upload-artifact@v4
         with:
           name: deb
           path: out/*.deb
       - name: Attach to release
-        run: gh release upload "${{ inputs.tag }}" out/*.deb --clobber
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "$TAG" out/*.deb --clobber
 
   rpm:
-    name: Fedora (.rpm)
+    name: Fedora ${{ matrix.fedora }} (.rpm)
     runs-on: ubuntu-latest
-    container: fedora:latest
-    env:
-      GH_TOKEN: ${{ github.token }}
+    strategy:
+      fail-fast: false
+      matrix:
+        fedora: [43, 44, 45] # an RPM is tied to its release's Qt: one build per release
+    container: fedora:${{ matrix.fedora }}
     steps:
       - name: Tools
         run: dnf -y install git rpm-build rpmdevtools dnf-plugins-core gh
@@ -121,9 +129,44 @@ jobs:
           ls -l ~/rpmbuild/RPMS/*/*.rpm ~/rpmbuild/SRPMS/*.rpm
           rpm -qpR ~/rpmbuild/RPMS/*/lumina-player-*.rpm | head -30
           mkdir -p out && cp ~/rpmbuild/RPMS/*/lumina-player-[0-9]*.rpm ~/rpmbuild/SRPMS/*.rpm out/
+      - name: Install test (the package must install on a clean Fedora ${{ matrix.fedora }})
+        run: dnf -y install out/lumina-player-[0-9]*.x86_64.rpm && rpm -ql lumina-player | head -5
       - uses: actions/upload-artifact@v4
         with:
-          name: rpm
+          name: rpm-fc${{ matrix.fedora }}
           path: out/*.rpm
       - name: Attach to release
-        run: gh release upload "${{ inputs.tag }}" out/*.rpm --clobber
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "$TAG" out/*.rpm --clobber
+
+  flatpak:
+    name: Flatpak bundle (any distro)
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/flathub-infra/flatpak-github-actions:kde-6.10
+      options: --privileged
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        run: |
+          flatpak-builder --force-clean --disable-rofiles-fuse --repo=repo build-dir packaging/flatpak/io.github.mdmakky.Lumina.yml
+          flatpak build-bundle repo "Lumina-Player-${TAG}.flatpak" io.github.mdmakky.Lumina
+          ls -l *.flatpak
+      - uses: actions/upload-artifact@v4
+        with:
+          name: flatpak
+          path: "*.flatpak"
+
+  flatpak-attach:
+    name: Attach Flatpak bundle
+    needs: flatpak
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: flatpak
+      - name: Attach to release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "$TAG" *.flatpak --clobber
