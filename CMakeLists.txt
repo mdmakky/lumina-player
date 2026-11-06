@@ -426,6 +426,15 @@ if(BUILD_TESTING)
     target_link_libraries(tst_translations PRIVATE Qt6::Core Qt6::Test)
     add_test(NAME Translations COMMAND tst_translations)
 
+    add_executable(tst_database
+        tests/unit/tst_Database.cpp
+        src/storage/Database.cpp
+        src/utilities/Logger.cpp
+    )
+    target_include_directories(tst_database PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+    target_link_libraries(tst_database PRIVATE Qt6::Core Qt6::Sql Qt6::Test)
+    add_test(NAME Database COMMAND tst_database)
+
     add_executable(tst_historyrepository
         tests/unit/tst_HistoryRepository.cpp
         src/storage/Database.cpp

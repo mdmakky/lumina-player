@@ -2,7 +2,10 @@
 
 #include "utilities/Logger.h"
 
+#include <QDateTime>
 #include <QDir>
+#include <QFile>
+#include <QFileInfo>
 #include <QSqlError>
 #include <QSqlQuery>
 #include <QStandardPaths>
@@ -24,6 +27,25 @@ Database::Database(const QString &pathIn)
         qCWarning(lcCore) << "Library disabled: QSQLITE driver missing";
         return;
     }
+    m_valid = open(path);
+    if (!m_valid && !m_tooNew && path != QLatin1String(":memory:") && QFileInfo::exists(path)) {
+        // Damaged file: keep it for inspection and start over, so history/favorites work again.
+        const QString backup = path + QStringLiteral(".broken-") + QDateTime::currentDateTime().toString(QStringLiteral("yyyyMMdd-HHmmss"));
+        if (QFile::rename(path, backup)) {
+            for (const char *ext : {"-wal", "-shm"})
+                QFile::remove(path + QLatin1String(ext));
+            m_valid = open(path);
+            if (m_valid) {
+                m_brokenBackup = backup;
+                qCWarning(lcCore) << "Library database was unusable; saved as" << backup << "and recreated";
+            }
+        }
+    }
+}
+
+bool Database::open(const QString &path)
+{
+    bool ok = false;
     {
         QSqlDatabase d = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), m_conn);
         d.setDatabaseName(path);
@@ -33,11 +55,12 @@ Database::Database(const QString &pathIn)
             QSqlQuery q(d);
             q.exec(QStringLiteral("PRAGMA journal_mode=WAL")); // stays "memory" for :memory:
             q.exec(QStringLiteral("PRAGMA synchronous=NORMAL"));
-            m_valid = migrate();
+            ok = migrate();
         }
     }
-    if (!m_valid)
+    if (!ok)
         QSqlDatabase::removeDatabase(m_conn);
+    return ok;
 }
 
 Database::~Database()
@@ -63,6 +86,7 @@ bool Database::migrate()
     const int v = schemaVersion();
     if (v > kSchemaVersion) { // written by a newer build; don't touch
         qCWarning(lcCore) << "Library disabled: schema" << v << "is newer than" << kSchemaVersion;
+        m_tooNew = true;
         return false;
     }
     if (v < 1) {

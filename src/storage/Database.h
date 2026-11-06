@@ -19,10 +19,15 @@ public:
     bool valid() const { return m_valid; }
     QSqlDatabase db() const { return QSqlDatabase::database(m_conn, false); }
     int schemaVersion() const;
+    // Set when an unusable file was moved aside and a fresh database created ("" otherwise).
+    QString brokenBackup() const { return m_brokenBackup; }
 
 private:
     bool migrate();
+    bool open(const QString &path);
 
     QString m_conn;
+    QString m_brokenBackup;
     bool m_valid = false;
+    bool m_tooNew = false; // file written by a newer build: never touched
 };
