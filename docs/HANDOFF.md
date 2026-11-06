@@ -83,3 +83,16 @@ Owner also asked what "Always on top" and "Deinterlace" do: top = window above o
 3. Verify the new popup panels, Settings and Bengali (install LinguistTools) on Linux; fix whatever looks wrong there.
 4. Windows build (needs real Windows), macOS signing, translations review, crash reporting.
 5. Seek-preview thumbnails and library features only checked on macOS test patterns — check with real movies.
+
+## macOS session (2026-11-06, later) — UI redesign to verify on Linux
+Pushed up to `361696c`. Built and screenshot-checked on macOS only.
+
+- New start screen `ui/Components/HomeView.qml`, redesigned library `ui/Library/LibraryView.qml` (Back button, underline tabs, segmented sort/view, thumbnail rows, card grid).
+- Shared surfaces: `Surface.qml`, `ModalCard.qml`, `ModalFooter.qml`; PopupPanel, Open URL, Media info, Settings frame, tooltip and library dialogs use them. Section titles are sentence case via `Theme.sentence()`.
+- Icons: `Glyph.qml` draws SVG paths as data URIs in the theme colour (no asset files). macOS logs 5x `qt.svg: Invalid path data; path truncated` at startup though the icons render; find the truncated path.
+- Theme: dark accent `#6A5EEA`, `accentText` picked by WCAG contrast, darker panel border, new tokens (`scrimModal`, `videoCard`, `panelHighlight`, font size tokens).
+- Window geometry restore is clamped to the screen (`Main.qml`); startup volume toast removed; queue panel hidden on the start screen.
+
+**Check on Linux:** icons render, Home/Library/Settings/Open URL (Ctrl+U)/Media info (Ctrl+I) look right on Qt 6.11 + Wayland, window clamp does not misbehave on GNOME, Surface shadow cost, CI Qt 6.4 still green.
+Quick test (not the full suite): `LUMINA_UI_ONLY_HOME_LIBRARY=1 LUMINA_UI_TEST=1 LUMINA_SCREENSHOT=/tmp/shots ./build/linux-debug/lumina /path/to/real.mkv`
+Not seen on macOS either: Equalizer, Picture and Bookmarks popup interiors under the new chrome.
