@@ -526,6 +526,13 @@ void UiTest::run()
         result("H raises subtitle delay", qAbs(eng->subtitleDelay() - (sd + 0.1)) < 0.01, QString::number(eng->subtitleDelay()));
         key(Qt::Key_G);
         result("G lowers subtitle delay", qAbs(eng->subtitleDelay() - sd) < 0.01);
+        {
+            const int pos0 = p->setting("subtitles/position", 100).toInt();
+            key(Qt::Key_Up, Qt::ShiftModifier);
+            result("Shift+Up nudges subtitles up", p->setting("subtitles/position").toInt() == pos0 - 2, p->setting("subtitles/position").toString());
+            key(Qt::Key_Down, Qt::ShiftModifier);
+            result("Shift+Down nudges subtitles back", p->setting("subtitles/position").toInt() == pos0);
+        }
         pause();
         QTest::qWait(300);
         p0 = eng->position();
@@ -663,19 +670,74 @@ void UiTest::run()
             click("deinterlaceSwitch");
             result("deinterlace off", waitFor([&] { return !eng->deinterlace(); }));
 
+            // settings rows below the fold: focus scrolls them into view first
+            auto clickR = [&](const char *n) {
+                if (auto *it = find(n)) { QMetaObject::invokeMethod(it, "forceActiveFocus"); QTest::qWait(400); }
+                return click(n);
+            };
             page(4);
             QTest::qWait(300);
             click("subSizePlus");
-            result("subtitle size applies to engine", waitFor([&] { return qAbs(prop("sub-font-size").toDouble() - 60) < 0.01; }), prop("sub-font-size"));
-            result("subtitle size persisted", p->setting("subtitles/fontSize").toInt() == 60);
+            result("subtitle size applies to engine", waitFor([&] { return qAbs(prop("sub-font-size").toDouble() - 45) < 0.01; }), prop("sub-font-size"));
+            result("subtitle size persisted", p->setting("subtitles/fontSize").toInt() == 45);
             click("subColor_FFE45C");
             result("subtitle color applies", waitFor([&] { return prop("sub-color").toUpper().startsWith("#FFFFE45C") || prop("sub-color").toUpper().contains("FFE45C"); }), prop("sub-color"));
-            click("subLang_en");
+            clickR("subLang_en");
             result("subtitle language preference applies", waitFor([&] { return prop("slang") == "en,eng"; }), prop("slang"));
             click("subSizeMinus");
             click("subColor_FFFFFF");
-            click("subLang_bnen");
+            clickR("subLang_bnen");
             shot("settings-subtitles");
+
+            // style rows: presets, effects, encoding, dual subtitles
+            {
+                auto subRows = find("subStyleRows");
+                result("subtitle style rows exist", subRows != nullptr);
+                auto mpvStr = [&](const char *n) { return prop(n); };
+                clickR("subBold");
+                result("bold applies", waitFor([&] { return mpvStr("sub-bold") == "yes"; }), mpvStr("sub-bold"));
+                clickR("subShadowPlus");
+                result("shadow applies", waitFor([&] { return qAbs(mpvStr("sub-shadow-offset").toDouble() - 0.5) < 0.01; }), mpvStr("sub-shadow-offset"));
+                clickR("subBox");
+                result("background box applies", waitFor([&] { return mpvStr("sub-border-style") == "opaque-box"; }), mpvStr("sub-border-style"));
+                clickR("subAlignX_left");
+                result("alignment applies", waitFor([&] { return mpvStr("sub-align-x") == "left"; }), mpvStr("sub-align-x"));
+                result("style persisted as JSON", p->setting("subtitles/mpvStyle").toString().contains("opaque-box"));
+                shot("settings-subtitles-style");
+                // presets reach the live engine
+                QMetaObject::invokeMethod(subRows, "pickPreset", Q_ARG(QVariant, QStringLiteral("b1")));
+                result("Cinema preset applies live", waitFor([&] { return mpvStr("sub-color").toUpper().contains("FFE45C") && mpvStr("sub-bold") == "yes" && mpvStr("sub-border-style") == "outline-and-shadow"; }), mpvStr("sub-color"));
+                if (auto *nm = find("subPresetName")) nm->setProperty("text", "Tester");
+                clickR("subPresetSave");
+                result("user preset saved", p->setting("subtitles/userPresets").toString().contains("Tester"));
+                clickR("subPresetDelete");
+                result("user preset deleted", !p->setting("subtitles/userPresets").toString().contains("Tester"));
+                QMetaObject::invokeMethod(subRows, "pickPreset", Q_ARG(QVariant, QStringLiteral("b0")));
+                clickR("subAlignX_center");
+                waitFor([&] { return mpvStr("sub-align-x") == "center"; });
+
+                // encoding + dual subtitles with generated Bengali / Latin-1 files
+                QTemporaryDir td;
+                const QString bn = td.filePath("a.srt"), l1 = td.filePath("b.srt");
+                QFile f1(bn); f1.open(QIODevice::WriteOnly);
+                f1.write(QString::fromUtf8("1\n00:00:00,000 --> 00:59:00,000\nবাংলা সাবটাইটেল\n\n").toUtf8());
+                f1.close();
+                QFile f2(l1); f2.open(QIODevice::WriteOnly);
+                f2.write(QByteArray("1\n00:00:00,000 --> 00:59:00,000\nCaf\xe9 d\xe9j\xe0 vu\n\n"));
+                f2.close();
+                eng->loadExternalSubtitle(QUrl::fromLocalFile(bn));
+                waitFor([&] { return eng->subtitleTracks().size() >= 1 && mpvStr("sub-text").contains(QString::fromUtf8("বাংলা")); }, 5000);
+                result("Bengali subtitle text decoded", mpvStr("sub-text").contains(QString::fromUtf8("বাংলা")), mpvStr("sub-text"));
+                eng->loadExternalSubtitle(QUrl::fromLocalFile(l1));
+                waitFor([&] { return mpvStr("sub-text").contains(QString::fromUtf8("Café")); }, 5000);
+                result("Latin-1 encoding auto-detected", mpvStr("sub-text").contains(QString::fromUtf8("Café déjà")), mpvStr("sub-text"));
+                int firstId = 0;
+                for (const QVariant &t : eng->subtitleTracks()) { const QVariantMap m = t.toMap(); if (m.value("external-filename").toString() == bn) firstId = m.value("id").toInt(); }
+                eng->setSecondarySubtitleTrack(firstId);
+                result("secondary subtitle shown", waitFor([&] { return eng->secondarySubtitleId() == firstId && mpvStr("secondary-sub-text").contains(QString::fromUtf8("বাংলা")); }, 5000), mpvStr("secondary-sub-text"));
+                eng->setSecondarySubtitleTrack(0);
+                result("secondary subtitle off", waitFor([&] { return eng->secondarySubtitleId() == 0; }));
+            }
 
             page(5);
             QTest::qWait(300);

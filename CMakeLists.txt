@@ -168,6 +168,7 @@ qt_add_qml_module(lumina
         ui/Settings/SwitchRow.qml
         ui/Settings/StepperRow.qml
         ui/Settings/SliderRow.qml
+        ui/Settings/SubtitleStyleRows.qml
         ui/Settings/ComboRow.qml
         ui/Settings/ButtonRow.qml
         ui/Settings/ShortcutsEditor.qml

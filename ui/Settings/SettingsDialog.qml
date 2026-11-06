@@ -122,7 +122,7 @@ Item {
             setVideoAspect("auto"); setDeinterlace(false); setShotFormat("png"); setShotDir("")
             break
         case 3: setDefaultVolume(100); break
-        case 4: setSubSize(55); setSubColor("#FFFFFF"); setSubBorder(3); setSubPos(100); setSubLangs("bn,ben,en,eng"); break
+        case 4: setSubSize(55); setSubColor("#FFFFFF"); setSubBorder(3); setSubPos(100); setSubLangs("bn,ben,en,eng"); subStyle.resetStyle(); break
         case 5: setThemeMode("dark"); setReducedMotion(false); setHideDelay(2.6); break
         case 7: shortcuts.resetAll(); break
         case 8:
@@ -727,6 +727,7 @@ Item {
                                     onMoved: (v) => dlg.setSubPos(v)
                                 }
                             }
+                            SubtitleStyleRows { id: subStyle; dlg: dlg; thePlayer: player }
                             SettingSection {
                                 title: qsTr("Language")
                                 SettingRow {

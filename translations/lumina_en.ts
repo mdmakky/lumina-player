@@ -1643,6 +1643,16 @@
         <source>Cycle repeat mode</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <location filename="../src/core/ShortcutManager.cpp" line="1"/>
+        <source>Subtitles up</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/core/ShortcutManager.cpp" line="1"/>
+        <source>Subtitles down</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>ShortcutsEditor</name>
@@ -1762,6 +1772,11 @@
         <source>All files (*)</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <location filename="../ui/Components/TrackMenu.qml" line="1"/>
+        <source>SECONDARY SUBTITLE</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>VideoAdjustPopup</name>
@@ -1793,6 +1808,209 @@
     <message>
         <location filename="../ui/Components/VideoAdjustPopup.qml" line="73"/>
         <source>Reset</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>SubtitleStyleRows</name>
+    <message>
+        <location filename="../ui/Settings/SubtitleStyleRows.qml" line="1"/>
+        <source>Default</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/SubtitleStyleRows.qml" line="1"/>
+        <source>Cinema</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/SubtitleStyleRows.qml" line="1"/>
+        <source>Large print</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/SubtitleStyleRows.qml" line="1"/>
+        <source>High contrast</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/SubtitleStyleRows.qml" line="1"/>
+        <source>Soft box</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/SubtitleStyleRows.qml" line="1"/>
+        <source>Custom</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/SubtitleStyleRows.qml" line="1"/>
+        <source>Auto-detect</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/SubtitleStyleRows.qml" line="1"/>
+        <source>Style</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/SubtitleStyleRows.qml" line="1"/>
+        <source>Preview</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/SubtitleStyleRows.qml" line="1"/>
+        <source>Preset</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/SubtitleStyleRows.qml" line="1"/>
+        <source>Applies size, colour, border, weight, shadow and box together.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/SubtitleStyleRows.qml" line="1"/>
+        <source>Save current style</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/SubtitleStyleRows.qml" line="1"/>
+        <source>Stores the style above as your own preset.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/SubtitleStyleRows.qml" line="1"/>
+        <source>Preset name</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/SubtitleStyleRows.qml" line="1"/>
+        <source>Save</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/SubtitleStyleRows.qml" line="1"/>
+        <source>Delete</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/SubtitleStyleRows.qml" line="1"/>
+        <source>Font and effects</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/SubtitleStyleRows.qml" line="1"/>
+        <source>Font</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/SubtitleStyleRows.qml" line="1"/>
+        <source>Pick one that has Bangla letters, or the text falls back to another font.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/SubtitleStyleRows.qml" line="1"/>
+        <source>System default</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/SubtitleStyleRows.qml" line="1"/>
+        <source>Search fonts…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/SubtitleStyleRows.qml" line="1"/>
+        <source>Bold</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/SubtitleStyleRows.qml" line="1"/>
+        <source>Shadow</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/SubtitleStyleRows.qml" line="1"/>
+        <source>Offset of the soft shadow behind the text.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/SubtitleStyleRows.qml" line="1"/>
+        <source>Background box</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/SubtitleStyleRows.qml" line="1"/>
+        <source>Draws a dark box behind each line instead of an outline.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/SubtitleStyleRows.qml" line="1"/>
+        <source>Box opacity</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/SubtitleStyleRows.qml" line="1"/>
+        <source>Horizontal alignment</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/SubtitleStyleRows.qml" line="1"/>
+        <source>Left</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/SubtitleStyleRows.qml" line="1"/>
+        <source>Center</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/SubtitleStyleRows.qml" line="1"/>
+        <source>Right</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/SubtitleStyleRows.qml" line="1"/>
+        <source>Vertical alignment</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/SubtitleStyleRows.qml" line="1"/>
+        <source>Anchor for the vertical position above.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/SubtitleStyleRows.qml" line="1"/>
+        <source>Top</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/SubtitleStyleRows.qml" line="1"/>
+        <source>Bottom</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/SubtitleStyleRows.qml" line="1"/>
+        <source>Override styled subtitles</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/SubtitleStyleRows.qml" line="1"/>
+        <source>Applies your style to ASS/SSA subtitles instead of their built-in look.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/SubtitleStyleRows.qml" line="1"/>
+        <source>Text encoding</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/SubtitleStyleRows.qml" line="1"/>
+        <source>Encoding</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/SubtitleStyleRows.qml" line="1"/>
+        <source>Auto-detect handles most files. Choose one if letters look garbled.</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

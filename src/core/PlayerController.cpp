@@ -12,6 +12,8 @@
 #include <QDir>
 #include <QFileInfo>
 #include <QJSValue>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QSettings>
 #include <QStandardPaths>
 #include <QSysInfo>
@@ -139,6 +141,9 @@ PlayerController::PlayerController(QObject *parent)
     if (settings.contains(QStringLiteral("subtitles/position")))
         m_engine->setSubtitlePosition(settings.value(QStringLiteral("subtitles/position")).toInt());
     m_engine->setSubtitleLanguages(settings.value(QStringLiteral("subtitles/languages"), QStringLiteral("bn,ben,en,eng")).toString());
+    // Extra mpv subtitle style (font, shadow, box, alignment, encoding...), stored as JSON by SubtitleStyleRows.qml.
+    m_engine->applySubtitleStyle(QJsonDocument::fromJson(settings.value(QStringLiteral("subtitles/mpvStyle")).toString().toUtf8())
+                                     .object().toVariantMap());
     if (settings.contains(QStringLiteral("playback/defaultSpeed")))
         m_engine->setSpeed(settings.value(QStringLiteral("playback/defaultSpeed")).toDouble());
     if (settings.contains(QStringLiteral("video/aspect")))

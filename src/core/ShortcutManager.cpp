@@ -41,6 +41,8 @@ ShortcutManager::ShortcutManager(QObject *parent) : QObject(parent)
         {"subHide",      QT_TRANSLATE_NOOP("Shortcuts", "Hide subtitles"),       QT_TRANSLATE_NOOP("Shortcuts", "Subtitles"), "Shift+W", true},
         {"subDelayDown", QT_TRANSLATE_NOOP("Shortcuts", "Subtitle delay -0.1 s"), QT_TRANSLATE_NOOP("Shortcuts", "Subtitles"), "G", true},
         {"subDelayUp",   QT_TRANSLATE_NOOP("Shortcuts", "Subtitle delay +0.1 s"), QT_TRANSLATE_NOOP("Shortcuts", "Subtitles"), "H", true},
+        {"subPosUp",     QT_TRANSLATE_NOOP("Shortcuts", "Subtitles up"),         QT_TRANSLATE_NOOP("Shortcuts", "Subtitles"), "Shift+Up", true},
+        {"subPosDown",   QT_TRANSLATE_NOOP("Shortcuts", "Subtitles down"),       QT_TRANSLATE_NOOP("Shortcuts", "Subtitles"), "Shift+Down", true},
         {"fullscreen",   QT_TRANSLATE_NOOP("Shortcuts", "Toggle fullscreen"),    QT_TRANSLATE_NOOP("Shortcuts", "Window"),    "F", false},
         {"exitFullscreen", QT_TRANSLATE_NOOP("Shortcuts", "Exit fullscreen"),    QT_TRANSLATE_NOOP("Shortcuts", "Window"),    "Esc", false},
         {"alwaysOnTop",  QT_TRANSLATE_NOOP("Shortcuts", "Always on top"),        QT_TRANSLATE_NOOP("Shortcuts", "Window"),    "T", false},

@@ -1643,6 +1643,16 @@
         <source>Cycle repeat mode</source>
         <translation>পুনরাবৃত্তি মোড বদলান</translation>
     </message>
+    <message>
+        <location filename="../src/core/ShortcutManager.cpp" line="1"/>
+        <source>Subtitles up</source>
+        <translation>সাবটাইটেল উপরে</translation>
+    </message>
+    <message>
+        <location filename="../src/core/ShortcutManager.cpp" line="1"/>
+        <source>Subtitles down</source>
+        <translation>সাবটাইটেল নিচে</translation>
+    </message>
 </context>
 <context>
     <name>ShortcutsEditor</name>
@@ -1762,6 +1772,11 @@
         <source>All files (*)</source>
         <translation>সব ফাইল (*)</translation>
     </message>
+    <message>
+        <location filename="../ui/Components/TrackMenu.qml" line="1"/>
+        <source>SECONDARY SUBTITLE</source>
+        <translation>দ্বিতীয় সাবটাইটেল</translation>
+    </message>
 </context>
 <context>
     <name>VideoAdjustPopup</name>
@@ -1794,6 +1809,209 @@
         <location filename="../ui/Components/VideoAdjustPopup.qml" line="73"/>
         <source>Reset</source>
         <translation>রিসেট</translation>
+    </message>
+</context>
+<context>
+    <name>SubtitleStyleRows</name>
+    <message>
+        <location filename="../ui/Settings/SubtitleStyleRows.qml" line="1"/>
+        <source>Default</source>
+        <translation>ডিফল্ট</translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/SubtitleStyleRows.qml" line="1"/>
+        <source>Cinema</source>
+        <translation>সিনেমা</translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/SubtitleStyleRows.qml" line="1"/>
+        <source>Large print</source>
+        <translation>বড় লেখা</translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/SubtitleStyleRows.qml" line="1"/>
+        <source>High contrast</source>
+        <translation>উচ্চ কনট্রাস্ট</translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/SubtitleStyleRows.qml" line="1"/>
+        <source>Soft box</source>
+        <translation>নরম বক্স</translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/SubtitleStyleRows.qml" line="1"/>
+        <source>Custom</source>
+        <translation>নিজস্ব</translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/SubtitleStyleRows.qml" line="1"/>
+        <source>Auto-detect</source>
+        <translation>স্বয়ংক্রিয় শনাক্ত</translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/SubtitleStyleRows.qml" line="1"/>
+        <source>Style</source>
+        <translation>স্টাইল</translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/SubtitleStyleRows.qml" line="1"/>
+        <source>Preview</source>
+        <translation>প্রিভিউ</translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/SubtitleStyleRows.qml" line="1"/>
+        <source>Preset</source>
+        <translation>প্রিসেট</translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/SubtitleStyleRows.qml" line="1"/>
+        <source>Applies size, colour, border, weight, shadow and box together.</source>
+        <translation>আকার, রঙ, বর্ডার, ওজন, ছায়া ও বক্স একসাথে প্রয়োগ করে।</translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/SubtitleStyleRows.qml" line="1"/>
+        <source>Save current style</source>
+        <translation>বর্তমান স্টাইল সংরক্ষণ</translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/SubtitleStyleRows.qml" line="1"/>
+        <source>Stores the style above as your own preset.</source>
+        <translation>উপরের স্টাইলটি আপনার নিজের প্রিসেট হিসেবে রাখে।</translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/SubtitleStyleRows.qml" line="1"/>
+        <source>Preset name</source>
+        <translation>প্রিসেটের নাম</translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/SubtitleStyleRows.qml" line="1"/>
+        <source>Save</source>
+        <translation>সংরক্ষণ</translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/SubtitleStyleRows.qml" line="1"/>
+        <source>Delete</source>
+        <translation>মুছুন</translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/SubtitleStyleRows.qml" line="1"/>
+        <source>Font and effects</source>
+        <translation>ফন্ট ও ইফেক্ট</translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/SubtitleStyleRows.qml" line="1"/>
+        <source>Font</source>
+        <translation>ফন্ট</translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/SubtitleStyleRows.qml" line="1"/>
+        <source>Pick one that has Bangla letters, or the text falls back to another font.</source>
+        <translation>বাংলা অক্ষর আছে এমন ফন্ট বাছুন, নইলে লেখা অন্য ফন্টে দেখাবে।</translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/SubtitleStyleRows.qml" line="1"/>
+        <source>System default</source>
+        <translation>সিস্টেম ডিফল্ট</translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/SubtitleStyleRows.qml" line="1"/>
+        <source>Search fonts…</source>
+        <translation>ফন্ট খুঁজুন…</translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/SubtitleStyleRows.qml" line="1"/>
+        <source>Bold</source>
+        <translation>গাঢ়</translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/SubtitleStyleRows.qml" line="1"/>
+        <source>Shadow</source>
+        <translation>ছায়া</translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/SubtitleStyleRows.qml" line="1"/>
+        <source>Offset of the soft shadow behind the text.</source>
+        <translation>লেখার পেছনের ছায়ার দূরত্ব।</translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/SubtitleStyleRows.qml" line="1"/>
+        <source>Background box</source>
+        <translation>ব্যাকগ্রাউন্ড বক্স</translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/SubtitleStyleRows.qml" line="1"/>
+        <source>Draws a dark box behind each line instead of an outline.</source>
+        <translation>আউটলাইনের বদলে প্রতিটি লাইনের পেছনে গাঢ় বক্স আঁকে।</translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/SubtitleStyleRows.qml" line="1"/>
+        <source>Box opacity</source>
+        <translation>বক্সের অস্বচ্ছতা</translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/SubtitleStyleRows.qml" line="1"/>
+        <source>Horizontal alignment</source>
+        <translation>অনুভূমিক অ্যালাইনমেন্ট</translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/SubtitleStyleRows.qml" line="1"/>
+        <source>Left</source>
+        <translation>বাম</translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/SubtitleStyleRows.qml" line="1"/>
+        <source>Center</source>
+        <translation>মাঝে</translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/SubtitleStyleRows.qml" line="1"/>
+        <source>Right</source>
+        <translation>ডান</translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/SubtitleStyleRows.qml" line="1"/>
+        <source>Vertical alignment</source>
+        <translation>উল্লম্ব অ্যালাইনমেন্ট</translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/SubtitleStyleRows.qml" line="1"/>
+        <source>Anchor for the vertical position above.</source>
+        <translation>উপরের উল্লম্ব অবস্থানের ভিত্তি।</translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/SubtitleStyleRows.qml" line="1"/>
+        <source>Top</source>
+        <translation>উপরে</translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/SubtitleStyleRows.qml" line="1"/>
+        <source>Bottom</source>
+        <translation>নিচে</translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/SubtitleStyleRows.qml" line="1"/>
+        <source>Override styled subtitles</source>
+        <translation>স্টাইলযুক্ত সাবটাইটেল ওভাররাইড</translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/SubtitleStyleRows.qml" line="1"/>
+        <source>Applies your style to ASS/SSA subtitles instead of their built-in look.</source>
+        <translation>ASS/SSA সাবটাইটেলের নিজস্ব স্টাইলের বদলে আপনার স্টাইল প্রয়োগ করে।</translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/SubtitleStyleRows.qml" line="1"/>
+        <source>Text encoding</source>
+        <translation>টেক্সট এনকোডিং</translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/SubtitleStyleRows.qml" line="1"/>
+        <source>Encoding</source>
+        <translation>এনকোডিং</translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/SubtitleStyleRows.qml" line="1"/>
+        <source>Auto-detect handles most files. Choose one if letters look garbled.</source>
+        <translation>স্বয়ংক্রিয় শনাক্ত বেশিরভাগ ফাইল সামলায়। অক্ষর এলোমেলো দেখালে একটি বাছুন।</translation>
     </message>
 </context>
 </TS>

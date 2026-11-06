@@ -41,6 +41,7 @@ class MpvEngine : public QObject
     // Currently selected track ids (0 = none/off), derived from track-list.
     Q_PROPERTY(int audioTrackId READ audioTrackId NOTIFY tracksChanged FINAL)
     Q_PROPERTY(int subtitleTrackId READ subtitleTrackId NOTIFY tracksChanged FINAL)
+    Q_PROPERTY(int secondarySubtitleId READ secondarySubtitleId NOTIFY tracksChanged FINAL)
     // Seconds; positive delays the subtitles/audio.
     Q_PROPERTY(double subtitleDelay READ subtitleDelay WRITE setSubtitleDelay NOTIFY subtitleDelayChanged FINAL)
     Q_PROPERTY(double audioDelay READ audioDelay WRITE setAudioDelay NOTIFY audioDelayChanged FINAL)
@@ -88,6 +89,7 @@ public:
     QVariantList chapters() const { return m_chapters; }
     int audioTrackId() const { return selectedId(m_audioTracks); }
     int subtitleTrackId() const { return selectedId(m_subtitleTracks); }
+    int secondarySubtitleId() const { return selectedId(m_subtitleTracks, 1); }
     double subtitleDelay() const { return m_subDelay; }
     double audioDelay() const { return m_audioDelay; }
     QVariantMap stats() const { return m_stats; }
@@ -137,6 +139,13 @@ public:
     Q_INVOKABLE void setAudioTrack(int id);
     // id 0 turns subtitles off.
     Q_INVOKABLE void setSubtitleTrack(int id);
+    // Second subtitle line shown at the top (dual subtitles); id 0 turns it off.
+    Q_INVOKABLE void setSecondarySubtitleTrack(int id);
+    // Batch-sets mpv subtitle style properties live (keys are mpv property names such as
+    // sub-font, sub-bold, sub-shadow-offset, sub-back-color, sub-align-y, sub-codepage,
+    // sub-ass-override). Only the sub-* / secondary-sub-* names are accepted; changing
+    // sub-codepage reloads the current subtitle.
+    Q_INVOKABLE void applySubtitleStyle(const QVariantMap &style);
     Q_INVOKABLE void loadExternalSubtitle(const QUrl &url);
     // mode: "auto-safe" | "no" | "auto". Applies to the current and next files.
     // A-B loop: A/B take the current position; clearLoop removes both.
@@ -236,7 +245,7 @@ private:
 
     static QVariant nodeToVariant(const mpv_node &node);
     void refreshTrackLists();
-    static int selectedId(const QVariantList &tracks);
+    static int selectedId(const QVariantList &tracks, int slot = 0);
     void refreshStats();
     QVariant getProp(const char *name) const;
 

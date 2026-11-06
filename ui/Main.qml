@@ -1144,6 +1144,7 @@ ApplicationWindow {
         case "frameBack": e.stepFrame(-1); break
         case "subDelayDown": e.setSubtitleDelay(e.subtitleDelay - 0.1); break
         case "subDelayUp": e.setSubtitleDelay(e.subtitleDelay + 0.1); break
+        case "subPosUp": case "subPosDown": settingsDialog.setSubPos(Math.max(0, Math.min(100, settingsDialog.subPos + (id === "subPosUp" ? -2 : 2)))); break
         case "chapterNext": root.stepChapter(1); break
         case "chapterPrev": root.stepChapter(-1); break
         case "bookmark": player.addBookmark(); break

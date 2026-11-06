@@ -57,6 +57,30 @@ PopupPanel {
 
     PanelSeparator {}
 
+    MenuSectionHeader { text: qsTr("SECONDARY SUBTITLE") }
+    MenuRow {
+        objectName: "sub2Item_off"
+        text: qsTr("Off")
+        mark: "radio"
+        selected: menu.engine.secondarySubtitleId === 0
+        onTriggered: menu.engine.setSecondarySubtitleTrack(0)
+    }
+    Repeater {
+        model: menu.engine.subtitleTracks
+        delegate: MenuRow {
+            required property var modelData
+            objectName: "sub2Item_" + modelData.id
+            visible: modelData.id !== menu.engine.subtitleTrackId
+            text: modelData.label
+            secondary: modelData.detail
+            mark: "radio"
+            selected: modelData.id === menu.engine.secondarySubtitleId
+            onTriggered: menu.engine.setSecondarySubtitleTrack(modelData.id)
+        }
+    }
+
+    PanelSeparator {}
+
     MenuSectionHeader {
         text: qsTr("Sync")
         actionText: qsTr("Reset")

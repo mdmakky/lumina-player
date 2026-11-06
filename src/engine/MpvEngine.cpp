@@ -412,11 +412,13 @@ void MpvEngine::setMediaError(const QString &message)
     emit mediaErrorChanged();
 }
 
-int MpvEngine::selectedId(const QVariantList &tracks)
+// slot 0 = primary, 1 = secondary subtitle (mpv's "main-selection"; absent = primary).
+int MpvEngine::selectedId(const QVariantList &tracks, int slot)
 {
     for (const QVariant &t : tracks) {
         const QVariantMap m = t.toMap();
-        if (m.value(QStringLiteral("selected")).toBool())
+        if (m.value(QStringLiteral("selected")).toBool()
+            && m.value(QStringLiteral("main-selection")).toInt() == slot)
             return m.value(QStringLiteral("id")).toInt();
     }
     return 0;
@@ -663,6 +665,30 @@ void MpvEngine::setSubtitleTrack(int id)
         return;
     command({QStringLiteral("set"), QStringLiteral("sid"),
              id > 0 ? QString::number(id) : QStringLiteral("no")});
+}
+
+void MpvEngine::setSecondarySubtitleTrack(int id)
+{
+    if (!m_mpv)
+        return;
+    command({QStringLiteral("set"), QStringLiteral("secondary-sid"),
+             id > 0 ? QString::number(id) : QStringLiteral("no")});
+}
+
+void MpvEngine::applySubtitleStyle(const QVariantMap &style)
+{
+    if (!m_mpv)
+        return;
+    bool reload = false;
+    for (auto it = style.cbegin(); it != style.cend(); ++it) {
+        const QString &k = it.key();
+        if (!k.startsWith(QLatin1String("sub-")) && !k.startsWith(QLatin1String("secondary-sub-")))
+            continue;
+        mpv_set_property_string(m_mpv, k.toUtf8().constData(), it.value().toString().toUtf8().constData());
+        reload |= k == QLatin1String("sub-codepage");
+    }
+    if (reload && subtitleTrackId() > 0)
+        command({QStringLiteral("sub-reload")});
 }
 
 void MpvEngine::loadExternalSubtitle(const QUrl &url)
