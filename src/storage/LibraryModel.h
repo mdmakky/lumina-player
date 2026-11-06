@@ -56,6 +56,7 @@ public:
 
     Q_INVOKABLE QVariantList urls() const; // every visible row, in order, as file URLs
     Q_INVOKABLE QStringList paths() const;
+    Q_INVOKABLE static QVariantList urlsOf(const QStringList &paths);
     // Row actions. Removing only drops the library entry; deleting moves the file to the trash.
     Q_INVOKABLE void removeFromLibrary(const QString &path);
     Q_INVOKABLE bool deleteFromDisk(const QString &path);

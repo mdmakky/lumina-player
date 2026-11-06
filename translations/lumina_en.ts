@@ -73,37 +73,155 @@
 <context>
     <name>LibraryView</name>
     <message>
-        <location filename="../ui/Library/LibraryView.qml" line="18"/>
+        <location filename="../ui/Library/LibraryView.qml" line="26"/>
         <source>just now</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/Library/LibraryView.qml" line="19"/>
+        <location filename="../ui/Library/LibraryView.qml" line="27"/>
         <source>%1 min ago</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/Library/LibraryView.qml" line="20"/>
+        <location filename="../ui/Library/LibraryView.qml" line="28"/>
         <source>%1 h ago</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/Library/LibraryView.qml" line="21"/>
+        <location filename="../ui/Library/LibraryView.qml" line="29"/>
         <source>%1 d ago</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/Library/LibraryView.qml" line="34"/>
+        <location filename="../ui/Library/LibraryView.qml" line="94"/>
         <source>Add library folder</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/Library/LibraryView.qml" line="80"/>
+        <location filename="../ui/Library/LibraryView.qml" line="99"/>
+        <source>Import playlist</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="100"/>
+        <location filename="../ui/Library/LibraryView.qml" line="111"/>
+        <source>Playlists (*.m3u *.m3u8)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="108"/>
+        <source>Export playlist</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="183"/>
+        <location filename="../ui/Library/LibraryView.qml" line="456"/>
+        <source>Play</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="185"/>
+        <source>Remove from favorites</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="185"/>
+        <source>Add to favorites</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="188"/>
+        <location filename="../ui/Library/LibraryView.qml" line="493"/>
+        <source>Add to playlist…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="192"/>
+        <source>Remove from playlist</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="195"/>
+        <source>Open file location</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="196"/>
+        <source>Remove from library</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="198"/>
+        <source>Delete file from disk…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="199"/>
+        <source>Delete this file?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="200"/>
+        <source>“%1” will be moved to the trash. This cannot be undone from Lumina.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="224"/>
+        <location filename="../ui/Library/LibraryView.qml" line="269"/>
+        <source>Cancel</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="225"/>
+        <source>Delete</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="252"/>
+        <source>Rename playlist</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="252"/>
+        <source>New playlist</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="258"/>
+        <source>Playlist name</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="270"/>
+        <source>Rename</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="270"/>
+        <source>Create</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../ui/Library/LibraryView.qml" line="282"/>
+        <source>Add %n item(s) to playlist</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="296"/>
+        <location filename="../ui/Library/LibraryView.qml" line="452"/>
+        <source>New playlist…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="320"/>
         <source>Library</source>
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
-        <location filename="../ui/Library/LibraryView.qml" line="88"/>
+        <location filename="../ui/Library/LibraryView.qml" line="328"/>
         <source>%n item(s)</source>
         <translation>
             <numerusform>%n item</numerusform>
@@ -111,42 +229,215 @@
         </translation>
     </message>
     <message>
-        <location filename="../ui/Library/LibraryView.qml" line="98"/>
+        <location filename="../ui/Library/LibraryView.qml" line="338"/>
         <source>Add folder…</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/Library/LibraryView.qml" line="105"/>
+        <location filename="../ui/Library/LibraryView.qml" line="345"/>
         <source>Rescan</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/Library/LibraryView.qml" line="111"/>
+        <location filename="../ui/Library/LibraryView.qml" line="351"/>
         <source>Close</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/Library/LibraryView.qml" line="125"/>
-        <source>Search title or folder</source>
+        <location filename="../ui/Library/LibraryView.qml" line="361"/>
+        <source>All</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/Library/LibraryView.qml" line="139"/>
+        <location filename="../ui/Library/LibraryView.qml" line="361"/>
+        <source>Videos</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="361"/>
+        <source>Music</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="361"/>
+        <source>Favorites</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="361"/>
+        <source>Recently added</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="362"/>
+        <source>Recently played</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="362"/>
+        <source>Folders</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="362"/>
+        <source>Playlists</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="362"/>
+        <source>Duplicates</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="383"/>
+        <source>Search title, artist, album or folder</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="397"/>
+        <source>List</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="398"/>
+        <source>Grid</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="405"/>
         <source>Title</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/Library/LibraryView.qml" line="140"/>
+        <location filename="../ui/Library/LibraryView.qml" line="406"/>
         <source>Newest</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/Library/LibraryView.qml" line="141"/>
+        <location filename="../ui/Library/LibraryView.qml" line="407"/>
+        <source>Longest</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="408"/>
+        <source>Last played</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="409"/>
         <source>By folder</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="414"/>
+        <source>Any resolution</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="414"/>
+        <source>720p and up</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="414"/>
+        <source>1080p and up</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="414"/>
+        <source>4K</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="420"/>
+        <source>Any length</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="420"/>
+        <source>Under 10 min</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="420"/>
+        <source>10 – 60 min</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="420"/>
+        <source>Over 1 hour</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="427"/>
+        <source>Watched or not</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="427"/>
+        <source>Watched</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="427"/>
+        <source>Unwatched</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="453"/>
+        <source>Import .m3u…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="459"/>
+        <source>Rename…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="460"/>
+        <source>Export .m3u…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="463"/>
+        <source>Delete playlist</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="464"/>
+        <source>Delete this playlist?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="465"/>
+        <source>Only the playlist is removed; your media files are not touched.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="475"/>
+        <source>Files with the same size, length and content fingerprint are grouped together. “Remove from library” never touches the file; deleting asks first and moves it to the trash.</source>
+        <translation type="unfinished"></translation>
+    </message>
     <message numerus="yes">
-        <location filename="../ui/Library/LibraryView.qml" line="170"/>
+        <location filename="../ui/Library/LibraryView.qml" line="488"/>
+        <source>%n selected</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="494"/>
+        <source>Play selected</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="495"/>
+        <source>Clear selection</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../ui/Library/LibraryView.qml" line="525"/>
         <source>Scanning… %n file(s)</source>
         <translation>
             <numerusform>Scanning… %n file</numerusform>
@@ -154,22 +445,47 @@
         </translation>
     </message>
     <message>
-        <location filename="../ui/Library/LibraryView.qml" line="311"/>
+        <location filename="../ui/Library/LibraryView.qml" line="534"/>
+        <source>Reading media details in the background…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="610"/>
+        <source>Duplicates · %1 each</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="866"/>
         <source>The library is unavailable. Playback still works.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/Library/LibraryView.qml" line="312"/>
+        <location filename="../ui/Library/LibraryView.qml" line="867"/>
+        <source>Create a playlist, or pick one above.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="868"/>
+        <source>This playlist is empty. Select files in the library and use “Add to playlist…”.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="869"/>
+        <source>No duplicates found.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="870"/>
         <source>Add a folder to build your library.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/Library/LibraryView.qml" line="313"/>
+        <location filename="../ui/Library/LibraryView.qml" line="871"/>
         <source>Scanning…</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/Library/LibraryView.qml" line="314"/>
+        <location filename="../ui/Library/LibraryView.qml" line="872"/>
         <source>No matching media.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -256,221 +572,266 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/Main.qml" line="189"/>
+        <location filename="../ui/Main.qml" line="201"/>
         <source>Lumina</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/Main.qml" line="199"/>
+        <location filename="../ui/Main.qml" line="211"/>
         <source>Drop a video here, or open a file to begin</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/Main.qml" line="210"/>
+        <location filename="../ui/Main.qml" line="222"/>
         <source>Open File</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/Main.qml" line="232"/>
-        <location filename="../ui/Main.qml" line="973"/>
+        <location filename="../ui/Main.qml" line="244"/>
+        <location filename="../ui/Main.qml" line="996"/>
         <source>Open URL…</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/Main.qml" line="256"/>
+        <location filename="../ui/Main.qml" line="268"/>
         <source>Library</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/Main.qml" line="357"/>
+        <location filename="../ui/Main.qml" line="369"/>
         <source>CONTINUE WATCHING</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/Main.qml" line="378"/>
+        <location filename="../ui/Main.qml" line="390"/>
         <source>FAVORITES</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/Main.qml" line="399"/>
+        <location filename="../ui/Main.qml" line="411"/>
         <source>RECENT</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/Main.qml" line="527"/>
+        <location filename="../ui/Main.qml" line="539"/>
         <source>Buffering…</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/Main.qml" line="596"/>
+        <location filename="../ui/Main.qml" line="618"/>
         <source>Open file (Ctrl+O)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/Main.qml" line="602"/>
+        <location filename="../ui/Main.qml" line="624"/>
         <source>Playlist (P)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/Main.qml" line="608"/>
+        <location filename="../ui/Main.qml" line="630"/>
         <source>Settings (Ctrl+,)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/Main.qml" line="645"/>
+        <location filename="../ui/Main.qml" line="667"/>
         <source>Back to normal (Ctrl+M)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/Main.qml" line="652"/>
+        <location filename="../ui/Main.qml" line="674"/>
         <source>Close</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/Main.qml" line="748"/>
+        <location filename="../ui/Main.qml" line="770"/>
         <source>Mute (M)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/Main.qml" line="763"/>
+        <location filename="../ui/Main.qml" line="786"/>
         <source>Previous (Ctrl+Left)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/Main.qml" line="792"/>
+        <location filename="../ui/Main.qml" line="815"/>
         <source>Next (Ctrl+Right)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/Main.qml" line="808"/>
+        <location filename="../ui/Main.qml" line="831"/>
         <source>More</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/Main.qml" line="817"/>
+        <location filename="../ui/Main.qml" line="840"/>
         <source>Fullscreen (F)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/Main.qml" line="823"/>
+        <location filename="../ui/Main.qml" line="846"/>
         <source>Audio &amp; subtitles</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/Main.qml" line="829"/>
+        <location filename="../ui/Main.qml" line="852"/>
         <source>Chapters (PgUp/PgDn)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/Main.qml" line="836"/>
+        <location filename="../ui/Main.qml" line="859"/>
         <source>Speed (X / C / Z)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/Main.qml" line="877"/>
+        <location filename="../ui/Main.qml" line="900"/>
         <source>Chapter %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/Main.qml" line="888"/>
+        <location filename="../ui/Main.qml" line="911"/>
         <source>ASPECT RATIO</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/Main.qml" line="899"/>
+        <location filename="../ui/Main.qml" line="922"/>
         <source>Auto</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/Main.qml" line="905"/>
+        <location filename="../ui/Main.qml" line="928"/>
         <source>ROTATE</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/Main.qml" line="925"/>
+        <location filename="../ui/Main.qml" line="948"/>
         <source>Deinterlace</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/Main.qml" line="932"/>
+        <location filename="../ui/Main.qml" line="955"/>
         <source>Always on top</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/Main.qml" line="940"/>
+        <location filename="../ui/Main.qml" line="963"/>
         <source>Mini player</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/Main.qml" line="949"/>
+        <location filename="../ui/Main.qml" line="972"/>
         <source>Video adjustments…</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/Main.qml" line="954"/>
+        <location filename="../ui/Main.qml" line="977"/>
         <source>Equalizer…</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/Main.qml" line="959"/>
+        <location filename="../ui/Main.qml" line="982"/>
         <source>Bookmarks…</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/Main.qml" line="967"/>
+        <location filename="../ui/Main.qml" line="990"/>
         <source>Screenshot</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/Main.qml" line="979"/>
+        <location filename="../ui/Main.qml" line="1002"/>
         <source>Reset for this file</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1077"/>
+        <source>Volume %1%</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
     <name>MpvEngine</name>
     <message>
-        <location filename="../src/engine/MpvEngine.cpp" line="41"/>
+        <location filename="../src/engine/MpvEngine.cpp" line="49"/>
         <source>Failed to create mpv handle</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/engine/MpvEngine.cpp" line="117"/>
+        <location filename="../src/engine/MpvEngine.cpp" line="127"/>
         <source>mpv initialization failed: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/engine/MpvEngine.cpp" line="267"/>
+        <location filename="../src/engine/MpvEngine.cpp" line="277"/>
         <source>This looks like a web page, not a media file. Install yt-dlp to play it.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/engine/MpvEngine.cpp" line="269"/>
+        <location filename="../src/engine/MpvEngine.cpp" line="279"/>
         <source>yt-dlp could not extract a playable video from this page.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/engine/MpvEngine.cpp" line="271"/>
+        <location filename="../src/engine/MpvEngine.cpp" line="281"/>
         <source>Could not open stream: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/engine/MpvEngine.cpp" line="273"/>
+        <location filename="../src/engine/MpvEngine.cpp" line="284"/>
+        <source>Could not open this file. It may have been moved or deleted, or is not a supported media file.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/engine/MpvEngine.cpp" line="285"/>
         <source>Playback failed: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/engine/MpvEngine.cpp" line="327"/>
+        <location filename="../src/engine/MpvEngine.cpp" line="355"/>
+        <source>The audio output could not be opened. Check that PipeWire/PulseAudio is running and not used exclusively by another app.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/engine/MpvEngine.cpp" line="357"/>
+        <source>install the full FFmpeg codec set and restart.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/engine/MpvEngine.cpp" line="360"/>
+        <source>run: sudo dnf install libavcodec-freeworld (needs RPM Fusion), then restart.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/engine/MpvEngine.cpp" line="362"/>
+        <source>run: sudo apt install ffmpeg libavcodec-extra, then restart.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/engine/MpvEngine.cpp" line="364"/>
+        <source>No decoder for the %1 audio track (your FFmpeg build lacks it): %2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/engine/MpvEngine.cpp" line="365"/>
+        <source>selected</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/engine/MpvEngine.cpp" line="368"/>
+        <source>No sound. %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/engine/MpvEngine.cpp" line="401"/>
         <source>Command failed: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/engine/MpvEngine.cpp" line="426"/>
+        <location filename="../src/engine/MpvEngine.cpp" line="500"/>
         <source>Cannot open an empty path</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/engine/MpvEngine.cpp" line="741"/>
+        <location filename="../src/engine/MpvEngine.cpp" line="815"/>
         <source>Engine unavailable</source>
         <translation type="unfinished"></translation>
     </message>
@@ -526,37 +887,37 @@
 <context>
     <name>PlayerController</name>
     <message>
-        <location filename="../src/core/PlayerController.cpp" line="190"/>
+        <location filename="../src/core/PlayerController.cpp" line="202"/>
         <source>Bookmarks unavailable</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/core/PlayerController.cpp" line="197"/>
+        <location filename="../src/core/PlayerController.cpp" line="209"/>
         <source>Bookmark added at %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/core/PlayerController.cpp" line="398"/>
+        <location filename="../src/core/PlayerController.cpp" line="416"/>
         <source>unknown</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/core/PlayerController.cpp" line="414"/>
+        <location filename="../src/core/PlayerController.cpp" line="432"/>
         <source>Screenshot failed</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/core/PlayerController.cpp" line="417"/>
+        <location filename="../src/core/PlayerController.cpp" line="435"/>
         <source>Saved screenshot</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/core/PlayerController.cpp" line="611"/>
+        <location filename="../src/core/PlayerController.cpp" line="629"/>
         <source>Settings for this file reset</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/core/PlayerController.cpp" line="623"/>
+        <location filename="../src/core/PlayerController.cpp" line="641"/>
         <source>That is not a valid media URL</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1766,32 +2127,52 @@
 <context>
     <name>VideoAdjustPopup</name>
     <message>
-        <location filename="../ui/Components/VideoAdjustPopup.qml" line="24"/>
+        <location filename="../ui/Components/VideoAdjustPopup.qml" line="18"/>
+        <source>Default</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Components/VideoAdjustPopup.qml" line="19"/>
+        <source>Cinema</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Components/VideoAdjustPopup.qml" line="20"/>
+        <source>Vivid</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Components/VideoAdjustPopup.qml" line="21"/>
+        <source>Night</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Components/VideoAdjustPopup.qml" line="54"/>
         <source>Brightness</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/Components/VideoAdjustPopup.qml" line="24"/>
+        <location filename="../ui/Components/VideoAdjustPopup.qml" line="54"/>
         <source>Contrast</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/Components/VideoAdjustPopup.qml" line="24"/>
+        <location filename="../ui/Components/VideoAdjustPopup.qml" line="54"/>
         <source>Saturation</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/Components/VideoAdjustPopup.qml" line="24"/>
+        <location filename="../ui/Components/VideoAdjustPopup.qml" line="54"/>
         <source>Gamma</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/Components/VideoAdjustPopup.qml" line="24"/>
+        <location filename="../ui/Components/VideoAdjustPopup.qml" line="54"/>
         <source>Hue</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/Components/VideoAdjustPopup.qml" line="73"/>
+        <location filename="../ui/Components/VideoAdjustPopup.qml" line="103"/>
         <source>Reset</source>
         <translation type="unfinished"></translation>
     </message>

@@ -73,37 +73,152 @@
 <context>
     <name>LibraryView</name>
     <message>
-        <location filename="../ui/Library/LibraryView.qml" line="18"/>
+        <location filename="../ui/Library/LibraryView.qml" line="26"/>
         <source>just now</source>
         <translation>এইমাত্র</translation>
     </message>
     <message>
-        <location filename="../ui/Library/LibraryView.qml" line="19"/>
+        <location filename="../ui/Library/LibraryView.qml" line="27"/>
         <source>%1 min ago</source>
         <translation>%1 মিনিট আগে</translation>
     </message>
     <message>
-        <location filename="../ui/Library/LibraryView.qml" line="20"/>
+        <location filename="../ui/Library/LibraryView.qml" line="28"/>
         <source>%1 h ago</source>
         <translation>%1 ঘণ্টা আগে</translation>
     </message>
     <message>
-        <location filename="../ui/Library/LibraryView.qml" line="21"/>
+        <location filename="../ui/Library/LibraryView.qml" line="29"/>
         <source>%1 d ago</source>
         <translation>%1 দিন আগে</translation>
     </message>
     <message>
-        <location filename="../ui/Library/LibraryView.qml" line="34"/>
+        <location filename="../ui/Library/LibraryView.qml" line="94"/>
         <source>Add library folder</source>
         <translation>লাইব্রেরি ফোল্ডার যোগ করুন</translation>
     </message>
     <message>
-        <location filename="../ui/Library/LibraryView.qml" line="80"/>
+        <location filename="../ui/Library/LibraryView.qml" line="99"/>
+        <source>Import playlist</source>
+        <translation>প্লেলিস্ট ইমপোর্ট</translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="100"/>
+        <location filename="../ui/Library/LibraryView.qml" line="111"/>
+        <source>Playlists (*.m3u *.m3u8)</source>
+        <translation>প্লেলিস্ট (*.m3u *.m3u8)</translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="108"/>
+        <source>Export playlist</source>
+        <translation>প্লেলিস্ট এক্সপোর্ট</translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="183"/>
+        <location filename="../ui/Library/LibraryView.qml" line="456"/>
+        <source>Play</source>
+        <translation>চালান</translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="185"/>
+        <source>Remove from favorites</source>
+        <translation>প্রিয় থেকে সরান</translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="185"/>
+        <source>Add to favorites</source>
+        <translation>প্রিয়তে যোগ করুন</translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="188"/>
+        <location filename="../ui/Library/LibraryView.qml" line="493"/>
+        <source>Add to playlist…</source>
+        <translation>প্লেলিস্টে যোগ করুন…</translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="192"/>
+        <source>Remove from playlist</source>
+        <translation>প্লেলিস্ট থেকে সরান</translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="195"/>
+        <source>Open file location</source>
+        <translation>ফাইলের ফোল্ডার খুলুন</translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="196"/>
+        <source>Remove from library</source>
+        <translation>লাইব্রেরি থেকে সরান</translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="198"/>
+        <source>Delete file from disk…</source>
+        <translation>ডিস্ক থেকে ফাইল মুছুন…</translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="199"/>
+        <source>Delete this file?</source>
+        <translation>এই ফাইলটি মুছবেন?</translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="200"/>
+        <source>“%1” will be moved to the trash. This cannot be undone from Lumina.</source>
+        <translation>“%1” ট্র্যাশে সরানো হবে। লুমিনা থেকে এটি ফেরানো যাবে না।</translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="224"/>
+        <location filename="../ui/Library/LibraryView.qml" line="269"/>
+        <source>Cancel</source>
+        <translation>বাতিল</translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="225"/>
+        <source>Delete</source>
+        <translation>মুছুন</translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="252"/>
+        <source>Rename playlist</source>
+        <translation>প্লেলিস্টের নাম বদলান</translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="252"/>
+        <source>New playlist</source>
+        <translation>নতুন প্লেলিস্ট</translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="258"/>
+        <source>Playlist name</source>
+        <translation>প্লেলিস্টের নাম</translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="270"/>
+        <source>Rename</source>
+        <translation>নাম বদলান</translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="270"/>
+        <source>Create</source>
+        <translation>তৈরি করুন</translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../ui/Library/LibraryView.qml" line="282"/>
+        <source>Add %n item(s) to playlist</source>
+        <translation><numerusform>%n টি আইটেম প্লেলিস্টে যোগ করুন</numerusform></translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="296"/>
+        <location filename="../ui/Library/LibraryView.qml" line="452"/>
+        <source>New playlist…</source>
+        <translation>নতুন প্লেলিস্ট…</translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="320"/>
         <source>Library</source>
         <translation>লাইব্রেরি</translation>
     </message>
     <message numerus="yes">
-        <location filename="../ui/Library/LibraryView.qml" line="88"/>
+        <location filename="../ui/Library/LibraryView.qml" line="328"/>
         <source>%n item(s)</source>
         <translation>
             <numerusform>%n টি আইটেম</numerusform>
@@ -111,42 +226,212 @@
         </translation>
     </message>
     <message>
-        <location filename="../ui/Library/LibraryView.qml" line="98"/>
+        <location filename="../ui/Library/LibraryView.qml" line="338"/>
         <source>Add folder…</source>
         <translation>ফোল্ডার যোগ করুন…</translation>
     </message>
     <message>
-        <location filename="../ui/Library/LibraryView.qml" line="105"/>
+        <location filename="../ui/Library/LibraryView.qml" line="345"/>
         <source>Rescan</source>
         <translation>আবার স্ক্যান</translation>
     </message>
     <message>
-        <location filename="../ui/Library/LibraryView.qml" line="111"/>
+        <location filename="../ui/Library/LibraryView.qml" line="351"/>
         <source>Close</source>
         <translation>বন্ধ করুন</translation>
     </message>
     <message>
-        <location filename="../ui/Library/LibraryView.qml" line="125"/>
-        <source>Search title or folder</source>
-        <translation>শিরোনাম বা ফোল্ডার খুঁজুন</translation>
+        <location filename="../ui/Library/LibraryView.qml" line="361"/>
+        <source>All</source>
+        <translation>সব</translation>
     </message>
     <message>
-        <location filename="../ui/Library/LibraryView.qml" line="139"/>
+        <location filename="../ui/Library/LibraryView.qml" line="361"/>
+        <source>Videos</source>
+        <translation>ভিডিও</translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="361"/>
+        <source>Music</source>
+        <translation>গান</translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="361"/>
+        <source>Favorites</source>
+        <translation>প্রিয়</translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="361"/>
+        <source>Recently added</source>
+        <translation>সম্প্রতি যোগ করা</translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="362"/>
+        <source>Recently played</source>
+        <translation>সম্প্রতি চালানো</translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="362"/>
+        <source>Folders</source>
+        <translation>ফোল্ডার</translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="362"/>
+        <source>Playlists</source>
+        <translation>প্লেলিস্ট</translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="362"/>
+        <source>Duplicates</source>
+        <translation>ডুপ্লিকেট</translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="383"/>
+        <source>Search title, artist, album or folder</source>
+        <translation>শিরোনাম, শিল্পী, অ্যালবাম বা ফোল্ডার খুঁজুন</translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="397"/>
+        <source>List</source>
+        <translation>তালিকা</translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="398"/>
+        <source>Grid</source>
+        <translation>গ্রিড</translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="405"/>
         <source>Title</source>
         <translation>শিরোনাম</translation>
     </message>
     <message>
-        <location filename="../ui/Library/LibraryView.qml" line="140"/>
+        <location filename="../ui/Library/LibraryView.qml" line="406"/>
         <source>Newest</source>
         <translation>নতুন আগে</translation>
     </message>
     <message>
-        <location filename="../ui/Library/LibraryView.qml" line="141"/>
+        <location filename="../ui/Library/LibraryView.qml" line="407"/>
+        <source>Longest</source>
+        <translation>সবচেয়ে লম্বা</translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="408"/>
+        <source>Last played</source>
+        <translation>শেষ চালানো</translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="409"/>
         <source>By folder</source>
         <translation>ফোল্ডার অনুযায়ী</translation>
     </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="414"/>
+        <source>Any resolution</source>
+        <translation>যেকোনো রেজোলিউশন</translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="414"/>
+        <source>720p and up</source>
+        <translation>৭২০p ও তার বেশি</translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="414"/>
+        <source>1080p and up</source>
+        <translation>১০৮০p ও তার বেশি</translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="414"/>
+        <source>4K</source>
+        <translation>4K</translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="420"/>
+        <source>Any length</source>
+        <translation>যেকোনো দৈর্ঘ্য</translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="420"/>
+        <source>Under 10 min</source>
+        <translation>১০ মিনিটের কম</translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="420"/>
+        <source>10 – 60 min</source>
+        <translation>১০ – ৬০ মিনিট</translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="420"/>
+        <source>Over 1 hour</source>
+        <translation>১ ঘণ্টার বেশি</translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="427"/>
+        <source>Watched or not</source>
+        <translation>দেখা বা না দেখা</translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="427"/>
+        <source>Watched</source>
+        <translation>দেখা হয়েছে</translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="427"/>
+        <source>Unwatched</source>
+        <translation>দেখা হয়নি</translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="453"/>
+        <source>Import .m3u…</source>
+        <translation>.m3u ইমপোর্ট…</translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="459"/>
+        <source>Rename…</source>
+        <translation>নাম বদলান…</translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="460"/>
+        <source>Export .m3u…</source>
+        <translation>.m3u এক্সপোর্ট…</translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="463"/>
+        <source>Delete playlist</source>
+        <translation>প্লেলিস্ট মুছুন</translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="464"/>
+        <source>Delete this playlist?</source>
+        <translation>এই প্লেলিস্টটি মুছবেন?</translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="465"/>
+        <source>Only the playlist is removed; your media files are not touched.</source>
+        <translation>শুধু প্লেলিস্ট মুছবে; আপনার মিডিয়া ফাইল অক্ষত থাকবে।</translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="475"/>
+        <source>Files with the same size, length and content fingerprint are grouped together. “Remove from library” never touches the file; deleting asks first and moves it to the trash.</source>
+        <translation>একই আকার, দৈর্ঘ্য ও কনটেন্ট ফিঙ্গারপ্রিন্টের ফাইল একসাথে দেখানো হয়। “লাইব্রেরি থেকে সরান” ফাইলে হাত দেয় না; মোছার আগে জিজ্ঞেস করা হয় এবং ফাইল ট্র্যাশে যায়।</translation>
+    </message>
     <message numerus="yes">
-        <location filename="../ui/Library/LibraryView.qml" line="170"/>
+        <location filename="../ui/Library/LibraryView.qml" line="488"/>
+        <source>%n selected</source>
+        <translation><numerusform>%n টি নির্বাচিত</numerusform></translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="494"/>
+        <source>Play selected</source>
+        <translation>নির্বাচিতগুলো চালান</translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="495"/>
+        <source>Clear selection</source>
+        <translation>নির্বাচন মুছুন</translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../ui/Library/LibraryView.qml" line="525"/>
         <source>Scanning… %n file(s)</source>
         <translation>
             <numerusform>স্ক্যান চলছে… %n টি ফাইল</numerusform>
@@ -154,22 +439,47 @@
         </translation>
     </message>
     <message>
-        <location filename="../ui/Library/LibraryView.qml" line="311"/>
+        <location filename="../ui/Library/LibraryView.qml" line="534"/>
+        <source>Reading media details in the background…</source>
+        <translation>ব্যাকগ্রাউন্ডে মিডিয়ার তথ্য পড়া হচ্ছে…</translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="610"/>
+        <source>Duplicates · %1 each</source>
+        <translation>ডুপ্লিকেট · প্রতিটি %1</translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="866"/>
         <source>The library is unavailable. Playback still works.</source>
         <translation>লাইব্রেরি এখন পাওয়া যাচ্ছে না। প্লেব্যাক ঠিকমতো চলবে।</translation>
     </message>
     <message>
-        <location filename="../ui/Library/LibraryView.qml" line="312"/>
+        <location filename="../ui/Library/LibraryView.qml" line="867"/>
+        <source>Create a playlist, or pick one above.</source>
+        <translation>একটি প্লেলিস্ট তৈরি করুন, অথবা উপরে থেকে বেছে নিন।</translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="868"/>
+        <source>This playlist is empty. Select files in the library and use “Add to playlist…”.</source>
+        <translation>এই প্লেলিস্ট খালি। লাইব্রেরিতে ফাইল বেছে “প্লেলিস্টে যোগ করুন…” ব্যবহার করুন।</translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="869"/>
+        <source>No duplicates found.</source>
+        <translation>কোনো ডুপ্লিকেট পাওয়া যায়নি।</translation>
+    </message>
+    <message>
+        <location filename="../ui/Library/LibraryView.qml" line="870"/>
         <source>Add a folder to build your library.</source>
         <translation>লাইব্রেরি তৈরি করতে একটি ফোল্ডার যোগ করুন।</translation>
     </message>
     <message>
-        <location filename="../ui/Library/LibraryView.qml" line="313"/>
+        <location filename="../ui/Library/LibraryView.qml" line="871"/>
         <source>Scanning…</source>
         <translation>স্ক্যান চলছে…</translation>
     </message>
     <message>
-        <location filename="../ui/Library/LibraryView.qml" line="314"/>
+        <location filename="../ui/Library/LibraryView.qml" line="872"/>
         <source>No matching media.</source>
         <translation>মিল আছে এমন কোনো মিডিয়া নেই।</translation>
     </message>
@@ -256,221 +566,266 @@
         <translation>সব ফাইল (*)</translation>
     </message>
     <message>
-        <location filename="../ui/Main.qml" line="189"/>
+        <location filename="../ui/Main.qml" line="201"/>
         <source>Lumina</source>
         <translation>Lumina</translation>
     </message>
     <message>
-        <location filename="../ui/Main.qml" line="199"/>
+        <location filename="../ui/Main.qml" line="211"/>
         <source>Drop a video here, or open a file to begin</source>
         <translation>শুরু করতে এখানে ভিডিও ছেড়ে দিন, অথবা ফাইল খুলুন</translation>
     </message>
     <message>
-        <location filename="../ui/Main.qml" line="210"/>
+        <location filename="../ui/Main.qml" line="222"/>
         <source>Open File</source>
         <translation>ফাইল খুলুন</translation>
     </message>
     <message>
-        <location filename="../ui/Main.qml" line="232"/>
-        <location filename="../ui/Main.qml" line="973"/>
+        <location filename="../ui/Main.qml" line="244"/>
+        <location filename="../ui/Main.qml" line="996"/>
         <source>Open URL…</source>
         <translation>URL খুলুন…</translation>
     </message>
     <message>
-        <location filename="../ui/Main.qml" line="256"/>
+        <location filename="../ui/Main.qml" line="268"/>
         <source>Library</source>
         <translation>লাইব্রেরি</translation>
     </message>
     <message>
-        <location filename="../ui/Main.qml" line="357"/>
+        <location filename="../ui/Main.qml" line="369"/>
         <source>CONTINUE WATCHING</source>
         <translation>দেখা চালিয়ে যান</translation>
     </message>
     <message>
-        <location filename="../ui/Main.qml" line="378"/>
+        <location filename="../ui/Main.qml" line="390"/>
         <source>FAVORITES</source>
         <translation>প্রিয়</translation>
     </message>
     <message>
-        <location filename="../ui/Main.qml" line="399"/>
+        <location filename="../ui/Main.qml" line="411"/>
         <source>RECENT</source>
         <translation>সাম্প্রতিক</translation>
     </message>
     <message>
-        <location filename="../ui/Main.qml" line="527"/>
+        <location filename="../ui/Main.qml" line="539"/>
         <source>Buffering…</source>
         <translation>বাফার হচ্ছে…</translation>
     </message>
     <message>
-        <location filename="../ui/Main.qml" line="596"/>
+        <location filename="../ui/Main.qml" line="618"/>
         <source>Open file (Ctrl+O)</source>
         <translation>ফাইল খুলুন (Ctrl+O)</translation>
     </message>
     <message>
-        <location filename="../ui/Main.qml" line="602"/>
+        <location filename="../ui/Main.qml" line="624"/>
         <source>Playlist (P)</source>
         <translation>প্লেলিস্ট (P)</translation>
     </message>
     <message>
-        <location filename="../ui/Main.qml" line="608"/>
+        <location filename="../ui/Main.qml" line="630"/>
         <source>Settings (Ctrl+,)</source>
         <translation>সেটিংস (Ctrl+,)</translation>
     </message>
     <message>
-        <location filename="../ui/Main.qml" line="645"/>
+        <location filename="../ui/Main.qml" line="667"/>
         <source>Back to normal (Ctrl+M)</source>
         <translation>স্বাভাবিক মোডে ফিরুন (Ctrl+M)</translation>
     </message>
     <message>
-        <location filename="../ui/Main.qml" line="652"/>
+        <location filename="../ui/Main.qml" line="674"/>
         <source>Close</source>
         <translation>বন্ধ করুন</translation>
     </message>
     <message>
-        <location filename="../ui/Main.qml" line="748"/>
+        <location filename="../ui/Main.qml" line="770"/>
         <source>Mute (M)</source>
         <translation>নিঃশব্দ (M)</translation>
     </message>
     <message>
-        <location filename="../ui/Main.qml" line="763"/>
+        <location filename="../ui/Main.qml" line="786"/>
         <source>Previous (Ctrl+Left)</source>
         <translation>আগেরটি (Ctrl+Left)</translation>
     </message>
     <message>
-        <location filename="../ui/Main.qml" line="792"/>
+        <location filename="../ui/Main.qml" line="815"/>
         <source>Next (Ctrl+Right)</source>
         <translation>পরেরটি (Ctrl+Right)</translation>
     </message>
     <message>
-        <location filename="../ui/Main.qml" line="808"/>
+        <location filename="../ui/Main.qml" line="831"/>
         <source>More</source>
         <translation>আরও</translation>
     </message>
     <message>
-        <location filename="../ui/Main.qml" line="817"/>
+        <location filename="../ui/Main.qml" line="840"/>
         <source>Fullscreen (F)</source>
         <translation>পূর্ণপর্দা (F)</translation>
     </message>
     <message>
-        <location filename="../ui/Main.qml" line="823"/>
+        <location filename="../ui/Main.qml" line="846"/>
         <source>Audio &amp; subtitles</source>
         <translation>অডিও ও সাবটাইটেল</translation>
     </message>
     <message>
-        <location filename="../ui/Main.qml" line="829"/>
+        <location filename="../ui/Main.qml" line="852"/>
         <source>Chapters (PgUp/PgDn)</source>
         <translation>অধ্যায় (PgUp/PgDn)</translation>
     </message>
     <message>
-        <location filename="../ui/Main.qml" line="836"/>
+        <location filename="../ui/Main.qml" line="859"/>
         <source>Speed (X / C / Z)</source>
         <translation>গতি (X / C / Z)</translation>
     </message>
     <message>
-        <location filename="../ui/Main.qml" line="877"/>
+        <location filename="../ui/Main.qml" line="900"/>
         <source>Chapter %1</source>
         <translation>অধ্যায় %1</translation>
     </message>
     <message>
-        <location filename="../ui/Main.qml" line="888"/>
+        <location filename="../ui/Main.qml" line="911"/>
         <source>ASPECT RATIO</source>
         <translation>আকার অনুপাত</translation>
     </message>
     <message>
-        <location filename="../ui/Main.qml" line="899"/>
+        <location filename="../ui/Main.qml" line="922"/>
         <source>Auto</source>
         <translation>স্বয়ংক্রিয়</translation>
     </message>
     <message>
-        <location filename="../ui/Main.qml" line="905"/>
+        <location filename="../ui/Main.qml" line="928"/>
         <source>ROTATE</source>
         <translation>ঘোরান</translation>
     </message>
     <message>
-        <location filename="../ui/Main.qml" line="925"/>
+        <location filename="../ui/Main.qml" line="948"/>
         <source>Deinterlace</source>
         <translation>ডিইন্টারলেস</translation>
     </message>
     <message>
-        <location filename="../ui/Main.qml" line="932"/>
+        <location filename="../ui/Main.qml" line="955"/>
         <source>Always on top</source>
         <translation>সবসময় উপরে</translation>
     </message>
     <message>
-        <location filename="../ui/Main.qml" line="940"/>
+        <location filename="../ui/Main.qml" line="963"/>
         <source>Mini player</source>
         <translation>মিনি প্লেয়ার</translation>
     </message>
     <message>
-        <location filename="../ui/Main.qml" line="949"/>
+        <location filename="../ui/Main.qml" line="972"/>
         <source>Video adjustments…</source>
         <translation>ভিডিও সমন্বয়…</translation>
     </message>
     <message>
-        <location filename="../ui/Main.qml" line="954"/>
+        <location filename="../ui/Main.qml" line="977"/>
         <source>Equalizer…</source>
         <translation>ইকুয়ালাইজার…</translation>
     </message>
     <message>
-        <location filename="../ui/Main.qml" line="959"/>
+        <location filename="../ui/Main.qml" line="982"/>
         <source>Bookmarks…</source>
         <translation>বুকমার্ক…</translation>
     </message>
     <message>
-        <location filename="../ui/Main.qml" line="967"/>
+        <location filename="../ui/Main.qml" line="990"/>
         <source>Screenshot</source>
         <translation>স্ক্রিনশট</translation>
     </message>
     <message>
-        <location filename="../ui/Main.qml" line="979"/>
+        <location filename="../ui/Main.qml" line="1002"/>
         <source>Reset for this file</source>
         <translation>এই ফাইলের জন্য রিসেট</translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1077"/>
+        <source>Volume %1%</source>
+        <translation>ভলিউম %1%</translation>
     </message>
 </context>
 <context>
     <name>MpvEngine</name>
     <message>
-        <location filename="../src/engine/MpvEngine.cpp" line="41"/>
+        <location filename="../src/engine/MpvEngine.cpp" line="49"/>
         <source>Failed to create mpv handle</source>
         <translation>mpv হ্যান্ডেল তৈরি করা যায়নি</translation>
     </message>
     <message>
-        <location filename="../src/engine/MpvEngine.cpp" line="117"/>
+        <location filename="../src/engine/MpvEngine.cpp" line="127"/>
         <source>mpv initialization failed: %1</source>
         <translation>mpv চালু করা যায়নি: %1</translation>
     </message>
     <message>
-        <location filename="../src/engine/MpvEngine.cpp" line="267"/>
+        <location filename="../src/engine/MpvEngine.cpp" line="277"/>
         <source>This looks like a web page, not a media file. Install yt-dlp to play it.</source>
         <translation>এটি একটি ওয়েব পেজ মনে হচ্ছে, মিডিয়া ফাইল নয়। চালাতে yt-dlp ইনস্টল করুন।</translation>
     </message>
     <message>
-        <location filename="../src/engine/MpvEngine.cpp" line="269"/>
+        <location filename="../src/engine/MpvEngine.cpp" line="279"/>
         <source>yt-dlp could not extract a playable video from this page.</source>
         <translation>yt-dlp এই পেজ থেকে চালানোর মতো ভিডিও বের করতে পারেনি।</translation>
     </message>
     <message>
-        <location filename="../src/engine/MpvEngine.cpp" line="271"/>
+        <location filename="../src/engine/MpvEngine.cpp" line="281"/>
         <source>Could not open stream: %1</source>
         <translation>স্ট্রিম খোলা যায়নি: %1</translation>
     </message>
     <message>
-        <location filename="../src/engine/MpvEngine.cpp" line="273"/>
+        <location filename="../src/engine/MpvEngine.cpp" line="284"/>
+        <source>Could not open this file. It may have been moved or deleted, or is not a supported media file.</source>
+        <translation>ফাইলটি খোলা যায়নি। এটি সরানো বা মুছে ফেলা হয়ে থাকতে পারে, অথবা সমর্থিত মিডিয়া ফাইল নয়।</translation>
+    </message>
+    <message>
+        <location filename="../src/engine/MpvEngine.cpp" line="285"/>
         <source>Playback failed: %1</source>
         <translation>প্লেব্যাক ব্যর্থ হয়েছে: %1</translation>
     </message>
     <message>
-        <location filename="../src/engine/MpvEngine.cpp" line="327"/>
+        <location filename="../src/engine/MpvEngine.cpp" line="355"/>
+        <source>The audio output could not be opened. Check that PipeWire/PulseAudio is running and not used exclusively by another app.</source>
+        <translation>অডিও আউটপুট খোলা যায়নি। PipeWire/PulseAudio চালু আছে এবং অন্য অ্যাপ এককভাবে ব্যবহার করছে না কিনা দেখুন।</translation>
+    </message>
+    <message>
+        <location filename="../src/engine/MpvEngine.cpp" line="357"/>
+        <source>install the full FFmpeg codec set and restart.</source>
+        <translation>পূর্ণ FFmpeg কোডেক সেট ইনস্টল করে আবার চালু করুন।</translation>
+    </message>
+    <message>
+        <location filename="../src/engine/MpvEngine.cpp" line="360"/>
+        <source>run: sudo dnf install libavcodec-freeworld (needs RPM Fusion), then restart.</source>
+        <translation>চালান: sudo dnf install libavcodec-freeworld (RPM Fusion লাগবে), তারপর আবার চালু করুন।</translation>
+    </message>
+    <message>
+        <location filename="../src/engine/MpvEngine.cpp" line="362"/>
+        <source>run: sudo apt install ffmpeg libavcodec-extra, then restart.</source>
+        <translation>চালান: sudo apt install ffmpeg libavcodec-extra, তারপর আবার চালু করুন।</translation>
+    </message>
+    <message>
+        <location filename="../src/engine/MpvEngine.cpp" line="364"/>
+        <source>No decoder for the %1 audio track (your FFmpeg build lacks it): %2</source>
+        <translation>%1 অডিও ট্র্যাকের ডিকোডার নেই (আপনার FFmpeg বিল্ডে নেই): %2</translation>
+    </message>
+    <message>
+        <location filename="../src/engine/MpvEngine.cpp" line="365"/>
+        <source>selected</source>
+        <translation>নির্বাচিত</translation>
+    </message>
+    <message>
+        <location filename="../src/engine/MpvEngine.cpp" line="368"/>
+        <source>No sound. %1</source>
+        <translation>শব্দ নেই। %1</translation>
+    </message>
+    <message>
+        <location filename="../src/engine/MpvEngine.cpp" line="401"/>
         <source>Command failed: %1</source>
         <translation>কমান্ড ব্যর্থ হয়েছে: %1</translation>
     </message>
     <message>
-        <location filename="../src/engine/MpvEngine.cpp" line="426"/>
+        <location filename="../src/engine/MpvEngine.cpp" line="500"/>
         <source>Cannot open an empty path</source>
         <translation>খালি পাথ খোলা যায় না</translation>
     </message>
     <message>
-        <location filename="../src/engine/MpvEngine.cpp" line="741"/>
+        <location filename="../src/engine/MpvEngine.cpp" line="815"/>
         <source>Engine unavailable</source>
         <translation>ইঞ্জিন পাওয়া যাচ্ছে না</translation>
     </message>
@@ -526,37 +881,37 @@
 <context>
     <name>PlayerController</name>
     <message>
-        <location filename="../src/core/PlayerController.cpp" line="190"/>
+        <location filename="../src/core/PlayerController.cpp" line="202"/>
         <source>Bookmarks unavailable</source>
         <translation>বুকমার্ক পাওয়া যাচ্ছে না</translation>
     </message>
     <message>
-        <location filename="../src/core/PlayerController.cpp" line="197"/>
+        <location filename="../src/core/PlayerController.cpp" line="209"/>
         <source>Bookmark added at %1</source>
         <translation>%1 এ বুকমার্ক যোগ হয়েছে</translation>
     </message>
     <message>
-        <location filename="../src/core/PlayerController.cpp" line="398"/>
+        <location filename="../src/core/PlayerController.cpp" line="416"/>
         <source>unknown</source>
         <translation>অজানা</translation>
     </message>
     <message>
-        <location filename="../src/core/PlayerController.cpp" line="414"/>
+        <location filename="../src/core/PlayerController.cpp" line="432"/>
         <source>Screenshot failed</source>
         <translation>স্ক্রিনশট নেওয়া যায়নি</translation>
     </message>
     <message>
-        <location filename="../src/core/PlayerController.cpp" line="417"/>
+        <location filename="../src/core/PlayerController.cpp" line="435"/>
         <source>Saved screenshot</source>
         <translation>স্ক্রিনশট সংরক্ষিত হয়েছে</translation>
     </message>
     <message>
-        <location filename="../src/core/PlayerController.cpp" line="611"/>
+        <location filename="../src/core/PlayerController.cpp" line="629"/>
         <source>Settings for this file reset</source>
         <translation>এই ফাইলের সেটিংস রিসেট হয়েছে</translation>
     </message>
     <message>
-        <location filename="../src/core/PlayerController.cpp" line="623"/>
+        <location filename="../src/core/PlayerController.cpp" line="641"/>
         <source>That is not a valid media URL</source>
         <translation>এটি বৈধ মিডিয়া URL নয়</translation>
     </message>
@@ -1766,32 +2121,52 @@
 <context>
     <name>VideoAdjustPopup</name>
     <message>
-        <location filename="../ui/Components/VideoAdjustPopup.qml" line="24"/>
+        <location filename="../ui/Components/VideoAdjustPopup.qml" line="18"/>
+        <source>Default</source>
+        <translation>ডিফল্ট</translation>
+    </message>
+    <message>
+        <location filename="../ui/Components/VideoAdjustPopup.qml" line="19"/>
+        <source>Cinema</source>
+        <translation>সিনেমা</translation>
+    </message>
+    <message>
+        <location filename="../ui/Components/VideoAdjustPopup.qml" line="20"/>
+        <source>Vivid</source>
+        <translation>উজ্জ্বল</translation>
+    </message>
+    <message>
+        <location filename="../ui/Components/VideoAdjustPopup.qml" line="21"/>
+        <source>Night</source>
+        <translation>রাত</translation>
+    </message>
+    <message>
+        <location filename="../ui/Components/VideoAdjustPopup.qml" line="54"/>
         <source>Brightness</source>
         <translation>উজ্জ্বলতা</translation>
     </message>
     <message>
-        <location filename="../ui/Components/VideoAdjustPopup.qml" line="24"/>
+        <location filename="../ui/Components/VideoAdjustPopup.qml" line="54"/>
         <source>Contrast</source>
         <translation>কনট্রাস্ট</translation>
     </message>
     <message>
-        <location filename="../ui/Components/VideoAdjustPopup.qml" line="24"/>
+        <location filename="../ui/Components/VideoAdjustPopup.qml" line="54"/>
         <source>Saturation</source>
         <translation>স্যাচুরেশন</translation>
     </message>
     <message>
-        <location filename="../ui/Components/VideoAdjustPopup.qml" line="24"/>
+        <location filename="../ui/Components/VideoAdjustPopup.qml" line="54"/>
         <source>Gamma</source>
         <translation>গামা</translation>
     </message>
     <message>
-        <location filename="../ui/Components/VideoAdjustPopup.qml" line="24"/>
+        <location filename="../ui/Components/VideoAdjustPopup.qml" line="54"/>
         <source>Hue</source>
         <translation>হিউ</translation>
     </message>
     <message>
-        <location filename="../ui/Components/VideoAdjustPopup.qml" line="73"/>
+        <location filename="../ui/Components/VideoAdjustPopup.qml" line="103"/>
         <source>Reset</source>
         <translation>রিসেট</translation>
     </message>

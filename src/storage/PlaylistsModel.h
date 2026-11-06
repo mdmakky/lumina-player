@@ -26,6 +26,11 @@ public:
     Q_INVOKABLE void remove(qint64 id);
     Q_INVOKABLE void addPaths(qint64 id, const QStringList &paths);
     Q_INVOKABLE void removeItem(qint64 id, int pos);
+    Q_INVOKABLE QString nameOf(qint64 id) const
+    {
+        for (const PlaylistInfo &p : m_rows) if (p.id == id) return p.name;
+        return {};
+    }
     Q_INVOKABLE QStringList paths(qint64 id) const { return m_repo->items(id); }
     Q_INVOKABLE bool exportM3u(qint64 id, const QUrl &file) const;
     Q_INVOKABLE qint64 importM3u(const QUrl &file); // new playlist named after the file; 0 on failure

@@ -163,14 +163,16 @@ void LibraryModel::reload()
     if (before != m_rows.size()) emit countChanged();
 }
 
-QVariantList LibraryModel::urls() const
+QVariantList LibraryModel::urlsOf(const QStringList &paths)
 {
     QVariantList out;
-    out.reserve(m_rows.size());
-    for (const LibraryItem &i : m_rows)
-        out << (i.path.contains(QStringLiteral("://")) ? QUrl(i.path) : QUrl::fromLocalFile(i.path));
+    out.reserve(paths.size());
+    for (const QString &p : paths)
+        out << (p.contains(QStringLiteral("://")) ? QUrl(p) : QUrl::fromLocalFile(p));
     return out;
 }
+
+QVariantList LibraryModel::urls() const { return urlsOf(paths()); }
 
 QStringList LibraryModel::paths() const
 {

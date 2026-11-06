@@ -152,6 +152,30 @@ void UiTest::run()
                QString::number(p->library()->rowCount()));
         QTest::qWait(300);
         shot("library");
+        // tabs, grid toggle, duplicates (the 3 fixture files are byte-identical copies), playlists
+        auto click = [&](const char *n) { if (auto *it = find(n)) clickAt(center(it)); return find(n) != nullptr; };
+        result("library tab Music is empty", click("libraryTab_2") && waitFor([&] { return p->library()->tab() == 2 && p->library()->rowCount() == 0; }));
+        result("library tab Videos lists files", click("libraryTab_1") && waitFor([&] { return p->library()->rowCount() == 3; }));
+        result("library grid toggle shows tiles", click("libraryViewGrid") && waitFor([&] { return vis("libraryTile_0") && !vis("libraryRow_0"); }));
+        QTest::qWait(1500); // let poster frames render
+        shot("library-grid");
+        result("library grid choice persisted", p->setting("library/grid").toString() == "true");
+        result("library list toggle restores rows", click("libraryViewList") && waitFor([&] { return vis("libraryRow_0") && !vis("libraryTile_0"); }));
+        result("library metadata probed", waitFor([&] { p->library()->reload(); return p->library()->data(p->library()->index(0), LibraryModel::ProbedRole).toBool(); }, 20000));
+        result("library duplicates tab", click("libraryTab_8") && waitFor([&] { return p->library()->rowCount() == 3; }, 20000),
+               QString::number(p->library()->rowCount()));
+        shot("library-duplicates");
+        click("libraryTab_7");
+        const qint64 plId = p->libraryPlaylists()->create("UI test");
+        p->libraryPlaylists()->addPaths(plId, QStringList{lib.filePath("sunrise_alpha.mp4")});
+        p->library()->setPlaylistId(plId);
+        result("library playlist tab lists its items", waitFor([&] { return p->library()->rowCount() == 1 && vis("libraryRow_0"); }));
+        shot("library-playlists");
+        p->library()->setPlaylistId(0);
+        p->libraryPlaylists()->remove(plId);
+        click("libraryTab_0");
+        waitFor([&] { return p->library()->rowCount() == 3; });
+        clickAt(center(find("librarySearch")));
         for (char c : std::string("ocean")) QTest::keyClick(w, c);
         result("library search filters", waitFor([&] { return p->library()->rowCount() == 2 && vis("libraryRow_1") && !vis("libraryRow_2"); }),
                QString::number(p->library()->rowCount()));
