@@ -21,6 +21,18 @@ tools/macdeploy.sh      # -> build/mac-bundle/bin/lumina.app and build/mac-bundl
 ```
 Normal dev builds leave `LUMINA_MAC_BUNDLE` OFF (plain `build/mac/bin/lumina`). Turn it ON to get `bin/lumina.app` (Info.plist from `packaging/macos/Info.plist.in`, document types for Finder "Open With").
 
+## Other Linux package recipes (all unbuilt, syntax-checked only)
+- RPM: `packaging/rpm/lumina.spec` (`Requires: mpv-libs`, `Recommends: libavcodec-freeworld`). Build with `rpmbuild -ba` after `git archive` of the tag; check with `rpmlint`.
+- DEB: `packaging/deb/debian/` (copy or symlink to `debian/` in the source root, then `dpkg-buildpackage -us -uc`). Verify Qt 6 QML module package names on the target Debian/Ubuntu.
+- AppImage: `packaging/appimage/build-appimage.sh` (linuxdeploy + Qt plugin; run on an old-glibc host; GPU/VAAPI libraries are excluded on purpose).
+- macOS signing and notarization steps: `packaging/macos/README.md`.
+
+## Release checklist
+1. `ctest`, `tools/run-ui-test.sh`, playback self-test on each platform (`docs/QA_REPORT.md`).
+2. `tools/make-sbom.sh docs/sbom-<version>.json` on the release build; ship `THIRD_PARTY_NOTICES.md`.
+3. Bump version in `CMakeLists.txt`, `CHANGELOG.md`, metainfo `<release>`, spec and debian changelog; tag `vX.Y.Z`.
+4. Build packages, install on a clean machine, run the manual matrix.
+
 ## Verification status
 Verified on macOS: both bundle ON/OFF build; bundle plist/icns valid; `macdeploy.sh` runs and produces an 83 MB dmg, main binary has no `/opt/homebrew` references left.
 
