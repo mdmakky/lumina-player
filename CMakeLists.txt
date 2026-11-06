@@ -66,8 +66,11 @@ qt_add_executable(lumina
     src/utilities/Logger.cpp
     src/utilities/TimeUtils.h
     src/utilities/TimeUtils.cpp
+    src/utilities/SettingsIO.h
+    src/utilities/SettingsIO.cpp
     src/utilities/UrlUtils.h
     src/utilities/UrlUtils.cpp
+    src/utilities/AudioFilters.h
     src/utilities/TrackLabels.h
     src/utilities/TrackLabels.cpp
     src/core/PlayerController.h
@@ -181,13 +184,21 @@ qt_add_qml_module(lumina
         ui/Settings/StepperRow.qml
         ui/Settings/SliderRow.qml
         ui/Settings/ComboRow.qml
+        ui/Settings/AudioOutputSection.qml
+        ui/Settings/AudioDeviceRow.qml
+        ui/Components/AudioBackdrop.qml
         ui/Settings/ButtonRow.qml
         ui/Settings/ShortcutsEditor.qml
         ui/Components/Toast.qml
         ui/Components/VideoAdjustPopup.qml
+        ui/Components/PicturePopup.qml
+        ui/Components/PanDragLayer.qml
+        ui/Settings/VideoExtraRows.qml
         ui/Components/EqualizerPopup.qml
         ui/Components/BookmarksPopup.qml
         ui/Components/OpenUrlDialog.qml
+        ui/Components/MediaInfoDialog.qml
+        ui/Components/ResizeGrips.qml
         ui/Library/LibraryView.qml
     RESOURCES
         resources/icons/play.svg
@@ -339,6 +350,18 @@ if(BUILD_TESTING)
     target_include_directories(tst_urlutils PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
     target_link_libraries(tst_urlutils PRIVATE Qt6::Core Qt6::Test)
     add_test(NAME UrlUtils COMMAND tst_urlutils)
+
+    add_executable(tst_settingsio
+        tests/unit/tst_SettingsIO.cpp
+        src/utilities/SettingsIO.cpp
+    )
+    target_include_directories(tst_settingsio PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+    target_link_libraries(tst_settingsio PRIVATE Qt6::Core Qt6::Test)
+    add_test(NAME SettingsIO COMMAND tst_settingsio)
+    add_executable(tst_audiofilters tests/unit/tst_AudioFilters.cpp)
+    target_include_directories(tst_audiofilters PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+    target_link_libraries(tst_audiofilters PRIVATE Qt6::Core Qt6::Test)
+    add_test(NAME AudioFilters COMMAND tst_audiofilters)
 
     add_executable(tst_tracklabels
         tests/unit/tst_TrackLabels.cpp

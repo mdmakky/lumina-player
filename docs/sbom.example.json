@@ -1,0 +1,13 @@
+{
+  "bomFormat": "CycloneDX", "specVersion": "1.5", "version": 1,
+  "metadata": {"timestamp": "2026-11-06T04:46:31Z", "component": {"type": "application", "name": "lumina-player", "version": "0.3.0", "licenses": [{"license": {"id": "GPL-3.0-or-later"}}]}},
+  "components": [
+    {"type":"library","name":"qt6","version":"6.12.0","licenses":[{"expression":"LGPL-3.0-only OR GPL-3.0-only"}],"purl":"pkg:generic/qt6@6.12.0"},
+    {"type":"library","name":"libmpv","version":"2.5.0","licenses":[{"expression":"GPL-2.0-or-later OR LGPL-2.1-or-later"}],"purl":"pkg:generic/libmpv@2.5.0"},
+    {"type":"library","name":"ffmpeg-libavcodec","version":"63.1.102","licenses":[{"expression":"LGPL-2.1-or-later OR GPL-2.0-or-later"}],"purl":"pkg:generic/ffmpeg-libavcodec@63.1.102"},
+    {"type":"library","name":"libass","version":"0.17.5","licenses":[{"expression":"ISC"}],"purl":"pkg:generic/libass@0.17.5"},
+    {"type":"library","name":"libplacebo","version":"7.387.0","licenses":[{"expression":"LGPL-2.1-or-later"}],"purl":"pkg:generic/libplacebo@7.387.0"},
+    {"type":"library","name":"libva","version":"unknown","licenses":[{"expression":"MIT"}],"purl":"pkg:generic/libva@unknown"},
+    {"type":"library","name":"sqlite3","version":"3.54.0","licenses":[{"expression":"blessing"}],"purl":"pkg:generic/sqlite3@3.54.0"}
+  ]
+}
