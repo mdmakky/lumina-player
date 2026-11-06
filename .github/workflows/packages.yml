@@ -91,13 +91,14 @@ jobs:
         run: |
           ln -s packaging/deb/debian debian
           dpkg-buildpackage -us -uc -b -d
-          ls -l ../*.deb
+          mkdir -p out && cp ../lumina-player_*.deb out/
+          ls -l out
       - uses: actions/upload-artifact@v4
         with:
           name: deb
-          path: ../*.deb
+          path: out/*.deb
       - name: Attach to release
-        run: gh release upload "${{ inputs.tag }}" ../lumina-player_*.deb --clobber
+        run: gh release upload "${{ inputs.tag }}" out/*.deb --clobber
 
   rpm:
     name: Fedora (.rpm)
