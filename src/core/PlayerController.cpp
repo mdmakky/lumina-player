@@ -166,6 +166,13 @@ PlayerController::PlayerController(QObject *parent)
     m_engine->setMuted(settings.value(QStringLiteral("playback/muted"), false).toBool());
     m_engine->setEqualizer(settings.value(QStringLiteral("eq/gains"), QVariantList(10, 0.0)).toList());
     m_engine->setEqEnabled(settings.value(QStringLiteral("eq/enabled"), false).toBool());
+    m_engine->setNormalization(settings.value(QStringLiteral("audio/normalization"), QStringLiteral("off")).toString());
+    m_engine->setVisualization(settings.value(QStringLiteral("audio/visualization"), QStringLiteral("off")).toString());
+    m_engine->setAudioPassthrough(settings.value(QStringLiteral("audio/passthrough"), false).toBool());
+    if (settings.contains(QStringLiteral("audio/channels")))
+        m_engine->setAudioChannels(settings.value(QStringLiteral("audio/channels")).toString());
+    if (settings.contains(QStringLiteral("audio/device")))
+        m_engine->setAudioDevice(settings.value(QStringLiteral("audio/device")).toString());
     connect(m_engine, &MpvEngine::eqChanged, this, [this] {
         setSetting(QStringLiteral("eq/gains"), m_engine->eqGains());
         setSetting(QStringLiteral("eq/enabled"), m_engine->eqEnabled());

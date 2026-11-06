@@ -494,6 +494,11 @@
         <source>Engine unavailable</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <location filename="../src/engine/MpvEngine.cpp" line="1"/>
+        <source>Automatic</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>OpenUrlDialog</name>
@@ -1865,6 +1870,26 @@
         <source>All files (*)</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <location filename="../ui/Components/TrackMenu.qml" line="1"/>
+        <source>Load external audio…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Components/TrackMenu.qml" line="1"/>
+        <source>Visualization: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Components/TrackMenu.qml" line="1"/>
+        <source>Load Audio</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Components/TrackMenu.qml" line="1"/>
+        <source>Audio (*.mp3 *.flac *.m4a *.aac *.ogg *.opus *.wav *.mka *.ac3 *.dts)</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>VideoAdjustPopup</name>
@@ -1896,6 +1921,127 @@
     <message>
         <location filename="../ui/Components/VideoAdjustPopup.qml" line="73"/>
         <source>Reset</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>AudioOutputSection</name>
+    <message>
+        <location filename="../ui/Settings/AudioOutputSection.qml" line="1"/>
+        <source>Output and processing</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/AudioOutputSection.qml" line="1"/>
+        <source>Channels</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/AudioOutputSection.qml" line="1"/>
+        <source>Auto keeps the file's layout. Stereo downmix suits headphones and laptop speakers.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/AudioOutputSection.qml" line="1"/>
+        <source>Auto</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/AudioOutputSection.qml" line="1"/>
+        <source>Stereo downmix</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/AudioOutputSection.qml" line="1"/>
+        <source>Mono</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/AudioOutputSection.qml" line="1"/>
+        <source>5.1 surround</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/AudioOutputSection.qml" line="1"/>
+        <source>7.1 surround</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/AudioOutputSection.qml" line="1"/>
+        <source>Volume normalization</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/AudioOutputSection.qml" line="1"/>
+        <source>Night mode strongly evens out loud and quiet parts. Movie targets a steady loudness.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/AudioOutputSection.qml" line="1"/>
+        <source>Off</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/AudioOutputSection.qml" line="1"/>
+        <source>Night mode</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/AudioOutputSection.qml" line="1"/>
+        <source>Movie</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/AudioOutputSection.qml" line="1"/>
+        <source>Audio passthrough</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/AudioOutputSection.qml" line="1"/>
+        <source>Sends AC3, E-AC3, DTS and TrueHD untouched over HDMI or S/PDIF. Needs a receiver that decodes them; the equalizer and normalization are skipped for those tracks.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/AudioOutputSection.qml" line="1"/>
+        <source>Audio visualization</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/AudioOutputSection.qml" line="1"/>
+        <source>Draws the music for audio-only files that have no cover art or video.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/AudioOutputSection.qml" line="1"/>
+        <source>Spectrum</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/AudioOutputSection.qml" line="1"/>
+        <source>Waveform</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/AudioOutputSection.qml" line="1"/>
+        <source>Vectorscope</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/AudioOutputSection.qml" line="1"/>
+        <source>Frequency bars</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>AudioDeviceRow</name>
+    <message>
+        <location filename="../ui/Settings/AudioDeviceRow.qml" line="1"/>
+        <source>Output device</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/AudioDeviceRow.qml" line="1"/>
+        <source>Where Lumina plays sound. Automatic follows the system default.</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

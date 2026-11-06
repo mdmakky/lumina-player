@@ -494,6 +494,11 @@
         <source>Engine unavailable</source>
         <translation>ইঞ্জিন পাওয়া যাচ্ছে না</translation>
     </message>
+    <message>
+        <location filename="../src/engine/MpvEngine.cpp" line="1"/>
+        <source>Automatic</source>
+        <translation>স্বয়ংক্রিয়</translation>
+    </message>
 </context>
 <context>
     <name>OpenUrlDialog</name>
@@ -1865,6 +1870,26 @@
         <source>All files (*)</source>
         <translation>সব ফাইল (*)</translation>
     </message>
+    <message>
+        <location filename="../ui/Components/TrackMenu.qml" line="1"/>
+        <source>Load external audio…</source>
+        <translation>বাইরের অডিও লোড করুন…</translation>
+    </message>
+    <message>
+        <location filename="../ui/Components/TrackMenu.qml" line="1"/>
+        <source>Visualization: %1</source>
+        <translation>ভিজুয়ালাইজেশন: %1</translation>
+    </message>
+    <message>
+        <location filename="../ui/Components/TrackMenu.qml" line="1"/>
+        <source>Load Audio</source>
+        <translation>অডিও লোড করুন</translation>
+    </message>
+    <message>
+        <location filename="../ui/Components/TrackMenu.qml" line="1"/>
+        <source>Audio (*.mp3 *.flac *.m4a *.aac *.ogg *.opus *.wav *.mka *.ac3 *.dts)</source>
+        <translation>অডিও (*.mp3 *.flac *.m4a *.aac *.ogg *.opus *.wav *.mka *.ac3 *.dts)</translation>
+    </message>
 </context>
 <context>
     <name>VideoAdjustPopup</name>
@@ -1897,6 +1922,127 @@
         <location filename="../ui/Components/VideoAdjustPopup.qml" line="73"/>
         <source>Reset</source>
         <translation>রিসেট</translation>
+    </message>
+</context>
+<context>
+    <name>AudioOutputSection</name>
+    <message>
+        <location filename="../ui/Settings/AudioOutputSection.qml" line="1"/>
+        <source>Output and processing</source>
+        <translation>আউটপুট ও প্রসেসিং</translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/AudioOutputSection.qml" line="1"/>
+        <source>Channels</source>
+        <translation>চ্যানেল</translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/AudioOutputSection.qml" line="1"/>
+        <source>Auto keeps the file's layout. Stereo downmix suits headphones and laptop speakers.</source>
+        <translation>অটো ফাইলের লেআউট রাখে। হেডফোন ও ল্যাপটপ স্পিকারের জন্য স্টেরিও ডাউনমিক্স ভালো।</translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/AudioOutputSection.qml" line="1"/>
+        <source>Auto</source>
+        <translation>অটো</translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/AudioOutputSection.qml" line="1"/>
+        <source>Stereo downmix</source>
+        <translation>স্টেরিও ডাউনমিক্স</translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/AudioOutputSection.qml" line="1"/>
+        <source>Mono</source>
+        <translation>মনো</translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/AudioOutputSection.qml" line="1"/>
+        <source>5.1 surround</source>
+        <translation>৫.১ সারাউন্ড</translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/AudioOutputSection.qml" line="1"/>
+        <source>7.1 surround</source>
+        <translation>৭.১ সারাউন্ড</translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/AudioOutputSection.qml" line="1"/>
+        <source>Volume normalization</source>
+        <translation>ভলিউম নরমালাইজেশন</translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/AudioOutputSection.qml" line="1"/>
+        <source>Night mode strongly evens out loud and quiet parts. Movie targets a steady loudness.</source>
+        <translation>নাইট মোড জোরে ও আস্তে অংশ সমান করে। মুভি মোড স্থির লাউডনেস রাখে।</translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/AudioOutputSection.qml" line="1"/>
+        <source>Off</source>
+        <translation>বন্ধ</translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/AudioOutputSection.qml" line="1"/>
+        <source>Night mode</source>
+        <translation>নাইট মোড</translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/AudioOutputSection.qml" line="1"/>
+        <source>Movie</source>
+        <translation>মুভি</translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/AudioOutputSection.qml" line="1"/>
+        <source>Audio passthrough</source>
+        <translation>অডিও পাসথ্রু</translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/AudioOutputSection.qml" line="1"/>
+        <source>Sends AC3, E-AC3, DTS and TrueHD untouched over HDMI or S/PDIF. Needs a receiver that decodes them; the equalizer and normalization are skipped for those tracks.</source>
+        <translation>AC3, E-AC3, DTS ও TrueHD অপরিবর্তিত অবস্থায় HDMI বা S/PDIF দিয়ে পাঠায়। এগুলো ডিকোড করতে পারে এমন রিসিভার লাগবে; এই ট্র্যাকে ইকুয়ালাইজার ও নরমালাইজেশন কাজ করে না।</translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/AudioOutputSection.qml" line="1"/>
+        <source>Audio visualization</source>
+        <translation>অডিও ভিজুয়ালাইজেশন</translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/AudioOutputSection.qml" line="1"/>
+        <source>Draws the music for audio-only files that have no cover art or video.</source>
+        <translation>কভার আর্ট বা ভিডিও নেই এমন অডিও ফাইলের জন্য গান ছবির মতো দেখায়।</translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/AudioOutputSection.qml" line="1"/>
+        <source>Spectrum</source>
+        <translation>স্পেকট্রাম</translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/AudioOutputSection.qml" line="1"/>
+        <source>Waveform</source>
+        <translation>ওয়েভফর্ম</translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/AudioOutputSection.qml" line="1"/>
+        <source>Vectorscope</source>
+        <translation>ভেক্টরস্কোপ</translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/AudioOutputSection.qml" line="1"/>
+        <source>Frequency bars</source>
+        <translation>ফ্রিকোয়েন্সি বার</translation>
+    </message>
+</context>
+<context>
+    <name>AudioDeviceRow</name>
+    <message>
+        <location filename="../ui/Settings/AudioDeviceRow.qml" line="1"/>
+        <source>Output device</source>
+        <translation>আউটপুট ডিভাইস</translation>
+    </message>
+    <message>
+        <location filename="../ui/Settings/AudioDeviceRow.qml" line="1"/>
+        <source>Where Lumina plays sound. Automatic follows the system default.</source>
+        <translation>Lumina কোথায় শব্দ বাজাবে। অটোমেটিক সিস্টেমের ডিফল্ট অনুসরণ করে।</translation>
     </message>
 </context>
 <context>

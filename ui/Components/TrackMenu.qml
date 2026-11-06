@@ -26,6 +26,29 @@ PopupPanel {
         }
     }
 
+    MenuRow {
+        objectName: "audioLoadExternal"
+        text: qsTr("Load external audio…")
+        iconSource: "qrc:/qt/qml/Lumina/Player/icons/folder-open.svg"
+        onTriggered: audioDialog.open()
+    }
+    MenuRow {
+        // Cycles Off -> Spectrum -> Waveform for audio-only files (the full list lives in Settings > Audio).
+        objectName: "vizCycle"
+        readonly property var modes: ["off", "spectrum", "waveform", "scope", "freqs"]
+        visible: menu.engine.audioTracks.length > 0 && menu.engine.videoTracks.every(t => t.albumart || t.image)
+        text: qsTr("Visualization: %1").arg(menu.engine.visualization === "off" ? qsTr("Off")
+              : menu.engine.visualization === "spectrum" ? qsTr("Spectrum")
+              : menu.engine.visualization === "waveform" ? qsTr("Waveform")
+              : menu.engine.visualization === "scope" ? qsTr("Vectorscope") : qsTr("Frequency bars"))
+        closeOnClick: false
+        onTriggered: {
+            const m = modes[(modes.indexOf(menu.engine.visualization) + 1) % modes.length]
+            menu.engine.setVisualization(m)
+            player.setSetting("audio/visualization", m)
+        }
+    }
+
     PanelSeparator {}
 
     MenuSectionHeader { text: qsTr("SUBTITLES") }
@@ -77,6 +100,12 @@ PopupPanel {
         onStepped: (d) => menu.engine.setSubtitleDelay(menu.engine.subtitleDelay + d)
     }
 
+    FileDialog {
+        id: audioDialog
+        title: qsTr("Load Audio")
+        nameFilters: [qsTr("Audio (*.mp3 *.flac *.m4a *.aac *.ogg *.opus *.wav *.mka *.ac3 *.dts)"), qsTr("All files (*)")]
+        onAccepted: menu.engine.loadExternalAudio(selectedFile)
+    }
     FileDialog {
         id: subDialog
         title: qsTr("Load Subtitle")

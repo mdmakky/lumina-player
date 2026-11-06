@@ -189,6 +189,7 @@ ApplicationWindow {
         engine: player.engine
         visible: player.hasMedia
     }
+    AudioBackdrop { anchors.fill: parent; engine: player.engine; active: player.hasMedia }
 
     MediaInfoDialog {
         id: mediaInfoDialog
