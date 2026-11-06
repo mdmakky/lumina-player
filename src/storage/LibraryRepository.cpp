@@ -34,9 +34,9 @@ void LibraryRepository::upsert(const QList<LibraryItem> &items)
         q.addBindValue(i.addedAt ? i.addedAt : now);
         q.addBindValue(nullable(i.duration));
         q.addBindValue(i.kind);
-        q.exec();
+        if (!q.exec()) qWarning() << "library upsert failed:" << q.lastError().text();
     }
-    d.commit();
+    if (!d.commit()) qWarning() << "library commit failed:" << d.lastError().text();
 }
 
 void LibraryRepository::updateMeta(const QList<LibraryItem> &items)
@@ -64,7 +64,7 @@ void LibraryRepository::updateMeta(const QList<LibraryItem> &items)
         q.addBindValue(i.path);
         if (!q.exec()) qWarning() << q.lastError().text();
     }
-    d.commit();
+    if (!d.commit()) qWarning() << "library commit failed:" << d.lastError().text();
 }
 
 void LibraryRepository::remove(const QStringList &paths)
@@ -74,8 +74,8 @@ void LibraryRepository::remove(const QStringList &paths)
     d.transaction();
     QSqlQuery q(d);
     q.prepare(QStringLiteral("DELETE FROM library WHERE path=?"));
-    for (const QString &p : paths) { q.addBindValue(p); q.exec(); }
-    d.commit();
+    for (const QString &p : paths) { q.addBindValue(p); if (!q.exec()) qWarning() << "library delete failed:" << q.lastError().text(); }
+    if (!d.commit()) qWarning() << "library commit failed:" << d.lastError().text();
 }
 
 void LibraryRepository::removeFolder(const QString &root)

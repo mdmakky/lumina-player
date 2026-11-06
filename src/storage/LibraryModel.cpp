@@ -144,6 +144,17 @@ LibraryQuery LibraryModel::currentQuery() const
     return q;
 }
 
+void LibraryModel::reloadSoon()
+{
+    if (!m_soon) {
+        m_soon = new QTimer(this);
+        m_soon->setSingleShot(true);
+        m_soon->setInterval(300);
+        connect(m_soon, &QTimer::timeout, this, &LibraryModel::reload);
+    }
+    m_soon->start();
+}
+
 void LibraryModel::reload()
 {
     const int before = int(m_rows.size());

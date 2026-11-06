@@ -15,6 +15,12 @@ bool LibraryScanner::isMediaFile(const QString &name)
     return exts.contains(QFileInfo(name).suffix().toLower());
 }
 
+// ".ts" is also TypeScript and Qt Linguist source: real transport streams are far bigger than 1 MB.
+bool LibraryScanner::isLikelyMedia(const QString &path, qint64 size)
+{
+    return size >= (1 << 20) || QFileInfo(path).suffix().compare(QLatin1String("ts"), Qt::CaseInsensitive) != 0;
+}
+
 bool LibraryScanner::isAudioFile(const QString &name)
 {
     static const QSet<QString> exts = {"mp3", "flac", "wav", "ogg", "oga", "opus", "m4a", "aac"};
@@ -66,10 +72,13 @@ void LibraryScanner::start(const QStringList &roots)
             const QString root = QDir::cleanPath(rootIn);
             if (!QFileInfo(root).isDir()) { skippedRoots << root; continue; }
             QDirIterator it(root, QDir::Files | QDir::Readable, QDirIterator::Subdirectories);
+            int rootFiles = 0;
             while (it.hasNext() && !m_cancel) {
                 const QString path = it.next();
                 if (!isMediaFile(path)) continue;
                 const QFileInfo fi = it.fileInfo();
+                if (!isLikelyMedia(path, fi.size())) continue;
+                ++rootFiles;
                 seen.insert(path);
                 if ((++count % 50) == 0)
                     QMetaObject::invokeMethod(this, [this, count] { emit progress(count); }, Qt::QueuedConnection);
@@ -86,6 +95,12 @@ void LibraryScanner::start(const QStringList &roots)
                 i.mtime = mtime;
                 batch.append(i);
                 if (batch.size() >= 200) flush();
+            }
+            // An unmounted drive leaves its (empty) mount-point folder behind: that is "unreadable", not "all files deleted".
+            if (rootFiles == 0 && !m_cancel) {
+                const QString prefix = root + u'/';
+                for (auto k = known.constBegin(); k != known.constEnd(); ++k)
+                    if (k.key().startsWith(prefix)) { skippedRoots << root; break; }
             }
         }
         flush();

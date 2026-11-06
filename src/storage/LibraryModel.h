@@ -1,5 +1,7 @@
 #pragma once
 
+#include <QTimer>
+
 #include "storage/LibraryRepository.h"
 
 #include <QAbstractListModel>
@@ -63,6 +65,8 @@ public:
     Q_INVOKABLE void revealInFolder(const QString &path) const;
     Q_INVOKABLE void toggleFavorite(const QString &path);
     Q_INVOKABLE void reload();
+    // For background writers (scan/probe batches): coalesces bursts into one reload so the UI thread is not re-querying per batch.
+    void reloadSoon();
 
     LibraryQuery currentQuery() const;
 
@@ -85,4 +89,5 @@ private:
     int m_minHeight = 0, m_durBucket = 0, m_watched = 0;
     qint64 m_playlistId = 0;
     QList<LibraryItem> m_rows;
+    QTimer *m_soon = nullptr;
 };
