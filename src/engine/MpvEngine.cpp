@@ -1,6 +1,7 @@
 #include "MpvEngine.h"
 
 #include <QSysInfo>
+#include "utilities/AudioFilters.h"
 #include "utilities/TrackLabels.h"
 
 #include "utilities/Logger.h"
@@ -449,6 +450,8 @@ void MpvEngine::refreshTrackLists()
 
     m_audioTracks = Lumina::TrackLabels::describeTracks(m_audioTracks, true);
     m_subtitleTracks = Lumina::TrackLabels::describeTracks(m_subtitleTracks, false);
+    if (m_vizMode != QLatin1String("off") || !m_appliedComplex.isEmpty())
+        rebuildAudioFilters(); // visualization depends on whether the file has real video
     emit tracksChanged();
 }
 
@@ -847,16 +850,124 @@ void MpvEngine::setEqEnabled(bool on)
     emit eqChanged();
 }
 
-// Rebuilds the whole audio filter chain (the equalizer is the only af we use).
 void MpvEngine::applyEq()
 {
+    rebuildAudioFilters();
+}
+
+// Single owner of the `af` property (equalizer + normalization) and of the visualization graph
+// (`lavfi-complex`, which bypasses `af`, so it embeds the same chain).
+void MpvEngine::rebuildAudioFilters()
+{
     static const int freqs[10] = {31, 62, 125, 250, 500, 1000, 2000, 4000, 8000, 16000};
-    QStringList f;
-    for (int i = 0; i < 10; ++i)
-        if (qAbs(m_eqGains[i].toDouble()) > 0.05)
-            f << QStringLiteral("equalizer=f=%1:t=o:w=1:g=%2").arg(freqs[i]).arg(m_eqGains[i].toDouble(), 0, 'f', 1);
-    command({QStringLiteral("set"), QStringLiteral("af"),
-             m_eqEnabled && !f.isEmpty() ? QStringLiteral("lavfi=[%1]").arg(f.join(',')) : QString()});
+    QStringList bands;
+    if (m_eqEnabled)
+        for (int i = 0; i < 10; ++i)
+            if (qAbs(m_eqGains[i].toDouble()) > 0.05)
+                bands << QStringLiteral("equalizer=f=%1:t=o:w=1:g=%2").arg(freqs[i]).arg(m_eqGains[i].toDouble(), 0, 'f', 1);
+    const QString chain = Lumina::AudioFilters::chain(bands, m_normMode);
+    command({QStringLiteral("set"), QStringLiteral("af"), Lumina::AudioFilters::afValue(chain)});
+
+    bool realVideo = false; // visualization only replaces the picture of audio-only files
+    for (const QVariant &t : std::as_const(m_videoTracks)) {
+        const QVariantMap m = t.toMap();
+        realVideo = realVideo || (!m.value(QStringLiteral("albumart")).toBool() && !m.value(QStringLiteral("image")).toBool());
+    }
+    const QString graph = m_audioTracks.isEmpty() || realVideo ? QString()
+                                                                : Lumina::AudioFilters::visualizationGraph(m_vizMode, chain);
+    if (graph != m_appliedComplex) {
+        m_appliedComplex = graph;
+        command({QStringLiteral("set"), QStringLiteral("lavfi-complex"), graph});
+    }
+}
+
+void MpvEngine::setNormalization(const QString &mode)
+{
+    m_normMode = mode == QLatin1String("night") || mode == QLatin1String("movie") ? mode : QStringLiteral("off");
+    rebuildAudioFilters();
+}
+
+void MpvEngine::setVisualization(const QString &mode)
+{
+    m_vizMode = Lumina::AudioFilters::visualizationFilter(mode).isEmpty() ? QStringLiteral("off") : mode;
+    rebuildAudioFilters();
+    emit visualizationChanged();
+}
+
+QVariantList MpvEngine::audioDevices() const
+{
+    QVariantList out{QVariantMap{{QStringLiteral("label"), tr("Automatic")}, {QStringLiteral("value"), QStringLiteral("auto")}}};
+    mpv_node node{};
+    if (!m_mpv || mpv_get_property(m_mpv, "audio-device-list", MPV_FORMAT_NODE, &node) < 0)
+        return out;
+    for (const QVariant &d : nodeToVariant(node).toList()) {
+        const QVariantMap m = d.toMap();
+        const QString name = m.value(QStringLiteral("name")).toString();
+        if (name.isEmpty() || name == QLatin1String("auto"))
+            continue;
+        const QString desc = m.value(QStringLiteral("description")).toString();
+        out << QVariantMap{{QStringLiteral("label"), desc.isEmpty() ? name : desc}, {QStringLiteral("value"), name}};
+    }
+    mpv_free_node_contents(&node);
+    return out;
+}
+
+void MpvEngine::setAudioDevice(const QString &name)
+{
+    if (!m_mpv)
+        return;
+    bool known = false;
+    for (const QVariant &d : audioDevices())
+        known = known || d.toMap().value(QStringLiteral("value")).toString() == name;
+    if (known)
+        mpv_set_property_string(m_mpv, "audio-device", name.toUtf8().constData());
+    else
+        qCWarning(lcEngine) << "unknown audio device ignored:" << name;
+}
+
+void MpvEngine::setAudioChannels(const QString &mode)
+{
+    if (!m_mpv)
+        return;
+    QString v = mode == QLatin1String("auto") ? QString() : mode;
+    if (v.isEmpty()) {
+#ifdef Q_OS_MACOS
+        v = QStringLiteral("stereo,5.1,7.1"); // see the constructor: coreaudio rejects mono layouts
+#else
+        v = QStringLiteral("auto-safe");
+#endif
+    } else if (v != QLatin1String("stereo") && v != QLatin1String("mono") && v != QLatin1String("5.1")
+               && v != QLatin1String("7.1")) {
+        return;
+    }
+    mpv_set_property_string(m_mpv, "audio-channels", v.toUtf8().constData());
+}
+
+void MpvEngine::setAudioPassthrough(bool on)
+{
+    if (m_mpv)
+        mpv_set_property_string(m_mpv, "audio-spdif", on ? "ac3,eac3,dts,truehd" : "");
+}
+
+void MpvEngine::loadExternalAudio(const QUrl &url)
+{
+    if (!m_mpv || m_idle)
+        return;
+    command({QStringLiteral("audio-add"),
+             url.isLocalFile() ? url.toLocalFile() : url.toString(), QStringLiteral("select")});
+}
+
+QVariantMap MpvEngine::fileMetadata() const
+{
+    QVariantMap out;
+    mpv_node node{};
+    if (!m_mpv || mpv_get_property(m_mpv, "metadata", MPV_FORMAT_NODE, &node) < 0)
+        return out;
+    const QVariantMap raw = nodeToVariant(node).toMap();
+    mpv_free_node_contents(&node);
+    for (auto it = raw.cbegin(); it != raw.cend(); ++it)
+        out.insert(it.key().toLower(), it.value());
+    return out;
 }
 
 bool MpvEngine::screenshot(const QString &path)

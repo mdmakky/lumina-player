@@ -140,6 +140,7 @@ ApplicationWindow {
         engine: player.engine
         visible: player.hasMedia
     }
+    AudioBackdrop { anchors.fill: parent; engine: player.engine; active: player.hasMedia }
 
     // Click toggles play/pause, double-click toggles fullscreen.
     MouseArea {
