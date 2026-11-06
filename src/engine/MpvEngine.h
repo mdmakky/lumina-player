@@ -57,6 +57,7 @@ class MpvEngine : public QObject
     // {brightness, contrast, saturation, gamma, hue} each -100..100.
     Q_PROPERTY(QVariantMap videoAdjust READ videoAdjust NOTIFY videoOptionsChanged FINAL)
     // 10-band graphic equalizer (31 Hz .. 16 kHz), gains in dB (-12..12).
+    Q_PROPERTY(QString visualization READ visualization NOTIFY visualizationChanged FINAL)
     Q_PROPERTY(bool eqEnabled READ eqEnabled WRITE setEqEnabled NOTIFY eqChanged FINAL)
     // Network streams: true while a remote file is loading or mpv is waiting for cache data.
     Q_PROPERTY(bool buffering READ buffering NOTIFY bufferingChanged FINAL)
@@ -160,6 +161,22 @@ public:
     Q_INVOKABLE void setSubtitleBorderSize(double size);
     Q_INVOKABLE void setSubtitlePosition(int percent);
     Q_INVOKABLE void setEqualizer(const QVariantList &gains); // 10 values, dB
+    // Volume normalization: "off" | "night" | "movie". Composed with the equalizer into one `af` chain.
+    Q_INVOKABLE void setNormalization(const QString &mode);
+    // Audio output devices from mpv: [{label, value}], "auto" first. Re-read on every call.
+    Q_INVOKABLE QVariantList audioDevices() const;
+    // name "auto" or a value from audioDevices(); unknown names are ignored.
+    Q_INVOKABLE void setAudioDevice(const QString &name);
+    // "auto" | "stereo" | "mono" | "5.1" | "7.1". "auto" restores the platform default.
+    Q_INVOKABLE void setAudioChannels(const QString &mode);
+    // Bitstream AC3/E-AC3/DTS/TrueHD to a receiver (HDMI/S-PDIF) instead of decoding.
+    Q_INVOKABLE void setAudioPassthrough(bool on);
+    Q_INVOKABLE void loadExternalAudio(const QUrl &url);
+    // Audio-only files: "off" | "spectrum" | "waveform" | "scope" | "freqs" drawn into the video surface.
+    Q_INVOKABLE void setVisualization(const QString &mode);
+    QString visualization() const { return m_vizMode; }
+    // Lower-cased tag map of the current file (title, artist, album...).
+    Q_INVOKABLE QVariantMap fileMetadata() const;
     // Preferred subtitle languages, e.g. "bn,ben,en,eng" (used when a file is loaded).
     Q_INVOKABLE void setSubtitleLanguages(const QString &langs);
     // Demuxer cache: total size in MiB (half is kept for backward seeks) and read-ahead seconds.
@@ -176,6 +193,7 @@ public:
     QVariantList eqGains() const { return m_eqGains; }
 
 signals:
+    void visualizationChanged();
     void eqChanged();
     void playingChanged();
     void pausedChanged();
@@ -224,6 +242,10 @@ private:
     void checkAudioPipeline();
     QStringList m_audioLog; // recent audio/decoder related mpv log lines
     void applyEq();
+    void rebuildAudioFilters();
+    QString m_normMode = QStringLiteral("off");
+    QString m_vizMode = QStringLiteral("off");
+    QString m_appliedComplex;
     bool m_pausedForCache = false;
     bool m_loadingRemote = false;
     bool m_playingRemote = false;

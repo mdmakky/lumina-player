@@ -452,6 +452,25 @@ void UiTest::run()
             click("eqReset");
             result("Reset zeroes bands", waitFor([&] { return eng->property("eqGains").toList().value(0).toDouble() == 0; }));
             key(Qt::Key_Escape);
+
+            // --- audio chain: normalization composes with the equalizer, device list is populated ---
+            auto afNow = [&] {
+                char *v = mpv_get_property_string(eng->handle(), "af");
+                const QString r = v ? QString::fromUtf8(v) : QString();
+                mpv_free(v);
+                return r;
+            };
+            result("audio device list has auto + a device", eng->audioDevices().size() >= 2, QString::number(eng->audioDevices().size()));
+            eng->setNormalization("night");
+            result("night mode puts dynaudnorm in af", waitFor([&] { return afNow().contains("dynaudnorm"); }), afNow().left(60));
+            eng->setEqEnabled(true);
+            eng->setEqualizer(QVariantList{6.0, 0, 0, 0, 0, 0, 0, 0, 0, 0});
+            result("EQ and normalization coexist", waitFor([&] { return afNow().contains("equalizer") && afNow().contains("dynaudnorm"); }), afNow().left(80));
+            eng->setNormalization("off");
+            result("normalization off keeps EQ", waitFor([&] { return afNow().contains("equalizer") && !afNow().contains("dynaudnorm"); }));
+            eng->setEqEnabled(false);
+            eng->setEqualizer(QVariantList(10, 0.0));
+            result("everything off clears af", waitFor([&] { return afNow().isEmpty(); }), afNow());
         }
 
         // --- bookmarks ---

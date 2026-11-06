@@ -683,6 +683,7 @@ Item {
                                     onClicked: { dlg.close(); dlg.equalizerRequested() }
                                 }
                             }
+                            AudioOutputSection {}
                         }
 
                         // ---- Subtitles ----
