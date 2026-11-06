@@ -57,7 +57,11 @@ class MpvEngine : public QObject
     Q_PROPERTY(bool deinterlace READ deinterlace NOTIFY videoOptionsChanged FINAL)
     // {brightness, contrast, saturation, gamma, hue} each -100..100.
     Q_PROPERTY(QVariantMap videoAdjust READ videoAdjust NOTIFY videoOptionsChanged FINAL)
+    // Picture tweaks: zoom (log2, 0 = 100%), panx/pany (-1..1), crop ("off"|"16:9"|...), hflip, vflip,
+    // sharpen/denoise (0 off .. 3 high), scale (fast|balanced|high), tonemap, interp, shader (file path).
+    Q_PROPERTY(QVariantMap picture READ picture NOTIFY pictureChanged FINAL)
     // 10-band graphic equalizer (31 Hz .. 16 kHz), gains in dB (-12..12).
+    Q_PROPERTY(QString visualization READ visualization NOTIFY visualizationChanged FINAL)
     Q_PROPERTY(bool eqEnabled READ eqEnabled WRITE setEqEnabled NOTIFY eqChanged FINAL)
     // Network streams: true while a remote file is loading or mpv is waiting for cache data.
     Q_PROPERTY(bool buffering READ buffering NOTIFY bufferingChanged FINAL)
@@ -65,6 +69,7 @@ class MpvEngine : public QObject
     Q_PROPERTY(double cacheBufferedSeconds READ cacheBufferedSeconds NOTIFY cacheBufferedSecondsChanged FINAL)
     // yt-dlp (youtube-dl) found: page URLs (YouTube etc.) can be played.
     Q_PROPERTY(bool ytdlAvailable READ ytdlAvailable CONSTANT FINAL)
+    Q_PROPERTY(QString ytdlPath READ ytdlPath CONSTANT FINAL)
     Q_PROPERTY(QVariantList eqGains READ eqGains NOTIFY eqChanged FINAL)
 
 public:
@@ -101,9 +106,11 @@ public:
     int rotate() const { return m_rotate; }
     bool deinterlace() const { return m_deinterlace; }
     QVariantMap videoAdjust() const { return m_adjust; }
+    QVariantMap picture() const { return m_picture; }
     bool buffering() const { return m_pausedForCache || m_loadingRemote; }
     double cacheBufferedSeconds() const { return m_cacheAhead; }
     bool ytdlAvailable() const { return m_ytdl; }
+    QString ytdlPath() const { return m_ytdlPath; }
 
 public slots:
     void setPaused(bool paused);
@@ -159,6 +166,10 @@ public:
     // name: brightness|contrast|saturation|gamma|hue; value -100..100.
     Q_INVOKABLE void setVideoAdjust(const QString &name, int value);
     Q_INVOKABLE void resetVideoAdjust();
+    // Sets one picture key (see `picture`); unknown keys and bad values are ignored.
+    Q_INVOKABLE void setPicture(const QString &key, const QVariant &value);
+    // Back to the untouched picture (also scaling/tone-mapping/interpolation defaults).
+    Q_INVOKABLE void resetPicture();
     // Saves the current video frame (no subtitles/OSD) as an image file.
     Q_INVOKABLE bool screenshot(const QString &path);
     Q_INVOKABLE void setHwdec(const QString &mode);
@@ -169,6 +180,22 @@ public:
     Q_INVOKABLE void setSubtitleBorderSize(double size);
     Q_INVOKABLE void setSubtitlePosition(int percent);
     Q_INVOKABLE void setEqualizer(const QVariantList &gains); // 10 values, dB
+    // Volume normalization: "off" | "night" | "movie". Composed with the equalizer into one `af` chain.
+    Q_INVOKABLE void setNormalization(const QString &mode);
+    // Audio output devices from mpv: [{label, value}], "auto" first. Re-read on every call.
+    Q_INVOKABLE QVariantList audioDevices() const;
+    // name "auto" or a value from audioDevices(); unknown names are ignored.
+    Q_INVOKABLE void setAudioDevice(const QString &name);
+    // "auto" | "stereo" | "mono" | "5.1" | "7.1". "auto" restores the platform default.
+    Q_INVOKABLE void setAudioChannels(const QString &mode);
+    // Bitstream AC3/E-AC3/DTS/TrueHD to a receiver (HDMI/S-PDIF) instead of decoding.
+    Q_INVOKABLE void setAudioPassthrough(bool on);
+    Q_INVOKABLE void loadExternalAudio(const QUrl &url);
+    // Audio-only files: "off" | "spectrum" | "waveform" | "scope" | "freqs" drawn into the video surface.
+    Q_INVOKABLE void setVisualization(const QString &mode);
+    QString visualization() const { return m_vizMode; }
+    // Lower-cased tag map of the current file (title, artist, album...).
+    Q_INVOKABLE QVariantMap fileMetadata() const;
     // Preferred subtitle languages, e.g. "bn,ben,en,eng" (used when a file is loaded).
     Q_INVOKABLE void setSubtitleLanguages(const QString &langs);
     // Demuxer cache: total size in MiB (half is kept for backward seeks) and read-ahead seconds.
@@ -176,6 +203,8 @@ public:
     Q_INVOKABLE void setReadahead(int seconds);
     // Advanced override: sets any mpv property; returns "" on success or mpv's error text.
     Q_INVOKABLE QString setMpvOption(const QString &name, const QString &value);
+    // True when mpv's `protocol-list` contains the scheme (smb/nfs/sftp depend on the FFmpeg build).
+    Q_INVOKABLE bool protocolSupported(const QString &scheme) const;
     Q_INVOKABLE QVariant mpvProperty(const QString &name) const { return getProp(name.toUtf8().constData()); }
     // Human-readable scene-graph renderer (set once the GL context exists).
     QString rendererInfo() const { return m_rendererInfo; }
@@ -185,6 +214,7 @@ public:
     QVariantList eqGains() const { return m_eqGains; }
 
 signals:
+    void visualizationChanged();
     void eqChanged();
     void playingChanged();
     void pausedChanged();
@@ -206,6 +236,7 @@ signals:
     void statsEnabledChanged();
     void loopChanged();
     void videoOptionsChanged();
+    void pictureChanged();
     // mpv finished a seek (MPV_EVENT_PLAYBACK_RESTART); also fires after file load.
     void seekFinished();
     void bufferingChanged();
@@ -233,11 +264,16 @@ private:
     void checkAudioPipeline();
     QStringList m_audioLog; // recent audio/decoder related mpv log lines
     void applyEq();
+    void rebuildAudioFilters();
+    QString m_normMode = QStringLiteral("off");
+    QString m_vizMode = QStringLiteral("off");
+    QString m_appliedComplex;
     bool m_pausedForCache = false;
     bool m_loadingRemote = false;
     bool m_playingRemote = false;
     double m_cacheAhead = 0.0;
     bool m_ytdl = false;
+    QString m_ytdlPath;
     QUrl m_remoteUrl; // last remote URL loaded (for error messages)
     bool m_eqEnabled = false;
     QVariantList m_eqGains = QVariantList(10, 0.0);
@@ -284,5 +320,11 @@ private:
     QString m_aspect = QStringLiteral("auto");
     int m_rotate = 0;
     bool m_deinterlace = false;
+    void applyPicture(const QString &key);
+    void applyFilters();
+    void applyCrop();
+    QVariantMap m_picture{{"zoom", 0.0}, {"panx", 0.0}, {"pany", 0.0}, {"crop", "off"}, {"hflip", false}, {"vflip", false},
+                          {"sharpen", 0}, {"denoise", 0}, {"scale", "balanced"}, {"tonemap", "auto"},
+                          {"interp", false}, {"shader", ""}};
     QVariantMap m_adjust{{"brightness", 0}, {"contrast", 0}, {"saturation", 0}, {"gamma", 0}, {"hue", 0}};
 };

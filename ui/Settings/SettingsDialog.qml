@@ -61,10 +61,14 @@ Item {
         { key: "library",    label: qsTr("Library") },
         { key: "shortcuts",  label: qsTr("Shortcuts") },
         { key: "advanced",   label: qsTr("Advanced") },
+        { key: "mouse",      label: qsTr("Mouse") },
+        { key: "rendering",  label: qsTr("Rendering") },
+        { key: "network",    label: qsTr("Network") },
+        { key: "playlist",   label: qsTr("Playlist") },
         { key: "about",      label: qsTr("About") }
     ]
     readonly property var pageItems: [pGeneral, pPlayback, pVideo, pAudio, pSubtitles,
-                                      pAppearance, pLibrary, pShortcuts, pAdvanced, pAbout]
+                                      pAppearance, pLibrary, pShortcuts, pAdvanced, pMouse, pRendering, pNetwork, pPlaylist, pAbout]
     property int resetPending: -1   // page awaiting reset confirmation
 
     function set(key, value) { player.setSetting(key, value) }
@@ -137,7 +141,8 @@ Item {
     function open() { opened = true }
     function close() { opened = false }
 
-    Component.onCompleted: {
+    Component.onCompleted: loadValues()
+    function loadValues() {
         resume = getBool("playback/resume", true)
         autoNext = getBool("playback/autoNext", true)
         seekPreview = getBool("ui/seekPreview", true)
@@ -163,6 +168,21 @@ Item {
         readahead = getNum("advanced/readahead", 30)
         mpvOptions = player.setting("advanced/mpvOptions", "")
         verboseLog = getBool("advanced/verboseLog", false)
+    }
+
+    // After a settings import: re-read the values and push them into the running engine/UI.
+    function applyImported() {
+        loadValues()
+        shortcuts.reload()
+        app.setLanguage(player.setting("interface/language", "system"))
+        const e = player.engine
+        e.setHwdec(hwdec); e.setAspect(videoAspect); e.setDeinterlace(deinterlace)
+        e.setSubtitleFontSize(subSize); e.setSubtitleColor(subColor); e.setSubtitleBorderSize(subBorder)
+        e.setSubtitlePosition(subPos); e.setSubtitleLanguages(subLangs)
+        e.setCacheSize(cacheMiB); e.setReadahead(readahead)
+        player.thumbs.enabled = seekPreview
+        player.setVerboseLogging(verboseLog)
+        if (mpvOptions !== "") applyMpvOptions(mpvOptions)
     }
 
     onOpenedChanged: {
@@ -193,6 +213,29 @@ Item {
         id: libFolderDialog
         title: qsTr("Add library folder")
         onAccepted: player.addLibraryFolder(selectedFolder)
+    }
+    FileDialog {
+        id: exportDialog
+        title: qsTr("Export settings")
+        fileMode: FileDialog.SaveFile
+        defaultSuffix: "json"
+        nameFilters: [qsTr("Lumina settings (*.json)")]
+        onAccepted: {
+            const r = player.exportSettings(selectedFile)
+            player.toast(r.ok ? qsTr("Settings exported") : qsTr("Export failed: %1").arg(r.error))
+        }
+    }
+    FileDialog {
+        id: importDialog
+        title: qsTr("Import settings")
+        fileMode: FileDialog.OpenFile
+        nameFilters: [qsTr("Lumina settings (*.json)")]
+        onAccepted: {
+            const r = player.importSettings(selectedFile)
+            if (!r.ok) { player.toast(qsTr("Import failed: %1").arg(r.error)); return }
+            dlg.applyImported()
+            player.toast(qsTr("Imported %n setting(s). Library folders and window layout apply after a restart.", "", r.count))
+        }
     }
     FolderDialog {
         id: shotFolderDialog
@@ -507,6 +550,19 @@ Item {
                                 }
                             }
                             SettingSection {
+                                title: qsTr("Backup")
+                                ButtonRow {
+                                    name: "exportSettings"
+                                    title: qsTr("Settings file")
+                                    description: qsTr("Save or load shortcuts, subtitle style, theme and language as one JSON file. History, library and resume positions are not included.")
+                                    keywords: "export import backup settings json config transfer"
+                                    buttonText: qsTr("Import settings…")
+                                    button2Text: qsTr("Export settings…")
+                                    onClicked: importDialog.open()
+                                    onClicked2: exportDialog.open()
+                                }
+                            }
+                            SettingSection {
                                 title: qsTr("Startup and history")
                                 SwitchRow {
                                     name: "resumeSwitch"
@@ -632,6 +688,7 @@ Item {
                                     onToggled: (v) => dlg.setDeinterlace(v)
                                 }
                             }
+                            VideoExtraRows {}
                             SettingSection {
                                 title: qsTr("Screenshots")
                                 SettingRow {
@@ -683,6 +740,7 @@ Item {
                                     onClicked: { dlg.close(); dlg.equalizerRequested() }
                                 }
                             }
+                            AudioOutputSection {}
                         }
 
                         // ---- Subtitles ----
@@ -781,6 +839,7 @@ Item {
                                     onToggled: (v) => dlg.setReducedMotion(v)
                                 }
                             }
+                            AccentSection { dlg: dlg }
                             SettingSection {
                                 title: qsTr("Player controls")
                                 StepperRow {
@@ -982,10 +1041,15 @@ Item {
                             }
                         }
 
+                        MouseSettingsPage { id: pMouse; pageIndex: 9 }
+                        RenderingPage { id: pRendering; pageIndex: 10; dlg: dlg }
+                        NetworkPage { id: pNetwork; pageIndex: 11; dlg: dlg }
+                        PlaylistPage { id: pPlaylist; pageIndex: 12; dlg: dlg }
+
                         // ---- About ----
                         SettingsPage {
                             id: pAbout
-                            title: qsTr("About"); pageIndex: 9
+                            title: qsTr("About"); pageIndex: 13
                             resettable: false
                             SettingSection {
                                 title: qsTr("Lumina Player")

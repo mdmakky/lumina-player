@@ -28,6 +28,7 @@ SettingRow {
         focusPolicy: Qt.StrongFocus
         Accessible.name: row.title
         onActivated: (i) => row.picked(row.model[i].value)
+        onModelChanged: currentIndex = row.indexOfValue(row.value)
         Binding { target: cb; property: "currentIndex"; value: row.indexOfValue(row.value) }
 
         background: Rectangle {

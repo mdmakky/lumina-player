@@ -10,13 +10,19 @@ QUrl parseMediaUrl(const QString &input)
     if (s.isEmpty() || s.contains(QLatin1Char(' ')))
         return {};
     const QUrl url(s, QUrl::StrictMode);
-    static const QStringList schemes{"http", "https", "rtmp", "rtmps", "rtmpe", "rtsp", "rtsps", "ftp", "file"};
+    static const QStringList schemes{"http", "https", "rtmp", "rtmps", "rtmpe", "rtsp", "rtsps", "ftp", "sftp", "smb", "nfs", "file"};
     const QString scheme = url.scheme().toLower();
     if (!url.isValid() || !schemes.contains(scheme))
         return {};
     if (scheme == QLatin1String("file") ? url.path().isEmpty() : url.host().isEmpty())
         return {};
     return url;
+}
+
+bool needsOptionalProtocol(const QUrl &url)
+{
+    static const QStringList p{"smb", "nfs", "sftp", "ftp"};
+    return p.contains(url.scheme().toLower());
 }
 
 bool isRemote(const QUrl &url)

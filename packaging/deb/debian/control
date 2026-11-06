@@ -1,0 +1,22 @@
+Source: lumina-player
+Section: video
+Priority: optional
+Maintainer: mdmakky <makky.cse@gmail.com>
+Build-Depends: debhelper-compat (= 13), cmake (>= 3.28), ninja-build, pkg-config,
+ libmpv-dev, qt6-base-dev, qt6-base-private-dev, qt6-declarative-dev, qt6-l10n-tools,
+ qt6-tools-dev, libgl-dev, desktop-file-utils
+Standards-Version: 4.6.2
+Homepage: https://github.com/mdmakky/lumina-player
+Rules-Requires-Root: no
+
+Package: lumina-player
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, libqt6sql6-sqlite,
+ qml6-module-qtquick, qml6-module-qtquick-controls, qml6-module-qtquick-layouts,
+ qml6-module-qtquick-window, qml6-module-qtqml-workerscript, qml6-module-qtquick-templates,
+ qml6-module-qt-labs-platform, qml6-module-qtcore
+Recommends: mesa-va-drivers, yt-dlp
+Description: Modern media player built on Qt 6 and libmpv
+ Lumina Player plays video and audio with mpv's engine inside a clean Qt Quick
+ interface, with fast seeking, playlists, subtitles, equalizer, a media library
+ and MPRIS support.

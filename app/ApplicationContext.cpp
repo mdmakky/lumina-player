@@ -2,12 +2,15 @@
 
 #include "core/PlayerController.h"
 #include "core/ShortcutManager.h"
+#include "media/LibraryThumbs.h"
 #include "platform/PlatformIntegration.h"
 #include "utilities/Logger.h"
 #include "utilities/TimeUtils.h"
 
 #include <QCoreApplication>
+#include <QFileInfo>
 #include <QLocale>
+#include <QStandardPaths>
 #include <QSettings>
 #include <QElapsedTimer>
 #include <QFile>
@@ -248,6 +251,12 @@ void ApplicationContext::registerOnEngine(QQmlEngine *qmlEngine)
     qmlEngine->rootContext()->setContextProperty(QStringLiteral("app"), this);
     qmlEngine->rootContext()->setContextProperty(QStringLiteral("player"), m_player);
     qmlEngine->addImageProvider(QStringLiteral("thumb"), m_player->thumbs()->createProvider());
+    {   // library poster grid: thumbnails cached next to the database (isolated in tests)
+        const QString db = qEnvironmentVariable("LUMINA_DB_PATH");
+        const QString base = db.isEmpty() || db == QLatin1String(":memory:")
+            ? QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) : QFileInfo(db).absolutePath();
+        qmlEngine->addImageProvider(QStringLiteral("libthumb"), new LibraryThumbs(base + QStringLiteral("/thumbs")));
+    }
     qmlEngine->rootContext()->setContextProperty(QStringLiteral("shortcuts"), m_shortcuts);
     qmlEngine->rootContext()->setContextProperty(QStringLiteral("timefmt"),
                                                  new Lumina::TimeUtils(qmlEngine));

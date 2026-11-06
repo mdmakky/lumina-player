@@ -15,6 +15,12 @@ bool LibraryScanner::isMediaFile(const QString &name)
     return exts.contains(QFileInfo(name).suffix().toLower());
 }
 
+bool LibraryScanner::isAudioFile(const QString &name)
+{
+    static const QSet<QString> exts = {"mp3", "flac", "wav", "ogg", "oga", "opus", "m4a", "aac"};
+    return exts.contains(QFileInfo(name).suffix().toLower());
+}
+
 LibraryScanner::LibraryScanner(LibraryRepository *repo, QObject *parent)
     : QObject(parent), m_repo(repo) {}
 
@@ -75,6 +81,7 @@ void LibraryScanner::start(const QStringList &roots)
                 i.path = path;
                 i.title = fi.completeBaseName();
                 i.folder = fi.absolutePath();
+                i.kind = isAudioFile(path) ? 1 : 0;
                 i.size = fi.size();
                 i.mtime = mtime;
                 batch.append(i);

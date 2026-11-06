@@ -1,6 +1,7 @@
 #include "MpvEngine.h"
 
 #include <QSysInfo>
+#include "utilities/AudioFilters.h"
 #include "utilities/TrackLabels.h"
 
 #include "utilities/Logger.h"
@@ -81,6 +82,7 @@ MpvEngine::MpvEngine(QObject *parent)
             ytdl = QStandardPaths::findExecutable(QStringLiteral("youtube-dl"), dirs);
         if (!ytdl.isEmpty()) {
             m_ytdl = true;
+            m_ytdlPath = ytdl;
             mpv_set_option_string(m_mpv, "ytdl", "yes");
             mpv_set_option_string(m_mpv, "ytdl-format", "bestvideo[height<=?1080]+bestaudio/best");
             mpv_set_option_string(m_mpv, "script-opts", ("ytdl_hook-ytdl_path=" + ytdl).toUtf8().constData());
@@ -308,6 +310,7 @@ void MpvEngine::processEvents()
             QTimer::singleShot(1800, this, &MpvEngine::checkAudioPipeline);
             setLoadingRemote(false);
             refreshTrackLists(); // make sure listeners see this file's tracks, not the previous one's
+            applyCrop(); // video-crop is in pixels of the previous file otherwise
             emit fileLoaded();
             break;
         case MPV_EVENT_START_FILE:
@@ -450,6 +453,8 @@ void MpvEngine::refreshTrackLists()
 
     m_audioTracks = Lumina::TrackLabels::describeTracks(m_audioTracks, true);
     m_subtitleTracks = Lumina::TrackLabels::describeTracks(m_subtitleTracks, false);
+    if (m_vizMode != QLatin1String("off") || !m_appliedComplex.isEmpty())
+        rebuildAudioFilters(); // visualization depends on whether the file has real video
     emit tracksChanged();
 }
 
@@ -772,6 +777,89 @@ void MpvEngine::resetVideoAdjust()
         setVideoAdjust(name, 0);
 }
 
+void MpvEngine::setPicture(const QString &key, const QVariant &value)
+{
+    if (!m_picture.contains(key))
+        return;
+    QVariant v = value;
+    if (key == QLatin1String("zoom")) v = qBound(-2.0, value.toDouble(), 3.0);
+    else if (key == QLatin1String("panx") || key == QLatin1String("pany")) v = qBound(-1.0, value.toDouble(), 1.0);
+    else if (key == QLatin1String("sharpen") || key == QLatin1String("denoise")) v = qBound(0, value.toInt(), 3);
+    else if (key == QLatin1String("hflip") || key == QLatin1String("vflip") || key == QLatin1String("interp")) v = value.toBool();
+    else v = value.toString();
+    if (m_picture.value(key) == v)
+        return;
+    m_picture[key] = v;
+    applyPicture(key);
+    emit pictureChanged();
+}
+
+void MpvEngine::resetPicture()
+{
+    const QVariantMap defaults{{"zoom", 0.0}, {"panx", 0.0}, {"pany", 0.0}, {"crop", "off"}, {"hflip", false},
+                               {"vflip", false}, {"sharpen", 0}, {"denoise", 0}, {"scale", "balanced"},
+                               {"tonemap", "auto"}, {"interp", false}, {"shader", ""}};
+    for (auto it = defaults.begin(); it != defaults.end(); ++it)
+        setPicture(it.key(), it.value());
+}
+
+void MpvEngine::applyPicture(const QString &key)
+{
+    auto set = [this](const char *name, const QString &v) { command({QStringLiteral("set"), QLatin1String(name), v}); };
+    const QVariant v = m_picture.value(key);
+    if (key == QLatin1String("zoom")) set("video-zoom", QString::number(v.toDouble(), 'f', 3));
+    else if (key == QLatin1String("panx")) set("video-pan-x", QString::number(v.toDouble(), 'f', 3));
+    else if (key == QLatin1String("pany")) set("video-pan-y", QString::number(v.toDouble(), 'f', 3));
+    else if (key == QLatin1String("crop")) applyCrop();
+    else if (key == QLatin1String("hflip") || key == QLatin1String("vflip") || key == QLatin1String("sharpen")
+             || key == QLatin1String("denoise")) applyFilters();
+    else if (key == QLatin1String("scale")) {
+        const QString s = v.toString();
+        const bool fast = s == QLatin1String("fast"), high = s == QLatin1String("high");
+        set("scale", fast ? "bilinear" : high ? "ewa_lanczossharp" : "spline36");
+        set("cscale", fast ? "bilinear" : high ? "ewa_lanczossharp" : "spline36");
+        set("dscale", fast ? "bilinear" : "mitchell");
+    } else if (key == QLatin1String("tonemap")) {
+        set("tone-mapping", v.toString());
+        set("target-peak", QStringLiteral("auto"));
+    } else if (key == QLatin1String("interp")) {
+        set("video-sync", v.toBool() ? "display-resample" : "audio");
+        set("interpolation", v.toBool() ? "yes" : "no");
+    } else if (key == QLatin1String("shader")) set("glsl-shaders", v.toString());
+}
+
+// hflip/vflip/unsharp/hqdn3d as one lavfi graph (the equalizer uses `af`; `vf` is ours alone).
+// ponytail: software filters; with zero-copy hwdec (plain vaapi) mpv may refuse them. Use *-copy then.
+void MpvEngine::applyFilters()
+{
+    QStringList f;
+    if (m_picture.value("hflip").toBool()) f << QStringLiteral("hflip");
+    if (m_picture.value("vflip").toBool()) f << QStringLiteral("vflip");
+    static const char *sharp[] = {"", "unsharp=5:5:0.4", "unsharp=5:5:0.8", "unsharp=5:5:1.4"};
+    static const char *dn[] = {"", "hqdn3d=2:1.5:3:2.25", "hqdn3d=4:3:6:4.5", "hqdn3d=8:6:10:7.5"};
+    if (const int s = m_picture.value("sharpen").toInt()) f << QLatin1String(sharp[s]);
+    if (const int d = m_picture.value("denoise").toInt()) f << QLatin1String(dn[d]);
+    command({QStringLiteral("set"), QStringLiteral("vf"),
+             f.isEmpty() ? QString() : QStringLiteral("lavfi=[%1]").arg(f.join(','))});
+}
+
+// Centered crop to the requested aspect, computed from the decoded size (video-crop is WxH+X+Y pixels).
+void MpvEngine::applyCrop()
+{
+    const QString c = m_picture.value("crop").toString();
+    QString geom;
+    const int w = getProp("video-params/w").toInt(), h = getProp("video-params/h").toInt();
+    const int colon = c.indexOf(QLatin1Char(':'));
+    if (colon > 0 && w > 0 && h > 0) {
+        const double ar = c.left(colon).toDouble() / qMax(0.01, c.mid(colon + 1).toDouble());
+        int cw = w, ch = h;
+        if (ar > 0 && double(w) / h > ar) cw = qRound(h * ar); else if (ar > 0) ch = qRound(w / ar);
+        cw &= ~1; ch &= ~1;
+        geom = QStringLiteral("%1x%2+%3+%4").arg(cw).arg(ch).arg((w - cw) / 2).arg((h - ch) / 2);
+    }
+    command({QStringLiteral("set"), QStringLiteral("video-crop"), geom});
+}
+
 void MpvEngine::setEqualizer(const QVariantList &gains)
 {
     for (int i = 0; i < 10; ++i)
@@ -789,16 +877,124 @@ void MpvEngine::setEqEnabled(bool on)
     emit eqChanged();
 }
 
-// Rebuilds the whole audio filter chain (the equalizer is the only af we use).
 void MpvEngine::applyEq()
 {
+    rebuildAudioFilters();
+}
+
+// Single owner of the `af` property (equalizer + normalization) and of the visualization graph
+// (`lavfi-complex`, which bypasses `af`, so it embeds the same chain).
+void MpvEngine::rebuildAudioFilters()
+{
     static const int freqs[10] = {31, 62, 125, 250, 500, 1000, 2000, 4000, 8000, 16000};
-    QStringList f;
-    for (int i = 0; i < 10; ++i)
-        if (qAbs(m_eqGains[i].toDouble()) > 0.05)
-            f << QStringLiteral("equalizer=f=%1:t=o:w=1:g=%2").arg(freqs[i]).arg(m_eqGains[i].toDouble(), 0, 'f', 1);
-    command({QStringLiteral("set"), QStringLiteral("af"),
-             m_eqEnabled && !f.isEmpty() ? QStringLiteral("lavfi=[%1]").arg(f.join(',')) : QString()});
+    QStringList bands;
+    if (m_eqEnabled)
+        for (int i = 0; i < 10; ++i)
+            if (qAbs(m_eqGains[i].toDouble()) > 0.05)
+                bands << QStringLiteral("equalizer=f=%1:t=o:w=1:g=%2").arg(freqs[i]).arg(m_eqGains[i].toDouble(), 0, 'f', 1);
+    const QString chain = Lumina::AudioFilters::chain(bands, m_normMode);
+    command({QStringLiteral("set"), QStringLiteral("af"), Lumina::AudioFilters::afValue(chain)});
+
+    bool realVideo = false; // visualization only replaces the picture of audio-only files
+    for (const QVariant &t : std::as_const(m_videoTracks)) {
+        const QVariantMap m = t.toMap();
+        realVideo = realVideo || (!m.value(QStringLiteral("albumart")).toBool() && !m.value(QStringLiteral("image")).toBool());
+    }
+    const QString graph = m_audioTracks.isEmpty() || realVideo ? QString()
+                                                                : Lumina::AudioFilters::visualizationGraph(m_vizMode, chain);
+    if (graph != m_appliedComplex) {
+        m_appliedComplex = graph;
+        command({QStringLiteral("set"), QStringLiteral("lavfi-complex"), graph});
+    }
+}
+
+void MpvEngine::setNormalization(const QString &mode)
+{
+    m_normMode = mode == QLatin1String("night") || mode == QLatin1String("movie") ? mode : QStringLiteral("off");
+    rebuildAudioFilters();
+}
+
+void MpvEngine::setVisualization(const QString &mode)
+{
+    m_vizMode = Lumina::AudioFilters::visualizationFilter(mode).isEmpty() ? QStringLiteral("off") : mode;
+    rebuildAudioFilters();
+    emit visualizationChanged();
+}
+
+QVariantList MpvEngine::audioDevices() const
+{
+    QVariantList out{QVariantMap{{QStringLiteral("label"), tr("Automatic")}, {QStringLiteral("value"), QStringLiteral("auto")}}};
+    mpv_node node{};
+    if (!m_mpv || mpv_get_property(m_mpv, "audio-device-list", MPV_FORMAT_NODE, &node) < 0)
+        return out;
+    for (const QVariant &d : nodeToVariant(node).toList()) {
+        const QVariantMap m = d.toMap();
+        const QString name = m.value(QStringLiteral("name")).toString();
+        if (name.isEmpty() || name == QLatin1String("auto"))
+            continue;
+        const QString desc = m.value(QStringLiteral("description")).toString();
+        out << QVariantMap{{QStringLiteral("label"), desc.isEmpty() ? name : desc}, {QStringLiteral("value"), name}};
+    }
+    mpv_free_node_contents(&node);
+    return out;
+}
+
+void MpvEngine::setAudioDevice(const QString &name)
+{
+    if (!m_mpv)
+        return;
+    bool known = false;
+    for (const QVariant &d : audioDevices())
+        known = known || d.toMap().value(QStringLiteral("value")).toString() == name;
+    if (known)
+        mpv_set_property_string(m_mpv, "audio-device", name.toUtf8().constData());
+    else
+        qCWarning(lcEngine) << "unknown audio device ignored:" << name;
+}
+
+void MpvEngine::setAudioChannels(const QString &mode)
+{
+    if (!m_mpv)
+        return;
+    QString v = mode == QLatin1String("auto") ? QString() : mode;
+    if (v.isEmpty()) {
+#ifdef Q_OS_MACOS
+        v = QStringLiteral("stereo,5.1,7.1"); // see the constructor: coreaudio rejects mono layouts
+#else
+        v = QStringLiteral("auto-safe");
+#endif
+    } else if (v != QLatin1String("stereo") && v != QLatin1String("mono") && v != QLatin1String("5.1")
+               && v != QLatin1String("7.1")) {
+        return;
+    }
+    mpv_set_property_string(m_mpv, "audio-channels", v.toUtf8().constData());
+}
+
+void MpvEngine::setAudioPassthrough(bool on)
+{
+    if (m_mpv)
+        mpv_set_property_string(m_mpv, "audio-spdif", on ? "ac3,eac3,dts,truehd" : "");
+}
+
+void MpvEngine::loadExternalAudio(const QUrl &url)
+{
+    if (!m_mpv || m_idle)
+        return;
+    command({QStringLiteral("audio-add"),
+             url.isLocalFile() ? url.toLocalFile() : url.toString(), QStringLiteral("select")});
+}
+
+QVariantMap MpvEngine::fileMetadata() const
+{
+    QVariantMap out;
+    mpv_node node{};
+    if (!m_mpv || mpv_get_property(m_mpv, "metadata", MPV_FORMAT_NODE, &node) < 0)
+        return out;
+    const QVariantMap raw = nodeToVariant(node).toMap();
+    mpv_free_node_contents(&node);
+    for (auto it = raw.cbegin(); it != raw.cend(); ++it)
+        out.insert(it.key().toLower(), it.value());
+    return out;
 }
 
 bool MpvEngine::screenshot(const QString &path)
@@ -878,6 +1074,11 @@ void MpvEngine::setStatsEnabled(bool enabled)
         m_statsTimer.stop();
     }
     emit statsEnabledChanged();
+}
+
+bool MpvEngine::protocolSupported(const QString &scheme) const
+{
+    return getProp("protocol-list").toStringList().contains(scheme);
 }
 
 QVariant MpvEngine::getProp(const char *name) const

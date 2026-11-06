@@ -43,10 +43,16 @@ ShortcutManager::ShortcutManager(QObject *parent) : QObject(parent)
         {"subDelayUp",   QT_TRANSLATE_NOOP("Shortcuts", "Subtitle delay +0.1 s"), QT_TRANSLATE_NOOP("Shortcuts", "Subtitles"), "H", true},
         {"subPosUp",     QT_TRANSLATE_NOOP("Shortcuts", "Subtitles up"),         QT_TRANSLATE_NOOP("Shortcuts", "Subtitles"), "Shift+Up", true},
         {"subPosDown",   QT_TRANSLATE_NOOP("Shortcuts", "Subtitles down"),       QT_TRANSLATE_NOOP("Shortcuts", "Subtitles"), "Shift+Down", true},
+        {"zoomIn",       QT_TRANSLATE_NOOP("Shortcuts", "Zoom in"),              QT_TRANSLATE_NOOP("Shortcuts", "Video"),     "+", true},
+        {"zoomOut",      QT_TRANSLATE_NOOP("Shortcuts", "Zoom out"),             QT_TRANSLATE_NOOP("Shortcuts", "Video"),     "-", true},
+        {"zoomReset",    QT_TRANSLATE_NOOP("Shortcuts", "Reset zoom"),           QT_TRANSLATE_NOOP("Shortcuts", "Video"),     "0", true},
         {"fullscreen",   QT_TRANSLATE_NOOP("Shortcuts", "Toggle fullscreen"),    QT_TRANSLATE_NOOP("Shortcuts", "Window"),    "F", false},
         {"exitFullscreen", QT_TRANSLATE_NOOP("Shortcuts", "Exit fullscreen"),    QT_TRANSLATE_NOOP("Shortcuts", "Window"),    "Esc", false},
         {"alwaysOnTop",  QT_TRANSLATE_NOOP("Shortcuts", "Always on top"),        QT_TRANSLATE_NOOP("Shortcuts", "Window"),    "T", false},
         {"stats",        QT_TRANSLATE_NOOP("Shortcuts", "Playback statistics"),  QT_TRANSLATE_NOOP("Shortcuts", "Window"),    "I", true},
+        {"mediaInfo",    QT_TRANSLATE_NOOP("Shortcuts", "Media information"),    QT_TRANSLATE_NOOP("Shortcuts", "Window"),    "Ctrl+I", true},
+        {"borderless",   QT_TRANSLATE_NOOP("Shortcuts", "Borderless window"),    QT_TRANSLATE_NOOP("Shortcuts", "Window"),    "Ctrl+B", false},
+        {"nextMonitor",  QT_TRANSLATE_NOOP("Shortcuts", "Move to next monitor"), QT_TRANSLATE_NOOP("Shortcuts", "Window"),    "Ctrl+Shift+M", false},
         {"screenshot",   QT_TRANSLATE_NOOP("Shortcuts", "Take screenshot"),      QT_TRANSLATE_NOOP("Shortcuts", "Window"),    "Ctrl+S", true},
         {"openFile",     QT_TRANSLATE_NOOP("Shortcuts", "Open file"),            QT_TRANSLATE_NOOP("Shortcuts", "Library"),   "Ctrl+O", false},
         {"openUrl",      QT_TRANSLATE_NOOP("Shortcuts", "Open URL"),             QT_TRANSLATE_NOOP("Shortcuts", "Library"),   "Ctrl+U", false},
@@ -143,6 +149,14 @@ void ShortcutManager::reset(const QString &id)
 void ShortcutManager::resetAll()
 {
     for (auto &a : m_actions) { a.key = a.defKey; store(a); }
+    emit changed();
+}
+
+void ShortcutManager::reload()
+{
+    QSettings s;
+    for (auto &a : m_actions)
+        a.key = s.contains(settingsKey(a.id)) ? norm(s.value(settingsKey(a.id)).toString()) : a.defKey;
     emit changed();
 }
 

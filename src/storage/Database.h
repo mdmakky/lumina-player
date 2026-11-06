@@ -8,7 +8,7 @@
 class Database
 {
 public:
-    static constexpr int kSchemaVersion = 4;
+    static constexpr int kSchemaVersion = 5;
 
     // path ":memory:" is allowed for tests. Empty path = default under AppDataLocation.
     explicit Database(const QString &path = {});

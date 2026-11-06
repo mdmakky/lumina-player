@@ -66,8 +66,11 @@ qt_add_executable(lumina
     src/utilities/Logger.cpp
     src/utilities/TimeUtils.h
     src/utilities/TimeUtils.cpp
+    src/utilities/SettingsIO.h
+    src/utilities/SettingsIO.cpp
     src/utilities/UrlUtils.h
     src/utilities/UrlUtils.cpp
+    src/utilities/AudioFilters.h
     src/utilities/TrackLabels.h
     src/utilities/TrackLabels.cpp
     src/core/PlayerController.h
@@ -88,6 +91,18 @@ qt_add_executable(lumina
     src/storage/LibraryModel.cpp
     src/services/LibraryScanner.h
     src/services/LibraryScanner.cpp
+    src/services/LibraryProber.h
+    src/services/LibraryProber.cpp
+    src/storage/PlaylistRepository.h
+    src/storage/PlaylistRepository.cpp
+    src/storage/PlaylistsModel.h
+    src/storage/PlaylistsModel.cpp
+    src/media/LibraryMeta.h
+    src/media/LibraryMeta.cpp
+    src/media/LibraryThumbs.h
+    src/media/LibraryThumbs.cpp
+    src/engine/MpvProbe.h
+    src/engine/MpvProbe.cpp
     src/engine/MpvEngine.h
     src/engine/MpvEngine.cpp
     src/engine/MpvVideoItem.h
@@ -122,10 +137,13 @@ option(LUMINA_MAC_BUNDLE "Build a macOS .app bundle (default OFF: plain bin/lumi
 
 set_source_files_properties(resources/icons/app/lumina-256.png PROPERTIES QT_RESOURCE_ALIAS icons/lumina.png)
 set(LUMINA_SETTINGS_ICONS "")
-foreach(page general playback video audio subtitles appearance library shortcuts advanced about)
+foreach(page general playback video audio subtitles appearance library shortcuts advanced mouse rendering network playlist about)
     list(APPEND LUMINA_SETTINGS_ICONS resources/icons/s-${page}.svg resources/icons/s-${page}-a.svg)
 endforeach()
 set_source_files_properties(ui/Settings/SettingsState.qml PROPERTIES
+    QT_QML_SINGLETON_TYPE TRUE
+)
+set_source_files_properties(ui/Settings/MouseBindings.qml PROPERTIES
     QT_QML_SINGLETON_TYPE TRUE
 )
 set_source_files_properties(ui/Theme/Theme.qml PROPERTIES
@@ -170,13 +188,28 @@ qt_add_qml_module(lumina
         ui/Settings/SliderRow.qml
         ui/Settings/SubtitleStyleRows.qml
         ui/Settings/ComboRow.qml
+        ui/Settings/AudioOutputSection.qml
+        ui/Settings/AudioDeviceRow.qml
+        ui/Components/AudioBackdrop.qml
         ui/Settings/ButtonRow.qml
         ui/Settings/ShortcutsEditor.qml
+        ui/Settings/MouseBindings.qml
+        ui/Settings/MouseSettingsPage.qml
+        ui/Settings/AccentSection.qml
+        ui/Settings/RenderingPage.qml
+        ui/Settings/NetworkPage.qml
+        ui/Settings/PlaylistPage.qml
+        ui/Components/MouseActions.qml
         ui/Components/Toast.qml
         ui/Components/VideoAdjustPopup.qml
+        ui/Components/PicturePopup.qml
+        ui/Components/PanDragLayer.qml
+        ui/Settings/VideoExtraRows.qml
         ui/Components/EqualizerPopup.qml
         ui/Components/BookmarksPopup.qml
         ui/Components/OpenUrlDialog.qml
+        ui/Components/MediaInfoDialog.qml
+        ui/Components/ResizeGrips.qml
         ui/Library/LibraryView.qml
     RESOURCES
         resources/icons/play.svg
@@ -329,6 +362,18 @@ if(BUILD_TESTING)
     target_link_libraries(tst_urlutils PRIVATE Qt6::Core Qt6::Test)
     add_test(NAME UrlUtils COMMAND tst_urlutils)
 
+    add_executable(tst_settingsio
+        tests/unit/tst_SettingsIO.cpp
+        src/utilities/SettingsIO.cpp
+    )
+    target_include_directories(tst_settingsio PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+    target_link_libraries(tst_settingsio PRIVATE Qt6::Core Qt6::Test)
+    add_test(NAME SettingsIO COMMAND tst_settingsio)
+    add_executable(tst_audiofilters tests/unit/tst_AudioFilters.cpp)
+    target_include_directories(tst_audiofilters PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+    target_link_libraries(tst_audiofilters PRIVATE Qt6::Core Qt6::Test)
+    add_test(NAME AudioFilters COMMAND tst_audiofilters)
+
     add_executable(tst_tracklabels
         tests/unit/tst_TrackLabels.cpp
         src/utilities/TrackLabels.cpp
@@ -336,6 +381,11 @@ if(BUILD_TESTING)
     target_include_directories(tst_tracklabels PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
     target_link_libraries(tst_tracklabels PRIVATE Qt6::Core Qt6::Test)
     add_test(NAME TrackLabels COMMAND tst_tracklabels)
+
+    add_executable(tst_queuestore tests/unit/tst_QueueStore.cpp src/core/QueueStore.h)
+    target_include_directories(tst_queuestore PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+    target_link_libraries(tst_queuestore PRIVATE Qt6::Core Qt6::Test)
+    add_test(NAME QueueStore COMMAND tst_queuestore)
 
     add_executable(tst_playlistmodel
         tests/unit/tst_PlaylistModel.cpp
@@ -384,11 +434,26 @@ if(BUILD_TESTING)
         src/storage/Database.cpp
         src/storage/LibraryRepository.cpp
         src/storage/LibraryModel.cpp
+        src/media/LibraryMeta.cpp
         src/utilities/Logger.cpp
     )
     target_include_directories(tst_libraryscanner PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
-    target_link_libraries(tst_libraryscanner PRIVATE Qt6::Core Qt6::Sql Qt6::Test)
+    target_link_libraries(tst_libraryscanner PRIVATE Qt6::Core Qt6::Gui Qt6::Sql Qt6::Test)
     add_test(NAME LibraryScanner COMMAND tst_libraryscanner)
+
+    add_executable(tst_libraryextras
+        tests/unit/tst_LibraryExtras.cpp
+        src/storage/Database.cpp
+        src/storage/LibraryRepository.cpp
+        src/storage/LibraryModel.cpp
+        src/storage/PlaylistRepository.cpp
+        src/storage/PlaylistsModel.cpp
+        src/media/LibraryMeta.cpp
+        src/utilities/Logger.cpp
+    )
+    target_include_directories(tst_libraryextras PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+    target_link_libraries(tst_libraryextras PRIVATE Qt6::Core Qt6::Gui Qt6::Sql Qt6::Test)
+    add_test(NAME LibraryExtras COMMAND tst_libraryextras)
 
     add_executable(tst_mpris
         tests/unit/tst_Mpris.cpp

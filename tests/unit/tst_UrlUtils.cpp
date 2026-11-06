@@ -17,6 +17,10 @@ private slots:
         QTest::newRow("rtmp") << "rtmp://host/app/stream" << true;
         QTest::newRow("rtsp") << "rtsp://10.0.0.2:554/cam" << true;
         QTest::newRow("ftp") << "ftp://host/file.mkv" << true;
+        QTest::newRow("smb") << "smb://nas/share/movie.mkv" << true;
+        QTest::newRow("nfs") << "nfs://10.0.0.5/export/movie.mkv" << true;
+        QTest::newRow("sftp") << "sftp://user@host/movie.mkv" << true;
+        QTest::newRow("dash") << "https://host/stream/manifest.mpd" << true;
         QTest::newRow("file") << "file:///tmp/a.mp4" << true;
         QTest::newRow("no scheme") << "example.com/a.mp4" << false;
         QTest::newRow("unsupported scheme") << "javascript:alert(1)" << false;
@@ -29,6 +33,15 @@ private slots:
         QFETCH(QString, in);
         QFETCH(bool, ok);
         QCOMPARE(parseMediaUrl(in).isValid(), ok);
+    }
+
+    void optionalProtocols()
+    {
+        QVERIFY(needsOptionalProtocol(QUrl("smb://nas/a")));
+        QVERIFY(needsOptionalProtocol(QUrl("SFTP://h/a")));
+        QVERIFY(!needsOptionalProtocol(QUrl("https://h/a.mpd")));
+        QVERIFY(looksLikeDirectMedia(QUrl("https://h/x/manifest.mpd")));
+        QVERIFY(looksLikeDirectMedia(QUrl("rtsp://h/cam")));
     }
 
     void titles()

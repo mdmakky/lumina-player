@@ -42,14 +42,25 @@ QtObject {
     readonly property color primaryText: pick("#F4F5F7", "#16181D", "#F4F5F7")
     readonly property color secondaryText: pick("#A3A7B0", "#4B515C", "#A3A7B0")
     readonly property color disabledText: pick("#5A5E66", "#6A6F7A", "#6B6F78")
-    readonly property color accentText: "#FFFFFF"
 
-    // Accent
-    readonly property color accent: isLight ? "#6557E8" : "#8175F5"
-    readonly property color accentHover: isLight ? "#5446D6" : "#9186F7"
-    readonly property color accentPressed: isLight ? "#4538BC" : "#6C60E0"
-    readonly property color accentSoft: isLight ? Qt.rgba(101 / 255, 87 / 255, 232 / 255, 0.14)
-                                                : Qt.rgba(129 / 255, 117 / 255, 245 / 255, 0.16)
+    // Accent. accentBase "" = the built-in violet; any "#rrggbb" derives accent / hover / pressed /
+    // soft from one colour (lightness is pushed into a readable band for the current mode).
+    property string accentBase: ""
+    readonly property bool customAccent: accentBase !== ""
+    readonly property color accentSrc: Qt.color(customAccent ? accentBase : "#8175F5")
+    function accentTone(delta) {
+        const l = isLight ? Math.min(accentSrc.hslLightness, 0.46) : Math.max(accentSrc.hslLightness, 0.64)
+        return Qt.hsla(accentSrc.hslHue, accentSrc.hslSaturation, Math.max(0.08, Math.min(0.92, l + delta)), 1)
+    }
+    readonly property color accent: customAccent ? accentTone(0) : (isLight ? "#6557E8" : "#8175F5")
+    readonly property color accentHover: customAccent ? accentTone(isLight ? -0.07 : 0.06) : (isLight ? "#5446D6" : "#9186F7")
+    readonly property color accentPressed: customAccent ? accentTone(isLight ? -0.13 : -0.08) : (isLight ? "#4538BC" : "#6C60E0")
+    readonly property color accentSoft: customAccent ? Qt.rgba(accent.r, accent.g, accent.b, isLight ? 0.14 : 0.16)
+                                      : (isLight ? Qt.rgba(101 / 255, 87 / 255, 232 / 255, 0.14)
+                                                 : Qt.rgba(129 / 255, 117 / 255, 245 / 255, 0.16))
+    // Text on accent fills: white, unless the accent is light enough that dark text reads better.
+    readonly property color accentText: customAccent && (0.2126 * accent.r + 0.7152 * accent.g + 0.0722 * accent.b) > 0.55
+                                        ? "#16181D" : "#FFFFFF"
 
     // Status
     readonly property color error: isLight ? "#C0392F" : "#F26B6B"

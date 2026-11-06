@@ -6,6 +6,7 @@
 #include <mpv/client.h>
 
 #include <clocale>
+#include <string>
 
 MpvThumbnailer::~MpvThumbnailer() { close(); }
 
@@ -33,7 +34,15 @@ bool MpvThumbnailer::waitFor(int eventId, int timeoutMs)
     return false;
 }
 
-bool MpvThumbnailer::open(const QString &path)
+double MpvThumbnailer::duration() const
+{
+    double d = 0;
+    if (m_mpv && mpv_get_property(m_mpv, "duration", MPV_FORMAT_DOUBLE, &d) >= 0)
+        return d;
+    return 0;
+}
+
+bool MpvThumbnailer::open(const QString &path, bool coverArt, int width)
 {
     close();
     std::setlocale(LC_NUMERIC, "C");
@@ -50,6 +59,10 @@ bool MpvThumbnailer::open(const QString &path)
     };
     for (const auto &o : opts)
         mpv_set_option_string(m_mpv, o[0], o[1]);
+    if (width != 240)
+        mpv_set_option_string(m_mpv, "vf", ("scale=" + std::to_string(width) + ":-2").c_str());
+    if (coverArt) // music: the "video" is the embedded cover picture
+        mpv_set_option_string(m_mpv, "audio-display", "embedded-first");
     if (mpv_initialize(m_mpv) < 0) {
         close();
         return false;

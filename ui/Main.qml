@@ -19,6 +19,17 @@ ApplicationWindow {
 
     // --- Window state persistence -------------------------------------------
     Component.onCompleted: {
+        // Last-used monitor (by name) first, so geometry / fullscreen land where the user left it.
+        const lastScreen = player.setting("window/screen", "")
+        const scr = Qt.application.screens.filter(sc => sc.name === lastScreen)
+        if (scr.length > 0 && scr[0] !== screen) {
+            screen = scr[0]
+            x = scr[0].virtualX + Math.round((scr[0].width - width) / 2)
+            y = scr[0].virtualY + Math.round((scr[0].height - height) / 2)
+        }
+        const bl = player.setting("window/borderless", false)
+        if (bl === true || bl === "true")
+            setBorderless(true)
         const g = player.setting("window/geometry", null)
         if (g && g.width >= minimumWidth && g.height >= minimumHeight) {
             x = g.x; y = g.y; width = g.width; height = g.height
@@ -30,6 +41,7 @@ ApplicationWindow {
         if (mini === true || mini === "true")
             Qt.callLater(toggleMini)
     }
+    onScreenChanged: if (screen && visible) player.setSetting("window/screen", screen.name)
     onClosing: {
         if (visibility === Window.FullScreen)
             return
@@ -92,12 +104,49 @@ ApplicationWindow {
         player.setSetting("window/mini", miniMode)
     }
 
+    // Screen under the window centre (the platform may report a different one on multi-monitor setups).
+    function currentScreen() {
+        const cx = x + width / 2, cy = y + height / 2
+        for (const sc of Qt.application.screens)
+            if (cx >= sc.virtualX && cx < sc.virtualX + sc.width && cy >= sc.virtualY && cy < sc.virtualY + sc.height)
+                return sc
+        return screen
+    }
+
     function toggleFullscreen() {
         if (miniMode) toggleMini()
-        if (visibility === Window.FullScreen)
+        if (visibility === Window.FullScreen) {
             showNormal()
-        else
+        } else {
+            // Fullscreen on the monitor the window is on (not the primary one).
+            if (visibility === Window.Windowed) { const sc = currentScreen(); if (sc !== screen) screen = sc }
             showFullScreen()
+        }
+    }
+
+    // Moves the window (and fullscreen) to the next monitor, centred. On Wayland compositors
+    // that ignore client positions only the fullscreen case relocates; windowed placement is up to the compositor.
+    function nextMonitor() {
+        const list = Qt.application.screens
+        if (list.length < 2) { toast.show(qsTr("Only one monitor detected")); return }
+        const cur = currentScreen()
+        const next = list[(list.indexOf(cur) + 1) % list.length]
+        const wasFull = visibility === Window.FullScreen
+        if (wasFull) showNormal()
+        screen = next
+        x = next.virtualX + Math.round((next.width - width) / 2)
+        y = next.virtualY + Math.round((next.height - height) / 2)
+        if (wasFull) Qt.callLater(showFullScreen)
+        player.setSetting("window/screen", next.name)
+    }
+
+    // Borderless: no title bar/frame; move by dragging the video, resize from the edges.
+    property bool borderless: false
+    function setBorderless(on) {
+        if (miniMode) return
+        borderless = on
+        flags = on ? (flags | Qt.FramelessWindowHint) : (flags & ~Qt.FramelessWindowHint)
+        player.setSetting("window/borderless", on)
     }
 
     function relTimeOf(sec) {
@@ -123,7 +172,7 @@ ApplicationWindow {
             qsTr("Media files (*.mkv *.mp4 *.mov *.avi *.wmv *.webm *.ts *.m2ts *.flv *.mp3 *.flac *.m4a *.wav *.ogg *.opus)"),
             qsTr("All files (*)")
         ]
-        onAccepted: player.openFiles(selectedUrls)
+        onAccepted: player.openUserFiles(selectedUrls)
     }
 
     OpenUrlDialog {
@@ -140,36 +189,34 @@ ApplicationWindow {
         engine: player.engine
         visible: player.hasMedia
     }
+    AudioBackdrop { anchors.fill: parent; engine: player.engine; active: player.hasMedia }
 
-    // Click toggles play/pause, double-click toggles fullscreen.
-    MouseArea {
+    MediaInfoDialog {
+        id: mediaInfoDialog
+        objectName: "mediaInfoDialog"
+        onAboutToShow: root.menuOpen = true
+        onClosed: root.menuOpen = false
+    }
+
+    // Click / wheel / drag actions are configurable (Settings > Mouse); see MouseActions.qml.
+    MouseActions {
+        id: mouseActions
+        objectName: "mouseActions"
         anchors.fill: parent
         visible: player.hasMedia
-        onClicked: {
-            if (root.playlistOpen) root.playlistOpen = false
-            else clickTimer.restart()
-        }
-        onDoubleClicked: {
-            clickTimer.stop()
-            root.toggleFullscreen()
-        }
-        // Accumulate so smooth touchpad scrolling gives fine 1% steps (a mouse notch = 120 units = 5%).
-        // `inverted` = natural scrolling: flip so fingers/wheel moving "up" always means louder.
-        property real wheelAcc: 0
-        onWheel: (w) => {
-            wheelAcc += w.angleDelta.y * (w.inverted ? -1 : 1)
-            const steps = Math.trunc(wheelAcc / 24)
-            if (steps === 0) return
-            wheelAcc -= steps * 24
-            const sys = player.systemVolume >= 0
-            const cur = sys ? player.systemVolume : player.engine.volume
-            player.setVolumePercent(Math.max(0, Math.min(sys ? 100 : 150, cur + steps)))
-        }
+        playlistOpen: root.playlistOpen
+        gesturesEnabled: !root.miniMode
+        seekStep: settingsDialog.seekStep
+        onCloseOverlays: root.playlistOpen = false
+        onFullscreenRequested: root.toggleFullscreen()
+        onMenuRequested: { root.showChrome(); moreMenu.openAbove(moreButton) }
+        onFeedback: (t) => toast.show(t)
+        borderless: root.borderless && root.visibility === Window.Windowed
+        onWindowMoveRequested: root.startSystemMove()
     }
-    Timer {
-        id: clickTimer
-        interval: 220
-        onTriggered: player.engine.togglePlayPause()
+    PanDragLayer {
+        anchors.fill: parent
+        enabled: player.hasMedia && !root.miniMode
     }
 
     StatsOverlay {
@@ -186,6 +233,10 @@ ApplicationWindow {
     Rectangle {
         anchors.fill: parent
         visible: !player.hasMedia
+        MouseArea { // drag-to-move for borderless mode
+            anchors.fill: parent
+            onPressed: if (root.borderless && root.visibility === Window.Windowed) root.startSystemMove()
+        }
         gradient: Gradient {
             GradientStop { position: 0.0; color: Theme.background }
             GradientStop { position: 1.0; color: Theme.surface }
@@ -826,6 +877,7 @@ ApplicationWindow {
                     spacing: Theme.spacingSmall
 
                     IconButton {
+                        id: moreButton
                         objectName: "moreButton"
                         iconSource: root.iconBase + "more.svg"
                         tip: qsTr("More")
@@ -959,6 +1011,22 @@ ApplicationWindow {
             onTriggered: root.flags = root.flags ^ Qt.WindowStaysOnTopHint
         }
         MenuRow {
+            objectName: "borderlessItem"
+            text: qsTr("Borderless window")
+            hint: "Ctrl+B"
+            mark: "check"
+            selected: root.borderless
+            enabled: !root.miniMode
+            onTriggered: root.setBorderless(!root.borderless)
+        }
+        MenuRow {
+            objectName: "nextMonitorItem"
+            text: qsTr("Move to next monitor")
+            hint: "Ctrl+Shift+M"
+            enabled: Qt.application.screens.length > 1
+            onTriggered: root.nextMonitor()
+        }
+        MenuRow {
             objectName: "miniItem"
             text: qsTr("Mini player")
             hint: "Ctrl+M"
@@ -971,6 +1039,11 @@ ApplicationWindow {
             objectName: "adjustItem"
             text: qsTr("Video adjustments…")
             onTriggered: adjustPopup.open()
+        }
+        MenuRow {
+            objectName: "pictureItem"
+            text: qsTr("Picture…")
+            onTriggered: picturePopup.open()
         }
         MenuRow {
             objectName: "equalizerItem"
@@ -998,6 +1071,13 @@ ApplicationWindow {
             onTriggered: openUrlDialog.open()
         }
         MenuRow {
+            objectName: "mediaInfoItem"
+            text: qsTr("Media information…")
+            hint: "Ctrl+I"
+            enabled: player.hasMedia
+            onTriggered: mediaInfoDialog.open()
+        }
+        MenuRow {
             objectName: "resetFileItem"
             text: qsTr("Reset for this file")
             enabled: player.hasMedia
@@ -1010,6 +1090,15 @@ ApplicationWindow {
         objectName: "adjustPopup"
         x: root.width - width - Theme.spacingLarge
         y: root.height - height - 150
+        onAboutToShow: root.menuOpen = true
+        onClosed: root.menuOpen = false
+    }
+
+    PicturePopup {
+        id: picturePopup
+        objectName: "picturePopup"
+        x: root.width - width - Theme.spacingLarge
+        y: Math.max(8, root.height - height - 150)
         onAboutToShow: root.menuOpen = true
         onClosed: root.menuOpen = false
     }
@@ -1108,7 +1197,7 @@ ApplicationWindow {
         onEntered: (drag) => drag.accept(Qt.CopyAction)
         onDropped: (drop) => {
             if (drop.hasUrls) {
-                player.openFiles(drop.urls)
+                player.openUserFiles(drop.urls)
                 root.showChrome()
             } else if (drop.hasText) {
                 player.openUrl(drop.text)
@@ -1130,6 +1219,14 @@ ApplicationWindow {
             player.setVolumePercent(v); break
         }
         case "mute": e.setMuted(!e.muted); break
+        case "zoomIn": case "zoomOut": case "zoomReset": {
+            const z = id === "zoomReset" ? 0 : Math.max(-2, Math.min(3, e.picture.zoom + (id === "zoomIn" ? 0.1 : -0.1)))
+            e.setPicture("zoom", Math.abs(z) < 0.05 ? 0 : z)
+            toast.show(qsTr("Zoom %1%").arg(Math.round(Math.pow(2, e.picture.zoom) * 100))); break
+        }
+        case "mediaInfo": mediaInfoDialog.open(); break
+        case "borderless": root.setBorderless(!root.borderless); break
+        case "nextMonitor": root.nextMonitor(); break
         case "stats": e.statsEnabled = !e.statsEnabled; break
         case "fullscreen": root.toggleFullscreen(); break
         case "alwaysOnTop": root.flags = root.flags ^ Qt.WindowStaysOnTopHint; break
@@ -1180,6 +1277,13 @@ ApplicationWindow {
             enabled: root.actionEnabled(modelData)
             onActivated: root.runAction(modelData.id)
         }
+    }
+    ResizeGrips {
+        objectName: "resizeGrips"
+        anchors.fill: parent
+        window: root
+        z: 1000
+        visible: root.borderless && root.visibility === Window.Windowed && !root.miniMode
     }
     Shortcut { sequence: "Ctrl+M";       enabled: player.hasMedia; onActivated: root.toggleMini() }
     Shortcut { sequence: "Esc";          enabled: root.miniMode; onActivated: root.toggleMini() }
