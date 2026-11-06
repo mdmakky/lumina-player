@@ -64,6 +64,7 @@ class MpvEngine : public QObject
     Q_PROPERTY(double cacheBufferedSeconds READ cacheBufferedSeconds NOTIFY cacheBufferedSecondsChanged FINAL)
     // yt-dlp (youtube-dl) found: page URLs (YouTube etc.) can be played.
     Q_PROPERTY(bool ytdlAvailable READ ytdlAvailable CONSTANT FINAL)
+    Q_PROPERTY(QString ytdlPath READ ytdlPath CONSTANT FINAL)
     Q_PROPERTY(QVariantList eqGains READ eqGains NOTIFY eqChanged FINAL)
 
 public:
@@ -102,6 +103,7 @@ public:
     bool buffering() const { return m_pausedForCache || m_loadingRemote; }
     double cacheBufferedSeconds() const { return m_cacheAhead; }
     bool ytdlAvailable() const { return m_ytdl; }
+    QString ytdlPath() const { return m_ytdlPath; }
 
 public slots:
     void setPaused(bool paused);
@@ -229,6 +231,7 @@ private:
     bool m_playingRemote = false;
     double m_cacheAhead = 0.0;
     bool m_ytdl = false;
+    QString m_ytdlPath;
     QUrl m_remoteUrl; // last remote URL loaded (for error messages)
     bool m_eqEnabled = false;
     QVariantList m_eqGains = QVariantList(10, 0.0);

@@ -81,6 +81,7 @@ MpvEngine::MpvEngine(QObject *parent)
             ytdl = QStandardPaths::findExecutable(QStringLiteral("youtube-dl"), dirs);
         if (!ytdl.isEmpty()) {
             m_ytdl = true;
+            m_ytdlPath = ytdl;
             mpv_set_option_string(m_mpv, "ytdl", "yes");
             mpv_set_option_string(m_mpv, "ytdl-format", "bestvideo[height<=?1080]+bestaudio/best");
             mpv_set_option_string(m_mpv, "script-opts", ("ytdl_hook-ytdl_path=" + ytdl).toUtf8().constData());

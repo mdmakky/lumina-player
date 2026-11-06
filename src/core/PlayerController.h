@@ -106,6 +106,15 @@ public slots:
     { return path.contains(QStringLiteral("://")) ? QUrl(path) : QUrl::fromLocalFile(path); }
     // Appends to the queue; starts playing the first one if nothing is current.
     void enqueue(const QVariantList &urls);
+    // User-initiated open (dialog, drag & drop): replaces the queue, or appends when
+    // Settings > Playlist > "When opening files" is "append".
+    Q_INVOKABLE void openUserFiles(const QVariantList &urls);
+    // "Remember queue": persisted to AppDataLocation/queue.json on quit, restored (not auto-played) at start.
+    Q_INVOKABLE void saveQueue() const;
+    Q_INVOKABLE int restoreQueue(); // returns the number of entries restored
+    // Small text files for theme import/export (QML cannot write files).
+    Q_INVOKABLE bool writeTextFile(const QUrl &file, const QString &text) const;
+    Q_INVOKABLE QString readTextFile(const QUrl &file) const;
     void playIndex(int index);
     // M3U playlists: save the queue, or replace the queue and play from the start.
     bool savePlaylist(const QUrl &file);

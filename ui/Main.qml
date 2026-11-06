@@ -123,7 +123,7 @@ ApplicationWindow {
             qsTr("Media files (*.mkv *.mp4 *.mov *.avi *.wmv *.webm *.ts *.m2ts *.flv *.mp3 *.flac *.m4a *.wav *.ogg *.opus)"),
             qsTr("All files (*)")
         ]
-        onAccepted: player.openFiles(selectedUrls)
+        onAccepted: player.openUserFiles(selectedUrls)
     }
 
     OpenUrlDialog {
@@ -141,35 +141,19 @@ ApplicationWindow {
         visible: player.hasMedia
     }
 
-    // Click toggles play/pause, double-click toggles fullscreen.
-    MouseArea {
+    // Click / wheel / drag actions are configurable (Settings > Mouse); see MouseActions.qml.
+    MouseActions {
+        id: mouseActions
+        objectName: "mouseActions"
         anchors.fill: parent
         visible: player.hasMedia
-        onClicked: {
-            if (root.playlistOpen) root.playlistOpen = false
-            else clickTimer.restart()
-        }
-        onDoubleClicked: {
-            clickTimer.stop()
-            root.toggleFullscreen()
-        }
-        // Accumulate so smooth touchpad scrolling gives fine 1% steps (a mouse notch = 120 units = 5%).
-        // `inverted` = natural scrolling: flip so fingers/wheel moving "up" always means louder.
-        property real wheelAcc: 0
-        onWheel: (w) => {
-            wheelAcc += w.angleDelta.y * (w.inverted ? -1 : 1)
-            const steps = Math.trunc(wheelAcc / 24)
-            if (steps === 0) return
-            wheelAcc -= steps * 24
-            const sys = player.systemVolume >= 0
-            const cur = sys ? player.systemVolume : player.engine.volume
-            player.setVolumePercent(Math.max(0, Math.min(sys ? 100 : 150, cur + steps)))
-        }
-    }
-    Timer {
-        id: clickTimer
-        interval: 220
-        onTriggered: player.engine.togglePlayPause()
+        playlistOpen: root.playlistOpen
+        gesturesEnabled: !root.miniMode
+        seekStep: settingsDialog.seekStep
+        onCloseOverlays: root.playlistOpen = false
+        onFullscreenRequested: root.toggleFullscreen()
+        onMenuRequested: { root.showChrome(); moreMenu.openAbove(moreButton) }
+        onFeedback: (t) => toast.show(t)
     }
 
     StatsOverlay {
@@ -826,6 +810,7 @@ ApplicationWindow {
                     spacing: Theme.spacingSmall
 
                     IconButton {
+                        id: moreButton
                         objectName: "moreButton"
                         iconSource: root.iconBase + "more.svg"
                         tip: qsTr("More")
@@ -1108,7 +1093,7 @@ ApplicationWindow {
         onEntered: (drag) => drag.accept(Qt.CopyAction)
         onDropped: (drop) => {
             if (drop.hasUrls) {
-                player.openFiles(drop.urls)
+                player.openUserFiles(drop.urls)
                 root.showChrome()
             } else if (drop.hasText) {
                 player.openUrl(drop.text)

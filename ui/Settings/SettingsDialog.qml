@@ -61,10 +61,14 @@ Item {
         { key: "library",    label: qsTr("Library") },
         { key: "shortcuts",  label: qsTr("Shortcuts") },
         { key: "advanced",   label: qsTr("Advanced") },
+        { key: "mouse",      label: qsTr("Mouse") },
+        { key: "rendering",  label: qsTr("Rendering") },
+        { key: "network",    label: qsTr("Network") },
+        { key: "playlist",   label: qsTr("Playlist") },
         { key: "about",      label: qsTr("About") }
     ]
     readonly property var pageItems: [pGeneral, pPlayback, pVideo, pAudio, pSubtitles,
-                                      pAppearance, pLibrary, pShortcuts, pAdvanced, pAbout]
+                                      pAppearance, pLibrary, pShortcuts, pAdvanced, pMouse, pRendering, pNetwork, pPlaylist, pAbout]
     property int resetPending: -1   // page awaiting reset confirmation
 
     function set(key, value) { player.setSetting(key, value) }
@@ -780,6 +784,7 @@ Item {
                                     onToggled: (v) => dlg.setReducedMotion(v)
                                 }
                             }
+                            AccentSection { dlg: dlg }
                             SettingSection {
                                 title: qsTr("Player controls")
                                 StepperRow {
@@ -981,10 +986,15 @@ Item {
                             }
                         }
 
+                        MouseSettingsPage { id: pMouse; pageIndex: 9 }
+                        RenderingPage { id: pRendering; pageIndex: 10; dlg: dlg }
+                        NetworkPage { id: pNetwork; pageIndex: 11; dlg: dlg }
+                        PlaylistPage { id: pPlaylist; pageIndex: 12; dlg: dlg }
+
                         // ---- About ----
                         SettingsPage {
                             id: pAbout
-                            title: qsTr("About"); pageIndex: 9
+                            title: qsTr("About"); pageIndex: 13
                             resettable: false
                             SettingSection {
                                 title: qsTr("Lumina Player")

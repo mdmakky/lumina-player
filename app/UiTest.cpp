@@ -565,8 +565,8 @@ void UiTest::run()
             shot("settings-general");
 
             // sidebar reaches every page (title in the sticky header follows)
-            const char *titles[] = {"General", "Playback", "Video", "Audio", "Subtitles", "Appearance", "Library", "Shortcuts", "Advanced", "About"};
-            for (int i = 0; i < 10; ++i) {
+            const char *titles[] = {"General", "Playback", "Video", "Audio", "Subtitles", "Appearance", "Library", "Shortcuts", "Advanced", "Mouse", "Rendering", "Network", "Playlist", "About"};
+            for (int i = 0; i < 14; ++i) {
                 page(i);
                 QTest::qWait(200);
                 result(QString("sidebar opens page %1").arg(titles[i]),
@@ -666,8 +666,8 @@ void UiTest::run()
             page(4);
             QTest::qWait(300);
             click("subSizePlus");
-            result("subtitle size applies to engine", waitFor([&] { return qAbs(prop("sub-font-size").toDouble() - 60) < 0.01; }), prop("sub-font-size"));
-            result("subtitle size persisted", p->setting("subtitles/fontSize").toInt() == 60);
+            result("subtitle size applies to engine", waitFor([&] { return qAbs(prop("sub-font-size").toDouble() - 45) < 0.01; }), prop("sub-font-size"));
+            result("subtitle size persisted", p->setting("subtitles/fontSize").toInt() == 45);
             click("subColor_FFE45C");
             result("subtitle color applies", waitFor([&] { return prop("sub-color").toUpper().startsWith("#FFFFE45C") || prop("sub-color").toUpper().contains("FFE45C"); }), prop("sub-color"));
             click("subLang_en");
@@ -708,6 +708,67 @@ void UiTest::run()
             result("Reduce motion off restores tokens",
                    sd() && waitFor([&] { return sd()->property("animFast").toInt() == 120; }) && !p->setting("interface/reducedMotion").toBool());
 
+            // accent colours: presets + custom hex persist; all three modes stay readable (see screenshots)
+            if (auto *acc = find("accentSection")) {
+                auto inv = [&](const char *m, const QString &arg) {
+                    QVariant r;
+                    if (arg.isNull()) QMetaObject::invokeMethod(acc, m, Q_RETURN_ARG(QVariant, r));
+                    else QMetaObject::invokeMethod(acc, m, Q_RETURN_ARG(QVariant, r), Q_ARG(QVariant, arg));
+                    return r;
+                };
+                const char *modes[] = {"dark", "light", "oled"};
+                const char *presets[] = {"violet", "blue", "teal", "green", "orange", "rose", "mono"};
+                const char *hexes[] = {"", "#3B82F6", "#14B8A6", "#22C55E", "#F97316", "#F43F5E", "#9AA0AD"};
+                for (const char *m : modes) {
+                    setTheme(m);
+                    for (int i = 0; i < 7; ++i) {
+                        click((QByteArray("accentPreset_") + presets[i]).constData());
+                        if (i == 0 || i == 3 || i == 6 || QByteArray(m) == "dark")
+                            shot(QString("accent-%1-%2").arg(m, presets[i]));
+                        if (QByteArray(m) == "dark")
+                            result(QString("accent preset %1 persists").arg(presets[i]),
+                                   p->setting("interface/accent").toString() == hexes[i]);
+                    }
+                }
+                setTheme("dark");
+                inv("setAccent", "#E11D74");
+                result("custom accent persists", p->setting("interface/accent").toString() == "#E11D74");
+                shot("accent-custom");
+                const QString json = inv("themeJson", QString()).toString();
+                result("theme JSON has name, mode and accent", json.contains("\"name\"") && json.contains("\"mode\": \"dark\"") && json.contains("#E11D74"), json);
+                inv("setAccent", "");
+                result("theme JSON import restores accent", inv("applyThemeJson", json).toString().isEmpty()
+                                                              && p->setting("interface/accent").toString() == "#E11D74");
+                result("bad theme JSON rejected without change", !inv("applyThemeJson", "{\"mode\":\"neon\",\"accent\":\"red\"}").toString().isEmpty()
+                                                                  && !inv("applyThemeJson", "garbage").toString().isEmpty()
+                                                                  && p->setting("interface/accent").toString() == "#E11D74");
+                inv("setAccent", "");
+            } else result("accent section present", false);
+
+            // new pages: Mouse, Rendering, Network, Playlist
+            page(9); QTest::qWait(300);
+            result("mouse page lists click binding", vis("mouse_click") && vis("mouse_edgeV"));
+            shot("settings-mouse");
+            page(10); QTest::qWait(300);
+            result("rendering page shows renderer info and hwdec", vis("rendererInfo") && vis("hwdecOptionRendering_no"));
+            shot("settings-rendering");
+            page(11); QTest::qWait(300);
+            result("network page shows yt-dlp row, quality and timeout", vis("ytdlPath") && vis("ytdlQuality_1080") && vis("networkTimeoutPlus"));
+            click("ytdlQuality_720");
+            result("ytdl quality applies to the engine and persists", p->setting("network/ytdlQuality").toString() == "720"
+                   && prop("ytdl-format").contains("720"), prop("ytdl-format"));
+            click("ytdlQuality_1080");
+            click("networkBufferingLink");
+            result("network buffering link opens Advanced", sd() && waitFor([&] { return sd()->property("currentPage").toInt() == 8; }));
+            shot("settings-network");
+            page(12); QTest::qWait(300);
+            result("playlist page controls", vis("rememberQueueSwitch") && vis("playlistOpenMode_append") && vis("playlistRepeat_1"));
+            click("rememberQueueSwitch");
+            result("remember queue persists", p->setting("playlist/rememberQueue").toBool());
+            click("rememberQueueSwitch");
+            result("remember queue off persists", !p->setting("playlist/rememberQueue").toBool());
+            shot("settings-playlist");
+
             // advanced: mpv override box reports errors and applies valid lines
             page(8);
             QTest::qWait(300);
@@ -720,7 +781,7 @@ void UiTest::run()
             click("settingsResetConfirm");
             result("advanced reset clears override text", waitFor([&] { return p->setting("advanced/mpvOptions").toString().isEmpty(); }));
             eng->setMpvOption("deband", "no");
-            page(9);
+            page(13);
             QTest::qWait(300);
             shot("settings-about");
             result("about shows mpv version", sd() && sd()->property("about").toMap().value("mpv").toString().contains("mpv"),
@@ -1051,6 +1112,57 @@ void UiTest::run()
         waitFor([&] { return !eng->idle() && eng->duration() > 1; }, 6000);
         QTest::qWait(500);
         result("reset profile stays cleared on reopen", eng->videoAdjust().value("brightness").toInt() == 0 && eng->speed() == 1.0);
+        // --- mouse bindings (Settings > Mouse): dispatcher, persistence, modal popups swallow outside clicks ---
+        {
+            auto *ma = find("mouseActions");
+            auto call = [&](const char *m, const QVariant &a, const QVariant &b = {}) {
+                QVariant r;
+                if (b.isValid()) QMetaObject::invokeMethod(ma, m, Q_RETURN_ARG(QVariant, r), Q_ARG(QVariant, a), Q_ARG(QVariant, b));
+                else QMetaObject::invokeMethod(ma, m, Q_RETURN_ARG(QVariant, r), Q_ARG(QVariant, a));
+                return r;
+            };
+            if (!ma) result("mouse dispatcher present", false);
+            else {
+                p->openFiles({QUrl::fromLocalFile(files.first())});
+                waitFor([&] { return !eng->idle() && eng->duration() > 1; }, 6000);
+                w->setProperty("playlistOpen", false);
+                eng->setMuted(false);
+                qCInfo(lcCore) << "UITEST mouse state: settings" << vis("settingsPanel") << "menu" << w->property("menuOpen")
+                               << "fs" << hasFs() << "mini" << w->property("miniMode") << "ma" << vis("mouseActions");
+                call("run", "mute");
+                result("dispatch mute", waitFor([&] { return eng->muted(); }));
+                call("run", "mute");
+                result("dispatch mute again unmutes", waitFor([&] { return !eng->muted(); }));
+                result("invalid binding rejected", !call("bindAction", "click", "explode").toBool());
+                result("binding persists", call("bindAction", "click", "mute").toBool() && p->setting("mouse/click").toString() == "mute");
+                call("bindAction", "dblclick", "none");
+                const QPoint vp(w->width() / 2, w->height() / 3);
+                wake();
+                clickAt(vp);
+                result("single click runs bound action (muted)", waitFor([&] { return eng->muted(); }));
+                // modal menu: clicking outside only closes it, never runs the click action
+                click("moreButton");
+                result("more menu opens", waitFor([&] { return w->property("menuOpen").toBool(); }));
+                clickAt(vp);
+                result("click outside a popup runs no action", waitFor([&] { return !w->property("menuOpen").toBool(); }) && eng->muted());
+                wake();
+                clickAt(vp);
+                result("click works again after the menu closed", waitFor([&] { return !eng->muted(); }));
+                // wheel: bound to seek, one notch = seekStep
+                call("bindAction", "wheel", "seek");
+                eng->seek(10);
+                waitFor([&] { return eng->position() > 9.5; });
+                const double before = eng->position();
+                call("wheelAction", "seek", 120);
+                result("wheel bound to seek moves the playhead", waitFor([&] { return eng->position() > before + 2; }),
+                       QString::number(eng->position()));
+                call("bindAction", "wheel", "volume");
+                call("bindAction", "click", "playpause");
+                call("bindAction", "dblclick", "fullscreen");
+                result("defaults restored", call("binding", "click").toString() == "playpause" && call("binding", "wheel").toString() == "volume");
+                p->setSetting("mouse/click", "playpause");
+            }
+        }
         pause();
         qCInfo(lcCore) << "UITEST SUMMARY passes=" << passes << "fails=" << fails;
     }

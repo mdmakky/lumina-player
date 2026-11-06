@@ -122,10 +122,13 @@ option(LUMINA_MAC_BUNDLE "Build a macOS .app bundle (default OFF: plain bin/lumi
 
 set_source_files_properties(resources/icons/app/lumina-256.png PROPERTIES QT_RESOURCE_ALIAS icons/lumina.png)
 set(LUMINA_SETTINGS_ICONS "")
-foreach(page general playback video audio subtitles appearance library shortcuts advanced about)
+foreach(page general playback video audio subtitles appearance library shortcuts advanced mouse rendering network playlist about)
     list(APPEND LUMINA_SETTINGS_ICONS resources/icons/s-${page}.svg resources/icons/s-${page}-a.svg)
 endforeach()
 set_source_files_properties(ui/Settings/SettingsState.qml PROPERTIES
+    QT_QML_SINGLETON_TYPE TRUE
+)
+set_source_files_properties(ui/Settings/MouseBindings.qml PROPERTIES
     QT_QML_SINGLETON_TYPE TRUE
 )
 set_source_files_properties(ui/Theme/Theme.qml PROPERTIES
@@ -171,6 +174,13 @@ qt_add_qml_module(lumina
         ui/Settings/ComboRow.qml
         ui/Settings/ButtonRow.qml
         ui/Settings/ShortcutsEditor.qml
+        ui/Settings/MouseBindings.qml
+        ui/Settings/MouseSettingsPage.qml
+        ui/Settings/AccentSection.qml
+        ui/Settings/RenderingPage.qml
+        ui/Settings/NetworkPage.qml
+        ui/Settings/PlaylistPage.qml
+        ui/Components/MouseActions.qml
         ui/Components/Toast.qml
         ui/Components/VideoAdjustPopup.qml
         ui/Components/EqualizerPopup.qml
@@ -335,6 +345,11 @@ if(BUILD_TESTING)
     target_include_directories(tst_tracklabels PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
     target_link_libraries(tst_tracklabels PRIVATE Qt6::Core Qt6::Test)
     add_test(NAME TrackLabels COMMAND tst_tracklabels)
+
+    add_executable(tst_queuestore tests/unit/tst_QueueStore.cpp src/core/QueueStore.h)
+    target_include_directories(tst_queuestore PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+    target_link_libraries(tst_queuestore PRIVATE Qt6::Core Qt6::Test)
+    add_test(NAME QueueStore COMMAND tst_queuestore)
 
     add_executable(tst_playlistmodel
         tests/unit/tst_PlaylistModel.cpp

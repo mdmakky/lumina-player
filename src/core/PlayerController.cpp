@@ -1,6 +1,7 @@
 #include "PlayerController.h"
 
 #include "engine/MpvEngine.h"
+#include "QueueStore.h"
 #include "utilities/Logger.h"
 #include "utilities/TimeUtils.h"
 #include "utilities/UrlUtils.h"
@@ -10,7 +11,9 @@
 #include <QDateTime>
 #include <QDesktopServices>
 #include <QDir>
+#include <QFile>
 #include <QFileInfo>
+#include <QSaveFile>
 #include <QJSValue>
 #include <QSettings>
 #include <QStandardPaths>
@@ -109,6 +112,8 @@ PlayerController::PlayerController(QObject *parent)
             m_resumeTarget = 0.0;
     });
     connect(qApp, &QCoreApplication::aboutToQuit, this, &PlayerController::saveResume);
+    connect(qApp, &QCoreApplication::aboutToQuit, this, &PlayerController::saveQueue);
+    restoreQueue();
     auto *resumeTimer = new QTimer(this); // also survives crashes / SIGTERM
     resumeTimer->setInterval(5000);
     connect(resumeTimer, &QTimer::timeout, this, &PlayerController::saveResume);
@@ -283,6 +288,60 @@ void PlayerController::openFiles(const QVariantList &urls)
         else if (Lumina::UrlUtils::isRemote(url))
             rememberUrl(url);
     }
+}
+
+static QString queuePath()
+{
+    return QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + QStringLiteral("/queue.json");
+}
+
+void PlayerController::saveQueue() const
+{
+    if (!setting(QStringLiteral("playlist/rememberQueue"), false).toBool()) {
+        QFile::remove(queuePath());
+        return;
+    }
+    Lumina::QueueStore::Queue q;
+    for (int i = 0; i < m_playlist->rowCount(); ++i)
+        q.urls << m_playlist->urlAt(i).toString();
+    q.index = m_playlist->currentIndex();
+    QDir().mkpath(QFileInfo(queuePath()).absolutePath());
+    Lumina::QueueStore::save(queuePath(), q);
+}
+
+int PlayerController::restoreQueue()
+{
+    if (!setting(QStringLiteral("playlist/rememberQueue"), false).toBool() || m_playlist->rowCount() > 0)
+        return 0;
+    const auto q = Lumina::QueueStore::load(queuePath());
+    QVariantList urls;
+    for (const QString &u : q.urls)
+        urls << QUrl(u);
+    m_playlist->append(urls);
+    if (q.index >= 0)
+        m_playlist->setCurrentIndex(q.index);
+    return int(urls.size());
+}
+
+void PlayerController::openUserFiles(const QVariantList &urls)
+{
+    if (setting(QStringLiteral("playlist/openMode"), QStringLiteral("replace")).toString() == QLatin1String("append")
+        && hasMedia())
+        enqueue(urls);
+    else
+        openFiles(urls);
+}
+
+bool PlayerController::writeTextFile(const QUrl &file, const QString &text) const
+{
+    QSaveFile f(file.toLocalFile());
+    return f.open(QIODevice::WriteOnly) && f.write(text.toUtf8()) >= 0 && f.commit();
+}
+
+QString PlayerController::readTextFile(const QUrl &file) const
+{
+    QFile f(file.toLocalFile());
+    return f.open(QIODevice::ReadOnly) ? QString::fromUtf8(f.readAll()) : QString();
 }
 
 void PlayerController::enqueue(const QVariantList &urls)
