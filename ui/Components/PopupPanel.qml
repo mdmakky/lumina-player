@@ -27,6 +27,9 @@ Popup {
     padding: 8
     width: panelWidth > 0 ? panelWidth : implicitWidth
     closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
+    // Modal (undimmed) so the outside click only closes the menu instead of also pausing the video.
+    modal: true
+    dim: false
     transformOrigin: Popup.Bottom
 
     enter: Transition {

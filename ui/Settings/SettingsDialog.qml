@@ -25,7 +25,7 @@ Item {
     property string shotFormat: "png"
     property string shotDir: ""
     property int defaultVolume: 100
-    property int subSize: 55
+    property int subSize: 40
     property string subColor: "#FFFFFF"
     property real subBorder: 3
     property int subPos: 100
@@ -149,7 +149,7 @@ Item {
         shotFormat = player.setting("video/screenshotFormat", "png")
         shotDir = player.setting("video/screenshotDir", "")
         defaultVolume = getNum("playback/defaultVolume", player.engine.volume)
-        subSize = getNum("subtitles/fontSize", 55)
+        subSize = getNum("subtitles/fontSize", 40)
         subColor = player.setting("subtitles/color", "#FFFFFF")
         subBorder = getNum("subtitles/borderSize", 3)
         subPos = getNum("subtitles/position", 100)

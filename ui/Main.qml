@@ -1046,8 +1046,9 @@ ApplicationWindow {
         interval: settingsDialog.hideDelay * 1000
         repeat: false
         onTriggered: {
-            if (player.engine.playing && !root.chromeHovered && !root.menuOpen && !root.playlistOpen)
-                root.chromeVisible = false
+            if (!player.engine.playing) return
+            if (root.chromeHovered || root.menuOpen || root.playlistOpen) restart()  // re-check once the menu closes
+            else root.chromeVisible = false
         }
     }
 
@@ -1094,8 +1095,10 @@ ApplicationWindow {
         case "playPause": e.togglePlayPause(); break
         case "seekBack": e.seekRelative(-settingsDialog.seekStep); break
         case "seekForward": e.seekRelative(settingsDialog.seekStep); break
-        case "volumeUp": e.setVolume(Math.min(150, e.volume + 5)); break
-        case "volumeDown": e.setVolume(Math.max(0, e.volume - 5)); break
+        case "volumeUp": case "volumeDown": {
+            const v = Math.max(0, Math.min(150, e.volume + (id === "volumeUp" ? 5 : -5)))
+            e.setVolume(v); root.showChrome(); toast.show(qsTr("Volume %1%").arg(v)); break
+        }
         case "mute": e.setMuted(!e.muted); break
         case "stats": e.statsEnabled = !e.statsEnabled; break
         case "fullscreen": root.toggleFullscreen(); break
