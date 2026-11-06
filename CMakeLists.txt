@@ -475,6 +475,6 @@ if(BUILD_TESTING)
         src/engine/MpvThumbnailer.cpp
     )
     target_include_directories(tst_thumbnailservice PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
-    target_link_libraries(tst_thumbnailservice PRIVATE Qt6::Core Qt6::Gui Qt6::Test PkgConfig::MPV)
+    target_link_libraries(tst_thumbnailservice PRIVATE Qt6::Core Qt6::Gui Qt6::Test ${LUMINA_MPV_TARGET})
     add_test(NAME ThumbnailService COMMAND tst_thumbnailservice)
 endif()
