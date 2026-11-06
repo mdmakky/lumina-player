@@ -38,5 +38,11 @@ for f in "$BIN" $(find "$APP" -type f \( -name '*.dylib' -o -name '*.so' -o -pat
   done
 done
 codesign --force --deep --sign - "$APP"   # ad-hoc; Developer ID signing + notarization still TODO
-hdiutil create -volname "Lumina Player" -srcfolder "$APP" -ov -format UDZO "$B/Lumina-Player.dmg"
+# Disk image with the app under its display name and an Applications shortcut to drag it onto.
+STAGE=$B/dmg-stage
+rm -rf "$STAGE"; mkdir -p "$STAGE"
+cp -R "$APP" "$STAGE/Lumina Player.app"
+ln -s /Applications "$STAGE/Applications"
+codesign --verify --deep --strict "$STAGE/Lumina Player.app"
+hdiutil create -volname "Lumina Player" -srcfolder "$STAGE" -ov -format UDZO "$B/Lumina-Player.dmg"
 echo "Done: $APP  $B/Lumina-Player.dmg"
