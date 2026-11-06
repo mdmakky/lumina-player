@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.28)
 
-project(Lumina VERSION 0.3.0 LANGUAGES CXX DESCRIPTION "Lumina Player — premium cross-platform media player")
+project(Lumina VERSION 0.3.1 LANGUAGES CXX DESCRIPTION "Lumina Player — premium cross-platform media player")
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)

@@ -31,6 +31,12 @@ while [ -n "$queue" ]; do
   done
   install_name_tool -change "$lib" "@executable_path/../Frameworks/$(basename "$lib")" "$BIN"
 done
+# Drop Homebrew rpaths everywhere: a second copy of Qt resolved through them gets loaded next to the bundled one.
+for f in "$BIN" $(find "$APP" -type f \( -name '*.dylib' -o -name '*.so' -o -path '*.framework/Versions/A/Qt*' \)); do
+  for r in $(otool -l "$f" 2>/dev/null | awk '/LC_RPATH/{getline;getline;print $2}' | grep -E '^/(opt/homebrew|usr/local)'); do
+    install_name_tool -delete_rpath "$r" "$f" 2>/dev/null || true
+  done
+done
 codesign --force --deep --sign - "$APP"   # ad-hoc; Developer ID signing + notarization still TODO
 hdiutil create -volname "Lumina Player" -srcfolder "$APP" -ov -format UDZO "$B/Lumina-Player.dmg"
 echo "Done: $APP  $B/Lumina-Player.dmg"

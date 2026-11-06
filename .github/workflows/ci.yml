@@ -30,8 +30,17 @@ jobs:
             libqt6network6 libqt6sql6-sqlite libgl1-mesa-dri libegl1 \
             libmpv-dev ffmpeg xvfb
 
+      # MSYS2 has no mpv package; use the libmpv dev SDK from the shinchiro builds (libmpv.dll.a + libmpv-2.dll).
+      - name: Fetch libmpv SDK
+        run: |
+          url=$(curl -s https://api.github.com/repos/shinchiro/mpv-winbuild-cmake/releases/latest | grep browser_download_url | grep -E 'mpv-dev-x86_64-[0-9]' | head -1 | cut -d'"' -f4)
+          echo "libmpv SDK: $url"
+          curl -L -o mpv-dev.7z "$url"
+          mkdir -p mpv-dev && 7z x -ompv-dev mpv-dev.7z >/dev/null
+          ls mpv-dev
+
       - name: Configure
-        run: cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
+        run: cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON -DLIBMPV_ROOT="$PWD/mpv-dev"
 
       - name: Build
         run: cmake --build build
@@ -99,10 +108,20 @@ jobs:
             mingw-w64-x86_64-qt6-declarative
             mingw-w64-x86_64-qt6-svg
             mingw-w64-x86_64-qt6-tools
-            mingw-w64-x86_64-mpv
+            mingw-w64-x86_64-curl
+            p7zip
+
+      # MSYS2 has no mpv package; use the libmpv dev SDK from the shinchiro builds (libmpv.dll.a + libmpv-2.dll).
+      - name: Fetch libmpv SDK
+        run: |
+          url=$(curl -s https://api.github.com/repos/shinchiro/mpv-winbuild-cmake/releases/latest | grep browser_download_url | grep -E 'mpv-dev-x86_64-[0-9]' | head -1 | cut -d'"' -f4)
+          echo "libmpv SDK: $url"
+          curl -L -o mpv-dev.7z "$url"
+          mkdir -p mpv-dev && 7z x -ompv-dev mpv-dev.7z >/dev/null
+          ls mpv-dev
 
       - name: Configure
-        run: cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
+        run: cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON -DLIBMPV_ROOT="$PWD/mpv-dev"
 
       - name: Build
         run: cmake --build build
@@ -114,6 +133,7 @@ jobs:
         run: |
           mkdir -p dist
           cp build/bin/lumina.exe dist/
+          cp mpv-dev/libmpv-2.dll dist/ || cp mpv-dev/*.dll dist/
           windeployqt6 --qmldir ui --no-translations dist/lumina.exe || windeployqt --qmldir ui dist/lumina.exe
           # Bundle libmpv and its MinGW dependencies next to the exe.
           ldd dist/lumina.exe | awk '/mingw64/ {print $3}' | xargs -I{} cp -n {} dist/
