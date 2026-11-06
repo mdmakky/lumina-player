@@ -38,7 +38,6 @@ jobs:
             mingw-w64-x86_64-qt6-svg
             mingw-w64-x86_64-qt6-tools
             mingw-w64-x86_64-curl
-            mingw-w64-x86_64-github-cli
             p7zip
             zip
       - name: Fetch libmpv SDK
@@ -64,7 +63,8 @@ jobs:
           name: windows-zip
           path: Lumina-Player-*.zip
       - name: Attach to release
-        run: gh release upload "${{ inputs.tag }}" Lumina-Player-*.zip --clobber
+        shell: pwsh
+        run: gh release upload "${{ inputs.tag }}" (Get-ChildItem Lumina-Player-*.zip).FullName --clobber
 
   deb:
     name: Debian / Ubuntu (.deb)
@@ -119,7 +119,7 @@ jobs:
           rpmbuild -ba packaging/rpm/lumina.spec
           ls -l ~/rpmbuild/RPMS/*/*.rpm ~/rpmbuild/SRPMS/*.rpm
           rpm -qpR ~/rpmbuild/RPMS/*/lumina-player-*.rpm | head -30
-          mkdir -p out && cp ~/rpmbuild/RPMS/*/lumina-player-*.rpm ~/rpmbuild/SRPMS/*.rpm out/
+          mkdir -p out && cp ~/rpmbuild/RPMS/*/lumina-player-[0-9]*.rpm ~/rpmbuild/SRPMS/*.rpm out/
       - uses: actions/upload-artifact@v4
         with:
           name: rpm
