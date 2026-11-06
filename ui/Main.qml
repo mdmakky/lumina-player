@@ -424,7 +424,7 @@ ApplicationWindow {
     PlaylistPanel {
         id: playlistPanel
         objectName: "playlistPanel"
-        visible: root.playlistOpen && !root.miniMode
+        visible: root.playlistOpen && player.hasMedia && !root.miniMode
         anchors.top: parent.top
         anchors.topMargin: 56
         anchors.right: parent.right

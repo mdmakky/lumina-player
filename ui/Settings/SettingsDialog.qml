@@ -274,11 +274,11 @@ Item {
         width: Math.min(940, parent.width - 48)
         height: Math.min(680, parent.height - 48)
         radius: Theme.radiusLarge
-        color: Theme.panelOverlay
-        border.color: Theme.border
+        color: "transparent"
         scale: dlg.opened ? 1 : 0.97
         Behavior on scale { NumberAnimation { duration: Theme.animationMedium; easing.type: Easing.OutCubic } }
 
+        Surface { anchors.fill: parent; z: -1; elevation: 2; radius: panel.radius; color: Theme.panelOverlay }
         MouseArea { anchors.fill: parent } // keep clicks inside the panel
 
         RowLayout {
@@ -1141,8 +1141,8 @@ Item {
                 width: Math.min(380, parent.width - 48)
                 height: confirmCol.implicitHeight + 40
                 radius: Theme.radiusLarge
-                color: Theme.elevated
-                border.color: Theme.border
+                color: "transparent"
+                Surface { anchors.fill: parent; z: -1; elevation: 2; color: Theme.elevated }
                 MouseArea { anchors.fill: parent }
                 ColumnLayout {
                     id: confirmCol

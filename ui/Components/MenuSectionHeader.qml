@@ -14,19 +14,18 @@ Item {
     signal actionClicked()
 
     Layout.fillWidth: true
-    implicitHeight: 28
+    implicitHeight: 30
 
     Text {
         anchors.left: parent.left
         anchors.leftMargin: 8
         anchors.bottom: parent.bottom
         anchors.bottomMargin: 4
-        text: header.text.toUpperCase()
+        text: Theme.sentence(header.text)
         color: Theme.secondaryText
         font.family: Theme.fontFamily
         font.pixelSize: Theme.fontSizeSmall
         font.weight: Font.DemiBold
-        font.letterSpacing: 0.8
     }
     AbstractButton {
         objectName: header.actionObjectName

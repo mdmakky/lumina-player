@@ -215,15 +215,16 @@ Item {
         parent: Overlay.overlay
         anchors.centerIn: parent
         width: Math.min(440, (parent ? parent.width : 440) - 48)
-        padding: Theme.spacingLarge
+        padding: 24
         closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
-        Overlay.modal: Rectangle { color: Theme.scrimSoft }
-        background: Rectangle { color: Theme.surface; border.color: Theme.border; radius: Theme.radiusLarge }
+        Overlay.modal: Rectangle { color: Theme.scrimModal }
+        background: Surface { elevation: 2 }
     }
     component CardTitle: Text {
         color: Theme.primaryText
         font.family: Theme.fontFamily
-        font.pixelSize: Theme.fontSizeHeading
+        font.pixelSize: Theme.fontSizeHeading + 1
+        font.weight: Font.DemiBold
         wrapMode: Text.Wrap
         Layout.fillWidth: true
     }
@@ -255,7 +256,7 @@ Item {
     Menu {
         id: rowMenu
         padding: 6
-        background: Rectangle { implicitWidth: 230; color: Theme.surface; border.color: Theme.border; radius: Theme.radius }
+        background: Surface { implicitWidth: 230; implicitHeight: 40; radius: Theme.radius + 2 }
         ThemedMenuItem { text: qsTr("Play"); onTriggered: { player.playLibrary(view.menuRow.index); view.close() } }
         ThemedMenuItem {
             text: view.menuRow.favorite ? qsTr("Remove from favorites") : qsTr("Add to favorites")

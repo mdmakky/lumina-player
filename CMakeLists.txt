@@ -202,6 +202,9 @@ qt_add_qml_module(lumina
         ui/Components/MouseActions.qml
         ui/Components/Toast.qml
         ui/Components/Glyph.qml
+        ui/Components/Surface.qml
+        ui/Components/ModalCard.qml
+        ui/Components/ModalFooter.qml
         ui/Components/HomeView.qml
         ui/Components/VideoAdjustPopup.qml
         ui/Components/PicturePopup.qml

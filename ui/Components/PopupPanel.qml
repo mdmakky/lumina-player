@@ -24,7 +24,7 @@ Popup {
 
     focus: true
     margins: 8
-    padding: 8
+    padding: 10
     width: panelWidth > 0 ? panelWidth : implicitWidth
     closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
     // Modal (undimmed) so the outside click only closes the menu instead of also pausing the video.
@@ -40,29 +40,7 @@ Popup {
         NumberAnimation { property: "opacity"; to: 0; duration: Theme.animationFast }
     }
 
-    background: Item {
-        // Cheap soft shadow: a few translucent rounded rects growing outward.
-        Repeater {
-            model: 4
-            Rectangle {
-                required property int index
-                anchors.fill: parent
-                anchors.margins: -(index + 1) * 3
-                anchors.topMargin: -(index + 1) * 3 + 3
-                anchors.bottomMargin: -(index + 1) * 3 - 3
-                radius: Theme.radiusLarge + (index + 1) * 3
-                color: Theme.shadow
-                opacity: 0.2 - index * 0.045
-            }
-        }
-        Rectangle {
-            anchors.fill: parent
-            radius: Theme.radiusLarge
-            color: Theme.surface
-            border.color: Theme.border
-            border.width: 1
-        }
-    }
+    background: Surface { elevation: 1 }
 
     // Keyboard-focusable rows/buttons inside the panel, in visual order.
     function focusables(item, out) {

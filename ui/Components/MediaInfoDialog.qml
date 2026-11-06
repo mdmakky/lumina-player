@@ -144,22 +144,23 @@ Popup {
     onAboutToShow: sections = collect()
 
     Overlay.modal: Rectangle { color: Theme.scrimModal }
-    background: Rectangle {
-        color: Theme.surface
-        border.color: Theme.border
-        radius: Theme.radiusLarge
+    enter: Transition {
+        NumberAnimation { property: "opacity"; from: 0; to: 1; duration: Theme.animationMedium; easing.type: Easing.OutCubic }
+        NumberAnimation { property: "scale"; from: 0.97; to: 1; duration: Theme.animationMedium; easing.type: Easing.OutCubic }
     }
+    exit: Transition { NumberAnimation { property: "opacity"; to: 0; duration: Theme.animationFast } }
+    background: Surface { elevation: 2 }
 
     contentItem: ColumnLayout {
         spacing: 0
 
         Text {
-            Layout.margins: Theme.spacingLarge
-            Layout.bottomMargin: Theme.spacingSmall
+            Layout.margins: 24
+            Layout.bottomMargin: 10
             text: qsTr("Media information")
             color: Theme.primaryText
             font.family: Theme.fontFamily
-            font.pixelSize: Theme.fontSizeHeading
+            font.pixelSize: Theme.fontSizeHeading + 1
             font.weight: Font.DemiBold
             Accessible.role: Accessible.Heading
         }
@@ -168,7 +169,7 @@ Popup {
             id: flick
             Layout.fillWidth: true
             Layout.fillHeight: true
-            Layout.leftMargin: Theme.spacingLarge
+            Layout.leftMargin: 24
             Layout.rightMargin: Theme.spacingSmall
             clip: true
             contentWidth: width
@@ -191,11 +192,11 @@ Popup {
 
                         Text {
                             Layout.topMargin: Theme.spacingMedium
-                            text: sec.modelData.title
-                            color: Theme.disabledText
+                            text: Theme.sentence(sec.modelData.title)
+                            color: Theme.primaryText
                             font.family: Theme.fontFamily
-                            font.pixelSize: Theme.fontSizeSmall
-                            font.letterSpacing: 2
+                            font.pixelSize: Theme.fontSizeMedium + 1
+                            font.weight: Font.DemiBold
                         }
                         Repeater {
                             model: sec.modelData.blocks
@@ -204,9 +205,10 @@ Popup {
                                 required property var modelData
                                 Layout.fillWidth: true
                                 implicitHeight: blockCol.implicitHeight + 2 * Theme.spacingMedium
-                                radius: Theme.radius
+                                radius: Theme.radius + 2
                                 color: Theme.elevated
                                 border.color: Theme.border
+                                opacity: 1
 
                                 ColumnLayout {
                                     id: blockCol
@@ -254,9 +256,11 @@ Popup {
             }
         }
 
+        Rectangle { Layout.fillWidth: true; Layout.topMargin: Theme.spacingMedium; Layout.preferredHeight: 1; color: Theme.border; opacity: 0.7 }
         RowLayout {
-            Layout.margins: Theme.spacingLarge
-            Layout.topMargin: Theme.spacingMedium
+            Layout.margins: 16
+            Layout.leftMargin: 24
+            Layout.rightMargin: 24
             Item { Layout.fillWidth: true }
             SettingsButton {
                 objectName: "mediaInfoCopyButton"

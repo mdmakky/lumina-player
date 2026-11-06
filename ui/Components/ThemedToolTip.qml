@@ -22,25 +22,5 @@ ToolTip {
         font.pixelSize: Theme.fontSizeSmall
         wrapMode: Text.Wrap
     }
-    background: Item {
-        Repeater {
-            model: 2
-            Rectangle {
-                required property int index
-                anchors.fill: parent
-                anchors.margins: -(index + 1) * 2
-                anchors.topMargin: -(index + 1) * 2 + 2
-                anchors.bottomMargin: -(index + 1) * 2 - 2
-                radius: Theme.radius + (index + 1) * 2
-                color: Theme.shadow
-                opacity: 0.16 - index * 0.05
-            }
-        }
-        Rectangle {
-            anchors.fill: parent
-            radius: Theme.radius - 2
-            color: Theme.elevated
-            border.color: Theme.border
-        }
-    }
+    background: Surface { radius: Theme.radius - 2; color: Theme.elevated }
 }

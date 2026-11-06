@@ -34,11 +34,13 @@ QtObject {
     readonly property color videoCard: Qt.rgba(0.06, 0.06, 0.07, 0.94)
     readonly property color videoCardBorder: Qt.rgba(1, 1, 1, 0.10)
     readonly property color videoBubble: Qt.rgba(0, 0, 0, 0.72)
-    readonly property color scrimModal: Qt.rgba(0, 0, 0, 0.5)
+    readonly property color scrimModal: Qt.rgba(0.02, 0.02, 0.04, 0.62)
     readonly property color videoTrackIdle: Qt.rgba(1, 1, 1, 0.22)
 
     readonly property color panelOverlay: pick(Qt.rgba(16 / 255, 17 / 255, 20 / 255, 0.95),
                                                Qt.rgba(1, 1, 1, 0.97), Qt.rgba(0, 0, 0, 0.96))
+    // 1px inner edge that makes raised surfaces read as lit from above.
+    readonly property color panelHighlight: isLight ? Qt.rgba(1, 1, 1, 0.9) : Qt.rgba(1, 1, 1, 0.055)
     readonly property color shadow: Qt.rgba(0, 0, 0, isLight ? 0.25 : 0.5)
     readonly property color trackIdle: isLight ? Qt.rgba(0, 0, 0, 0.18) : Qt.rgba(1, 1, 1, 0.22)
 
@@ -71,6 +73,9 @@ QtObject {
     // Status
     readonly property color error: isLight ? "#C0392F" : "#F26B6B"
     readonly property color success: isLight ? "#1D8A52" : "#5BC98C"
+
+    // "AUDIO" -> "Audio": source strings stay as translated keys, display is sentence case.
+    function sentence(s) { return s.length > 1 && s === s.toUpperCase() ? s.charAt(0) + s.slice(1).toLowerCase() : s }
 
     // Typography
     readonly property string fontFamily: Qt.application.font.family

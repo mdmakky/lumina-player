@@ -6,7 +6,7 @@ import Lumina.Player
 MenuItem {
     id: control
 
-    implicitHeight: 32
+    implicitHeight: 34
     font.family: Theme.fontFamily
     font.pixelSize: Theme.fontSizeMedium
 
@@ -16,14 +16,14 @@ MenuItem {
         color: control.checked ? Theme.accentHover : Theme.primaryText
         verticalAlignment: Text.AlignVCenter
         elide: Text.ElideRight
-        leftPadding: 8
-        rightPadding: 8
+        leftPadding: 10
+        rightPadding: 10
     }
 
     indicator: Item {}
 
     background: Rectangle {
-        radius: Theme.radiusSmall
+        radius: Theme.radius - 2
         color: control.highlighted ? Theme.surfaceHover : "transparent"
     }
 }

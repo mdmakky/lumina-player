@@ -23,12 +23,11 @@ ColumnLayout {
     Text {
         visible: sec.title !== ""
         Layout.leftMargin: 4
-        text: sec.title.toUpperCase()
+        text: Theme.sentence(sec.title)
         color: Theme.secondaryText
         font.family: Theme.fontFamily
-        font.pixelSize: Theme.fontSizeSmall
+        font.pixelSize: Theme.fontSizeMedium
         font.weight: Font.DemiBold
-        font.letterSpacing: 0.6
         Accessible.role: Accessible.Heading
         Accessible.name: sec.title
     }

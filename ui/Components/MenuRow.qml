@@ -62,13 +62,10 @@ AbstractButton {
                     visible: row.selected
                 }
             }
-            Text { // check
+            Glyph { // check
                 visible: row.iconSource === "" && row.mark === "check" && row.selected
                 anchors.centerIn: parent
-                text: "✓"
-                color: Theme.accent
-                font.pixelSize: Theme.fontSizeLarge
-                font.bold: true
+                name: "check"; size: 15; stroke: 2.4; tint: Theme.accentHover
             }
         }
 
@@ -79,9 +76,10 @@ AbstractButton {
             Text {
                 Layout.fillWidth: true
                 text: row.text
-                color: Theme.primaryText
+                color: row.selected && row.mark !== "none" ? Theme.accentHover : Theme.primaryText
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSizeMedium
+                font.weight: row.selected && row.mark !== "none" ? Font.Medium : Font.Normal
                 elide: Text.ElideRight
             }
             Text {
@@ -106,7 +104,7 @@ AbstractButton {
     }
 
     background: Rectangle {
-        radius: Theme.radius - 2
+        radius: Theme.radius
         color: row.down ? Theme.surfacePressed : (row.hovered || row.visualFocus ? Theme.surfaceHover : "transparent")
         border.width: row.visualFocus ? 1.5 : 0
         border.color: Theme.focusRing

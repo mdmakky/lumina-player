@@ -98,7 +98,7 @@ ColumnLayout {
                     anchors.leftMargin: 2
                     anchors.bottom: parent.bottom
                     anchors.bottomMargin: 4
-                    text: row.isHeader ? row.modelData.name.toUpperCase() : ""
+                    text: row.isHeader ? Theme.sentence(row.modelData.name) : ""
                     color: Theme.secondaryText
                     font.family: Theme.fontFamily
                     font.pixelSize: Theme.fontSizeSmall
