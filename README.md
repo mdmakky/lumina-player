@@ -29,8 +29,17 @@ Lumina combines mpv-grade playback reliability with a modern, polished, dark-fir
 Preview builds are on the [Releases page](https://github.com/mdmakky/lumina-player/releases).
 
 - **Windows:** unzip `Lumina-Player-*-windows-x64.zip`, run `lumina.exe` (needs the Microsoft Visual C++ runtime only if Windows reports a missing DLL; the package bundles Qt and libmpv). SmartScreen may warn because the file is unsigned: More info, Run anyway.
-- **Fedora / RHEL:** `sudo dnf install ./lumina-player-*.rpm`. For E-AC3/DTS audio also enable RPM Fusion and `sudo dnf install libavcodec-freeworld`.
-- **Debian / Ubuntu 24.04:** `sudo apt install ./lumina-player_*.deb`.
+- **Fedora:** pick the `.rpm` for **your** Fedora release (`lumina-player-*.fc43|fc44|fc45.x86_64.rpm`), then `sudo dnf install ./lumina-player-*.rpm` (use the terminal: GNOME Software refuses unsigned packages). For E-AC3/DTS audio also enable RPM Fusion and `sudo dnf install libavcodec-freeworld`.
+- **Ubuntu:** pick the `.deb` for **your** release (`..._ubuntu24.04_`, `_ubuntu25.10_`, `_ubuntu26.04_`), then `sudo apt install ./lumina-player_*.deb`.
+- **Any other Linux (Debian, older Ubuntu/Fedora, Arch, openSUSE ...):** use the Flatpak: `flatpak install --user ./Lumina-Player-*.flatpak`.
+
+| Package | Installs and starts on | Not supported |
+|---|---|---|
+| `.rpm` | Fedora 43, 44, 45 | other Fedora releases, RHEL/Rocky |
+| `.deb` | Ubuntu 24.04, 25.10, 26.04 (see the release page for what CI built) | Ubuntu 22.04 and Debian 12 (Qt older than 6.4) |
+| Flatpak | any distro with Flatpak | not hand-tested beyond Fedora 45 |
+
+An RPM/DEB is tied to its release's Qt libraries, so there is one file per release. Each file is installed and its playback self-test run in a clean container of that release by CI before it is attached.
 - **macOS:** open the `.dmg`, drag Lumina to Applications, then right-click > Open the first time.
 
 ## Building

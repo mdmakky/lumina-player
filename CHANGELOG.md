@@ -20,6 +20,7 @@ Features and fixes since 0.3.0:
 - Flatpak manifest now builds and runs on Fedora (KDE 6.10 runtime, libplacebo, Wayland + X11 verified, VAAPI works)
 - Windows build files and experimental CI job; macOS GL 3.3 core profile and coreaudio fallback
 - Library: a drive that is not mounted (empty mount-point folder) keeps its entries; if you delete every file of a library folder, use "remove folder" to clear its entries; a damaged library database is set aside and recreated
+- Packaging: one `.rpm` per Fedora release (43/44/45) and one `.deb` per Ubuntu release (24.04/25.10/26.04), each installed and smoke-tested (starts, plays, seeks) in a clean container by CI; the app now starts on Qt 6.4 (Ubuntu 24.04); packages depend on the SVG plugin; relative file paths on the command line open
 - Fixes: menus are modal (outside click no longer pauses), chrome auto-hide re-arms, smaller default subtitle size, upside-down video, Qt 6.4 compatibility
 - Release preparation: user guide, security review, license audit + SBOM generator (`tools/make-sbom.sh`), QA and performance reports, RPM/DEB/AppImage recipes (unbuilt)
 

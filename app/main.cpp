@@ -12,6 +12,7 @@
 #include "services/UpdateChecker.h"
 
 #include <QDir>
+#include <QFileInfo>
 #include <QFileOpenEvent>
 #include <QGuiApplication>
 #include <QFileDevice>
@@ -113,12 +114,17 @@ int main(int argc, char *argv[])
 
     // Second launch hands its files to the running instance and exits
     // (skipped for self-tests so they can run alongside a normal session).
+    // Relative paths must be made absolute here: a forwarded argument would otherwise resolve against the
+    // running instance's working directory, and fromUserInput() does not treat a bare relative path as a file.
+    QStringList cliArgs;
+    for (const QString &a : QGuiApplication::arguments().mid(1))
+        cliArgs << (QFileInfo::exists(a) ? QFileInfo(a).absoluteFilePath() : a);
     const bool selfTest = qEnvironmentVariableIsSet("LUMINA_PLAYBACK_TEST")
         || qEnvironmentVariableIsSet("LUMINA_UI_TEST")
         || qEnvironmentVariableIsSet("LUMINA_NO_SINGLE_INSTANCE");
     SingleInstance single(QStringLiteral("lumina-player-%1").arg(QDir::home().dirName()));
     if (!selfTest && !UiTest::requested()) {
-        if (single.forward(QGuiApplication::arguments().mid(1))) {
+        if (single.forward(cliArgs)) {
             qCInfo(lcCore) << "Forwarded arguments to running instance";
             return 0;
         }
@@ -178,14 +184,14 @@ int main(int argc, char *argv[])
     }
     if (UiTest::requested()) {
         // UiTest loads the media itself so it can capture the empty state first.
-        (new UiTest(rootWindow, context.player(), QGuiApplication::arguments().mid(1), &app))->start();
+        (new UiTest(rootWindow, context.player(), cliArgs, &app))->start();
     }
     auto *firstFrame = new QObject(&app);
     QObject::connect(rootWindow, &QQuickWindow::frameSwapped, firstFrame, [&, firstFrame]() {
         firstFrame->deleteLater();
         QObject::disconnect(rootWindow, &QQuickWindow::frameSwapped, firstFrame, nullptr);
         if (!UiTest::requested())
-            context.openCommandLineFiles(QGuiApplication::arguments().mid(1));
+            context.openCommandLineFiles(cliArgs);
     });
 
     if (selfTest)
