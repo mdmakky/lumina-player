@@ -137,6 +137,7 @@ int main(int argc, char *argv[])
         &engine, &QQmlApplicationEngine::objectCreationFailed, &app,
         []() { QCoreApplication::exit(1); }, Qt::QueuedConnection);
 
+    engine.addImportPath(QStringLiteral("qrc:/qt/qml")); // Qt 6.4 does not search it by default
     engine.load(QUrl(QStringLiteral("qrc:/qt/qml/Lumina/Player/ui/Main.qml")));
     if (engine.rootObjects().isEmpty())
         return 1;

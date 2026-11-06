@@ -163,6 +163,7 @@ endforeach()
 qt_add_qml_module(lumina
     URI Lumina.Player
     VERSION 1.0
+    RESOURCE_PREFIX /qt/qml # Qt 6.4 defaults to "/" (6.5+ to /qt/qml); main.cpp and the icon paths assume /qt/qml
     QML_FILES
         ui/Main.qml
         ui/Theme/Theme.qml
