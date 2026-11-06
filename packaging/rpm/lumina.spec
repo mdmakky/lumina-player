@@ -21,9 +21,9 @@ BuildRequires:  desktop-file-utils
 BuildRequires:  libappstream-glib
 
 Requires:       mpv-libs
-Requires:       qt6-qtbase-sqlite
+# Fedora has no qt6-qtbase-sqlite / qt6-qtquickcontrols2 packages: the SQLite SQL driver ships in qt6-qtbase and
+# QtQuick.Controls in qt6-qtdeclarative (both also pulled in by the auto-generated libQt6*.so deps).
 Requires:       qt6-qtdeclarative
-Requires:       qt6-qtquickcontrols2
 Requires:       hicolor-icon-theme
 # E-AC3/DTS/H.264 decoding needs RPM Fusion's full FFmpeg; Fedora policy forbids a hard Require.
 Recommends:     libavcodec-freeworld
