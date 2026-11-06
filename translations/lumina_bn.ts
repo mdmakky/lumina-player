@@ -21,7 +21,7 @@
     <message>
         <location filename="../ui/Settings/AccentSection.qml" line="20"/>
         <source>Green</source>
-        <translation type="unfinished">সবুজ</translation>
+        <translation>সবুজ</translation>
     </message>
     <message>
         <location filename="../ui/Settings/AccentSection.qml" line="21"/>
@@ -36,7 +36,7 @@
     <message>
         <location filename="../ui/Settings/AccentSection.qml" line="23"/>
         <source>Mono</source>
-        <translation type="unfinished">মনো</translation>
+        <translation>মনো</translation>
     </message>
     <message>
         <location filename="../ui/Settings/AccentSection.qml" line="39"/>
@@ -559,7 +559,7 @@
     <message>
         <location filename="../ui/Main.qml" line="1062"/>
         <source>Volume %1%</source>
-        <translation type="unfinished"></translation>
+        <translation>ভলিউম %1%</translation>
     </message>
 </context>
 <context>
@@ -585,7 +585,7 @@
     <message>
         <location filename="../ui/Settings/MouseSettingsPage.qml" line="11"/>
         <source>Play / pause</source>
-        <translation type="unfinished">চালান / বিরতি</translation>
+        <translation>চালান / বিরতি</translation>
     </message>
     <message>
         <location filename="../ui/Settings/MouseSettingsPage.qml" line="11"/>
@@ -595,7 +595,7 @@
     <message>
         <location filename="../ui/Settings/MouseSettingsPage.qml" line="11"/>
         <source>Mute</source>
-        <translation type="unfinished">নিঃশব্দ</translation>
+        <translation>নিঃশব্দ</translation>
     </message>
     <message>
         <location filename="../ui/Settings/MouseSettingsPage.qml" line="12"/>
@@ -620,7 +620,7 @@
     <message>
         <location filename="../ui/Settings/MouseSettingsPage.qml" line="13"/>
         <source>Screenshot</source>
-        <translation type="unfinished">স্ক্রিনশট</translation>
+        <translation>স্ক্রিনশট</translation>
     </message>
     <message>
         <location filename="../ui/Settings/MouseSettingsPage.qml" line="13"/>
@@ -769,7 +769,7 @@
     <message>
         <location filename="../src/engine/MpvEngine.cpp" line="285"/>
         <source>Could not open this file. It may have been moved or deleted, or is not a supported media file.</source>
-        <translation type="unfinished"></translation>
+        <translation>ফাইলটি খোলা যায়নি। এটি সরানো বা মুছে ফেলা হয়ে থাকতে পারে, অথবা সমর্থিত মিডিয়া ফাইল নয়।</translation>
     </message>
     <message>
         <location filename="../src/engine/MpvEngine.cpp" line="286"/>
@@ -779,37 +779,37 @@
     <message>
         <location filename="../src/engine/MpvEngine.cpp" line="356"/>
         <source>The audio output could not be opened. Check that PipeWire/PulseAudio is running and not used exclusively by another app.</source>
-        <translation type="unfinished"></translation>
+        <translation>অডিও আউটপুট খোলা যায়নি। PipeWire/PulseAudio চালু আছে এবং অন্য অ্যাপ এককভাবে ব্যবহার করছে না তা দেখুন।</translation>
     </message>
     <message>
         <location filename="../src/engine/MpvEngine.cpp" line="358"/>
         <source>install the full FFmpeg codec set and restart.</source>
-        <translation type="unfinished"></translation>
+        <translation>পূর্ণ FFmpeg কোডেক সেট ইনস্টল করে আবার চালু করুন।</translation>
     </message>
     <message>
         <location filename="../src/engine/MpvEngine.cpp" line="361"/>
         <source>run: sudo dnf install libavcodec-freeworld (needs RPM Fusion), then restart.</source>
-        <translation type="unfinished"></translation>
+        <translation>চালান: sudo dnf install libavcodec-freeworld (RPM Fusion লাগবে), তারপর আবার চালু করুন।</translation>
     </message>
     <message>
         <location filename="../src/engine/MpvEngine.cpp" line="363"/>
         <source>run: sudo apt install ffmpeg libavcodec-extra, then restart.</source>
-        <translation type="unfinished"></translation>
+        <translation>চালান: sudo apt install ffmpeg libavcodec-extra, তারপর আবার চালু করুন।</translation>
     </message>
     <message>
         <location filename="../src/engine/MpvEngine.cpp" line="365"/>
         <source>No decoder for the %1 audio track (your FFmpeg build lacks it): %2</source>
-        <translation type="unfinished"></translation>
+        <translation>%1 অডিও ট্র্যাকের ডিকোডার নেই (আপনার FFmpeg বিল্ডে নেই): %2</translation>
     </message>
     <message>
         <location filename="../src/engine/MpvEngine.cpp" line="366"/>
         <source>selected</source>
-        <translation type="unfinished"></translation>
+        <translation>নির্বাচিত</translation>
     </message>
     <message>
         <location filename="../src/engine/MpvEngine.cpp" line="369"/>
         <source>No sound. %1</source>
-        <translation type="unfinished"></translation>
+        <translation>শব্দ নেই। %1</translation>
     </message>
     <message>
         <location filename="../src/engine/MpvEngine.cpp" line="402"/>
@@ -837,7 +837,7 @@
     <message>
         <location filename="../ui/Settings/NetworkPage.qml" line="43"/>
         <source>Buffering</source>
-        <translation type="unfinished">বাফারিং</translation>
+        <translation>বাফারিং</translation>
     </message>
     <message>
         <location filename="../ui/Settings/NetworkPage.qml" line="46"/>
@@ -883,7 +883,7 @@
     <message>
         <location filename="../ui/Settings/NetworkPage.qml" line="72"/>
         <source>Default</source>
-        <translation type="unfinished">ডিফল্ট</translation>
+        <translation>ডিফল্ট</translation>
     </message>
     <message>
         <location filename="../ui/Settings/NetworkPage.qml" line="91"/>
@@ -1018,7 +1018,7 @@
     <message>
         <location filename="../ui/Settings/PlaylistPage.qml" line="9"/>
         <source>Playlist</source>
-        <translation type="unfinished">প্লেলিস্ট</translation>
+        <translation>প্লেলিস্ট</translation>
     </message>
     <message>
         <location filename="../ui/Settings/PlaylistPage.qml" line="21"/>
@@ -1045,7 +1045,7 @@
     <message>
         <location filename="../ui/Settings/PlaylistPage.qml" line="38"/>
         <source>Off</source>
-        <translation type="unfinished">বন্ধ</translation>
+        <translation>বন্ধ</translation>
     </message>
     <message>
         <location filename="../ui/Settings/PlaylistPage.qml" line="39"/>
@@ -1173,13 +1173,13 @@
     <message>
         <location filename="../ui/Settings/RenderingPage.qml" line="13"/>
         <source>Decoding</source>
-        <translation type="unfinished">ডিকোডিং</translation>
+        <translation>ডিকোডিং</translation>
     </message>
     <message>
         <location filename="../ui/Settings/RenderingPage.qml" line="15"/>
         <location filename="../ui/Settings/RenderingPage.qml" line="20"/>
         <source>Hardware decoding</source>
-        <translation type="unfinished">হার্ডওয়্যার ডিকোডিং</translation>
+        <translation>হার্ডওয়্যার ডিকোডিং</translation>
     </message>
     <message>
         <location filename="../ui/Settings/RenderingPage.qml" line="16"/>
@@ -1189,22 +1189,22 @@
     <message>
         <location filename="../ui/Settings/RenderingPage.qml" line="22"/>
         <source>Auto-safe</source>
-        <translation type="unfinished">অটো-সেফ</translation>
+        <translation>অটো-সেফ</translation>
     </message>
     <message>
         <location filename="../ui/Settings/RenderingPage.qml" line="23"/>
         <source>Off</source>
-        <translation type="unfinished">বন্ধ</translation>
+        <translation>বন্ধ</translation>
     </message>
     <message>
         <location filename="../ui/Settings/RenderingPage.qml" line="24"/>
         <source>Auto</source>
-        <translation type="unfinished">স্বয়ংক্রিয়</translation>
+        <translation>স্বয়ংক্রিয়</translation>
     </message>
     <message>
         <location filename="../ui/Settings/RenderingPage.qml" line="32"/>
         <source>Renderer</source>
-        <translation type="unfinished">রেন্ডারার</translation>
+        <translation>রেন্ডারার</translation>
     </message>
     <message>
         <location filename="../ui/Settings/RenderingPage.qml" line="34"/>
@@ -1325,7 +1325,7 @@
     <message>
         <location filename="../ui/Settings/SettingsDialog.qml" line="67"/>
         <source>Playlist</source>
-        <translation type="unfinished">প্লেলিস্ট</translation>
+        <translation>প্লেলিস্ট</translation>
     </message>
     <message>
         <location filename="../ui/Settings/SettingsDialog.qml" line="68"/>
@@ -2390,22 +2390,22 @@
     <message>
         <location filename="../ui/Components/VideoAdjustPopup.qml" line="18"/>
         <source>Default</source>
-        <translation type="unfinished">ডিফল্ট</translation>
+        <translation>ডিফল্ট</translation>
     </message>
     <message>
         <location filename="../ui/Components/VideoAdjustPopup.qml" line="19"/>
         <source>Cinema</source>
-        <translation type="unfinished"></translation>
+        <translation>সিনেমা</translation>
     </message>
     <message>
         <location filename="../ui/Components/VideoAdjustPopup.qml" line="20"/>
         <source>Vivid</source>
-        <translation type="unfinished"></translation>
+        <translation>উজ্জ্বল</translation>
     </message>
     <message>
         <location filename="../ui/Components/VideoAdjustPopup.qml" line="21"/>
         <source>Night</source>
-        <translation type="unfinished"></translation>
+        <translation>রাত</translation>
     </message>
     <message>
         <location filename="../ui/Components/VideoAdjustPopup.qml" line="54"/>

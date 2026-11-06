@@ -1150,8 +1150,9 @@ void UiTest::run()
                 result("click works again after the menu closed", waitFor([&] { return !eng->muted(); }));
                 // wheel: bound to seek, one notch = seekStep
                 call("bindAction", "wheel", "seek");
-                eng->seek(10);
-                waitFor([&] { return eng->position() > 9.5; });
+                eng->seek(5);
+                waitFor([&] { return eng->position() < 8; });
+                QTest::qWait(300);
                 const double before = eng->position();
                 call("wheelAction", "seek", 120);
                 result("wheel bound to seek moves the playhead", waitFor([&] { return eng->position() > before + 2; }),
