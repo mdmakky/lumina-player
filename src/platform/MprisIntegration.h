@@ -7,6 +7,7 @@
 #include <QDBusObjectPath>
 #include <QDBusPendingCallWatcher>
 #include <QStringList>
+#include <QTimer>
 
 class MprisIntegration;
 
@@ -118,6 +119,8 @@ private:
     friend class MprisPlayerAdaptor;
     void emitPropertiesChanged(const QVariantMap &changed);
     void watchSystemVolume();
+    QTimer *m_volumeTimer = nullptr; // coalesces bursts of setSystemVolume (touchpad scroll) into one pactl call
+    int m_pendingVolume = -1;
 
     MediaState m_state;
     MprisPlayerAdaptor *m_player = nullptr;

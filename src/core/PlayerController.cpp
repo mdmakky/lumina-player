@@ -67,6 +67,10 @@ PlayerController::PlayerController(QObject *parent)
     // Library is optional: LUMINA_PLAYBACK_TEST never touches it; LUMINA_DB_PATH redirects it (tests).
     if (!qEnvironmentVariableIsSet("LUMINA_PLAYBACK_TEST"))
         m_database = std::make_unique<Database>(qEnvironmentVariable("LUMINA_DB_PATH"));
+    if (m_database && !m_database->brokenBackup().isEmpty())
+        QTimer::singleShot(2500, this, [this] {
+            emit toast(tr("Library was damaged and has been reset. A copy was kept next to it as library.db.broken-…"));
+        });
     m_repo = HistoryRepository(m_database.get());
     m_history = new HistoryModel(&m_repo, HistoryRepository::Filter::All, 50, this);
     m_continue = new HistoryModel(&m_repo, HistoryRepository::Filter::Continue, 12, this);
@@ -76,7 +80,7 @@ PlayerController::PlayerController(QObject *parent)
     m_libRepo = LibraryRepository(m_database.get());
     m_library = new LibraryModel(&m_libRepo, this);
     m_scanner = new LibraryScanner(&m_libRepo, this);
-    connect(m_scanner, &LibraryScanner::changed, m_library, &LibraryModel::reload);
+    connect(m_scanner, &LibraryScanner::changed, m_library, &LibraryModel::reloadSoon);
     connect(m_scanner, &LibraryScanner::progress, this, [this](int n) {
         m_libraryProgress = n;
         emit libraryProgressChanged();
@@ -85,7 +89,7 @@ PlayerController::PlayerController(QObject *parent)
     m_plRepo = PlaylistRepository(m_database.get());
     m_playlists = new PlaylistsModel(&m_plRepo, this);
     connect(m_playlists, &PlaylistsModel::contentChanged, m_library, &LibraryModel::reload);
-    connect(m_prober, &LibraryProber::changed, m_library, &LibraryModel::reload);
+    connect(m_prober, &LibraryProber::changed, m_library, &LibraryModel::reloadSoon);
     connect(m_prober, &LibraryProber::finished, this, [this] { emit libraryProbingChanged(); });
     connect(m_scanner, &LibraryScanner::finished, this, [this](bool canceled) {
         m_library->reload();
@@ -436,7 +440,8 @@ void PlayerController::playIndex(int index)
             m_engine->setAspect(p.value("aspect", "auto").toString());
             m_engine->setRotate(p.value("rotate", 0).toInt());
             m_engine->setSpeed(p.value("speed", 1.0).toDouble());
-            m_engine->setVolume(p.value("volume", m_engine->volume()).toInt());
+            if (m_systemVolume < 0) // with OS volume as master, mpv stays at 100 (an old profile must not attenuate again)
+                m_engine->setVolume(p.value("volume", m_engine->volume()).toInt());
             m_engine->setSubtitleDelay(p.value("subDelay", 0.0).toDouble());
             m_engine->setAudioDelay(p.value("audioDelay", 0.0).toDouble());
         }

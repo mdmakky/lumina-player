@@ -215,13 +215,28 @@ void MprisIntegration::watchSystemVolume()
         if (out.contains(" on sink #") || out.contains(" on server"))
             debounce->start();
     });
+    // PipeWire/Pulse restarts (or suspend) end the subscription: start it again so the slider keeps following.
+    auto restarts = std::make_shared<int>(0); // give up if the sound server is simply not there
+    connect(sub, &QProcess::finished, this, [sub, restarts] {
+        if (++*restarts > 5) return;
+        QTimer::singleShot(3000, sub, [sub] { sub->start(QStringLiteral("pactl"), {QStringLiteral("subscribe")}); });
+    });
     sub->start(QStringLiteral("pactl"), {QStringLiteral("subscribe")});
     debounce->start(); // baseline
 }
 
 void MprisIntegration::setSystemVolume(int percent)
 {
-    QProcess::startDetached(QStringLiteral("pactl"),
-                            {QStringLiteral("set-sink-volume"), QStringLiteral("@DEFAULT_SINK@"),
-                             QString::number(qBound(0, percent, 100)) + QLatin1Char('%')});
+    m_pendingVolume = qBound(0, percent, 100);
+    if (!m_volumeTimer) {
+        m_volumeTimer = new QTimer(this);
+        m_volumeTimer->setSingleShot(true);
+        m_volumeTimer->setInterval(40);
+        connect(m_volumeTimer, &QTimer::timeout, this, [this] {
+            QProcess::startDetached(QStringLiteral("pactl"),
+                                    {QStringLiteral("set-sink-volume"), QStringLiteral("@DEFAULT_SINK@"),
+                                     QString::number(m_pendingVolume) + QLatin1Char('%')});
+        });
+    }
+    m_volumeTimer->start();
 }
