@@ -15,7 +15,8 @@ Depends: ${shlibs:Depends}, ${misc:Depends}, libqt6sql6-sqlite,
  qml6-module-qtquick, qml6-module-qtquick-controls, qml6-module-qtquick-layouts,
  qml6-module-qtquick-window, qml6-module-qtqml-workerscript, qml6-module-qtquick-templates,
  qml6-module-qt-labs-platform, qml6-module-qtcore,
- qml6-module-qtquick-dialogs, qml6-module-qtqml-models, libqt6svg6
+ qml6-module-qtquick-dialogs, qml6-module-qtqml-models, libqt6svg6,
+ qt6-svg-plugins | libqt6svg6
 Recommends: mesa-va-drivers, yt-dlp
 Description: Modern media player built on Qt 6 and libmpv
  Lumina Player plays video and audio with mpv's engine inside a clean Qt Quick
