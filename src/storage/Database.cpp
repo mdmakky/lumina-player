@@ -127,5 +127,33 @@ bool Database::migrate()
         }
         d.commit();
     }
+    if (v < 5) { // library metadata, duplicate fingerprints, saved playlists (all additive)
+        d.transaction();
+        bool ok = true;
+        for (const char *col : {"kind INTEGER NOT NULL DEFAULT 0", "probed INTEGER NOT NULL DEFAULT 0",
+                                "width INTEGER NOT NULL DEFAULT 0", "height INTEGER NOT NULL DEFAULT 0",
+                                "vcodec TEXT NOT NULL DEFAULT ''", "artist TEXT NOT NULL DEFAULT ''",
+                                "album TEXT NOT NULL DEFAULT ''", "tag_title TEXT NOT NULL DEFAULT ''",
+                                "track INTEGER NOT NULL DEFAULT 0", "year INTEGER NOT NULL DEFAULT 0",
+                                "has_cover INTEGER NOT NULL DEFAULT 0", "fhash TEXT NOT NULL DEFAULT ''"})
+            ok = ok && q.exec(QStringLiteral("ALTER TABLE library ADD COLUMN ") + QLatin1String(col));
+        ok = ok
+            && q.exec(QStringLiteral("UPDATE library SET kind=1 WHERE " // rows indexed before audio detection existed
+                "path LIKE '%.mp3' OR path LIKE '%.flac' OR path LIKE '%.wav' OR path LIKE '%.ogg' OR path LIKE '%.oga'"
+                " OR path LIKE '%.opus' OR path LIKE '%.m4a' OR path LIKE '%.aac'"))
+            && q.exec(QStringLiteral("CREATE INDEX library_fhash ON library(fhash)"))
+            && q.exec(QStringLiteral("CREATE TABLE playlists (id INTEGER PRIMARY KEY, name TEXT NOT NULL,"
+                " created_at INTEGER NOT NULL DEFAULT 0)"))
+            && q.exec(QStringLiteral("CREATE TABLE playlist_items (playlist_id INTEGER NOT NULL, pos INTEGER NOT NULL,"
+                " path TEXT NOT NULL, PRIMARY KEY(playlist_id, pos))"))
+            && q.exec(QStringLiteral("DELETE FROM schema_version"))
+            && q.exec(QStringLiteral("INSERT INTO schema_version VALUES (5)"));
+        if (!ok) {
+            qCWarning(lcCore) << "Library migration failed:" << q.lastError().text();
+            d.rollback();
+            return false;
+        }
+        d.commit();
+    }
     return true;
 }

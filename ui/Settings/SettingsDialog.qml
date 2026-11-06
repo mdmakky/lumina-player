@@ -141,7 +141,8 @@ Item {
     function open() { opened = true }
     function close() { opened = false }
 
-    Component.onCompleted: {
+    Component.onCompleted: loadValues()
+    function loadValues() {
         resume = getBool("playback/resume", true)
         autoNext = getBool("playback/autoNext", true)
         seekPreview = getBool("ui/seekPreview", true)
@@ -167,6 +168,21 @@ Item {
         readahead = getNum("advanced/readahead", 30)
         mpvOptions = player.setting("advanced/mpvOptions", "")
         verboseLog = getBool("advanced/verboseLog", false)
+    }
+
+    // After a settings import: re-read the values and push them into the running engine/UI.
+    function applyImported() {
+        loadValues()
+        shortcuts.reload()
+        app.setLanguage(player.setting("interface/language", "system"))
+        const e = player.engine
+        e.setHwdec(hwdec); e.setAspect(videoAspect); e.setDeinterlace(deinterlace)
+        e.setSubtitleFontSize(subSize); e.setSubtitleColor(subColor); e.setSubtitleBorderSize(subBorder)
+        e.setSubtitlePosition(subPos); e.setSubtitleLanguages(subLangs)
+        e.setCacheSize(cacheMiB); e.setReadahead(readahead)
+        player.thumbs.enabled = seekPreview
+        player.setVerboseLogging(verboseLog)
+        if (mpvOptions !== "") applyMpvOptions(mpvOptions)
     }
 
     onOpenedChanged: {
@@ -197,6 +213,29 @@ Item {
         id: libFolderDialog
         title: qsTr("Add library folder")
         onAccepted: player.addLibraryFolder(selectedFolder)
+    }
+    FileDialog {
+        id: exportDialog
+        title: qsTr("Export settings")
+        fileMode: FileDialog.SaveFile
+        defaultSuffix: "json"
+        nameFilters: [qsTr("Lumina settings (*.json)")]
+        onAccepted: {
+            const r = player.exportSettings(selectedFile)
+            player.toast(r.ok ? qsTr("Settings exported") : qsTr("Export failed: %1").arg(r.error))
+        }
+    }
+    FileDialog {
+        id: importDialog
+        title: qsTr("Import settings")
+        fileMode: FileDialog.OpenFile
+        nameFilters: [qsTr("Lumina settings (*.json)")]
+        onAccepted: {
+            const r = player.importSettings(selectedFile)
+            if (!r.ok) { player.toast(qsTr("Import failed: %1").arg(r.error)); return }
+            dlg.applyImported()
+            player.toast(qsTr("Imported %n setting(s). Library folders and window layout apply after a restart.", "", r.count))
+        }
     }
     FolderDialog {
         id: shotFolderDialog
@@ -511,6 +550,19 @@ Item {
                                 }
                             }
                             SettingSection {
+                                title: qsTr("Backup")
+                                ButtonRow {
+                                    name: "exportSettings"
+                                    title: qsTr("Settings file")
+                                    description: qsTr("Save or load shortcuts, subtitle style, theme and language as one JSON file. History, library and resume positions are not included.")
+                                    keywords: "export import backup settings json config transfer"
+                                    buttonText: qsTr("Import settings…")
+                                    button2Text: qsTr("Export settings…")
+                                    onClicked: importDialog.open()
+                                    onClicked2: exportDialog.open()
+                                }
+                            }
+                            SettingSection {
                                 title: qsTr("Startup and history")
                                 SwitchRow {
                                     name: "resumeSwitch"
@@ -636,6 +688,7 @@ Item {
                                     onToggled: (v) => dlg.setDeinterlace(v)
                                 }
                             }
+                            VideoExtraRows {}
                             SettingSection {
                                 title: qsTr("Screenshots")
                                 SettingRow {
@@ -687,6 +740,7 @@ Item {
                                     onClicked: { dlg.close(); dlg.equalizerRequested() }
                                 }
                             }
+                            AudioOutputSection {}
                         }
 
                         // ---- Subtitles ----

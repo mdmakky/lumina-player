@@ -1,74 +1,59 @@
 # Roadmap
 
-Source of truth for milestone status. Spec §18 defines the full milestone plan; this file tracks *actual* completion with evidence.
+Source of truth for milestone status (spec §18 defines the plan). Updated 2026-11-06 to match the code. Evidence column
+names the test or command that proves an item; "manual" means someone watched it work; "unverified" means built but not seen.
 
-## Milestone 1 — Foundation ✅
+Test evidence keys: **UT** = `ctest --preset <preset>` (11 unit test executables, see `docs/QA_REPORT.md`);
+**UI** = `tools/run-ui-test.sh /tmp/long.mp4` (in-app test, `app/UiTest.cpp`); **ST** = `LUMINA_PLAYBACK_TEST=1 lumina <file>`;
+**SB** = `LUMINA_SEEK_BENCH=1` (`docs/BENCHMARK.md`).
 
-- [x] Repository bootstrap, git history
-- [x] CMake + Ninja + CMakePresets configuration
-- [x] Qt application bootstrap, main window
-- [x] Centralized theme system (`ui/Theme/Theme.qml`)
-- [x] Core module boundaries (core/engine/utilities)
-- [x] Categorized logging (`src/utilities/Logger.h`)
-- [x] Basic CI (GitHub Actions: build + ctest on ubuntu-latest)
-- [x] Unit test harness (Qt Test via CTest)
+## Milestone 1 — Foundation: done
+- [x] Repo, CMake + Ninja + presets, Qt bootstrap, theme (`ui/Theme/Theme.qml`), logging, CI (Linux Qt 6.4 + macOS)
+- [x] Unit test harness (Qt Test via CTest). Evidence: UT, CI green.
 
-**Acceptance:** builds and opens on Fedora 45 (Wayland). ✅ verified
+## Milestone 2 — Playback engine: done
+- [x] libmpv client + render API in Qt Quick (`MpvEngine`, `MpvVideoItem`). Evidence: ST on macOS and Fedora (Wayland + X11).
+- [x] Play/pause/stop, seek (fast+exact), volume, speed, mute, track lists, error banner. Evidence: ST, UI.
 
-## Milestone 2 — Playback Engine ✅
+## Milestone 3 — Core UX: done
+- [x] Floating overlay controls with idle auto-hide, timeline with hover thumbnail, fullscreen, always-on-top, mini-player
+- [x] Playlist (drag reorder, shuffle, repeat, search, M3U save/load), chapters, drag & drop, single-instance, window/volume persistence
+- [x] Rebindable shortcuts with conflict detection. Evidence: UT ShortcutManager, PlaylistModel, SingleInstance; UI.
+- [x] Dark/Light/OLED themes, reduced motion, Bengali translation with live switch. Evidence: UT Translations; UI.
 
-- [x] libmpv integration via client API (`MpvEngine`)
-- [x] Video rendering via render API into Qt Quick scene (`MpvVideoItem`)
-- [x] Audio playback
-- [x] Play / pause / stop, file opening (CLI arg + dialog + drag-drop)
-- [x] Seeking (fast + accurate), playback state tracking
-- [x] Volume, speed, mute controls
-- [x] Error reporting surface to UI (media-error banner)
-- [x] Track listing (audio/subtitle/video tracks exposed to UI)
-- [x] OSD-less clean integration (mpv OSD disabled, UI renders all controls)
+## Milestone 4 — Subtitles & audio: done
+- [x] Subtitle/audio track panel with language names, external subtitles + auto-discovery, delays, style prefs, equalizer. Evidence: UT TrackLabels; UI.
+- [ ] Online subtitle download (OpenSubtitles): deliberately deferred, needs owner account.
 
-**Acceptance:** common video/audio files play reliably. ✅ build + launch verified; playback validated with generated test media
+## Milestone 5 — Performance: mostly done
+- [x] Hardware decode ladder `vaapi,nvdec,auto-safe` (Linux), videotoolbox-copy (macOS). Evidence: SB on Fedora shows `hwdec=vaapi-copy`.
+- [x] Seek coalescing + keyframe scrubbing; stats overlay (I). Evidence: SB (p50 ~265 ms / p95 ~430 ms exact, Fedora 1080p).
+- [ ] Windows D3D11VA path: never run on Windows.
+- [ ] Benchmark vs VLC/mpv on identical hardware: scripts exist (`tools/vlc_seekbench.py`, `tools/mpv_seekbench.lua`), VLC numbers missing. See `docs/PERFORMANCE_REPORT.md`.
 
-## Milestone 3 — Core UX 🚧 (in progress)
+## Milestone 6 — Advanced features: largely done
+- [x] A-B loop, bookmarks, 10-band equalizer, video adjustments + presets (Default/Cinema/Vivid/Night), deinterlace, screenshots
+- [x] Per-file playback profiles, advanced settings page (cache, readahead, mpv overrides). Evidence: UI; UT HistoryRepository (bookmarks, schema v3).
+- [ ] Named global configuration profiles (only per-file profiles exist).
 
-- [x] Modern player controls overlay with idle auto-hide
-- [x] Seek timeline with buffered preview + hover time tooltip
-- [x] Fullscreen (F), always-on-top (T), borderless
-- [x] Keyboard shortcuts (spec §10 defaults)
-- [x] Playlist panel (queue, reorder, search, auto-advance; save/load m3u pending)
-- [x] Drag & drop playlist reordering, shuffle and repeat
-- [x] Chapters UI (timeline markers, chapter menu, PgUp/PgDn)
-- [x] Single-instance: second launch forwards files to the running window
-- [x] Window state persistence (geometry, volume, mute, recent files)
+## Milestone 7 — Media library: largely done
+- [x] SQLite (`library.db`), history + resume, Continue watching, favorites, folder scanner, search, hover/library thumbnails. Evidence: UT HistoryRepository, LibraryScanner, ThumbnailService; UI.
+- [x] Playback works with the DB unavailable (spec rule). Evidence: code path in `ApplicationContext`; not separately tested.
+- [ ] Thumbnails/library checked only on synthetic media on macOS; re-check with real movies on Linux.
+- [ ] Rich metadata (tags, cover art) in library rows.
 
-## Milestone 4 — Subtitle & Audio ⬜
+## Milestone 8 — Cross-platform: partial
+- [x] macOS: bundle + dmg script (`tools/macdeploy.sh`), media keys, sleep assertion. Evidence: dmg builds; bundled-app launch not tested.
+- [x] Linux: MPRIS2, screensaver inhibit, OS volume sync (pactl), Flatpak builds and runs (Wayland + X11 ST pass, VAAPI works).
+- [ ] Windows: build files and experimental CI job exist, never built on Windows (`docs/WINDOWS.md`).
+- [ ] RPM/DEB/AppImage: recipes in `packaging/` (unbuilt). Signing/notarization: needs owner accounts.
 
-- [x] Subtitle track management UI (mpv renders; we manage)
-- [x] External subtitle loading + auto-discovery
-- [x] Subtitle delay / sync controls (G/H)
-- [x] Audio track selection UI, audio delay
-- [x] Subtitle style preferences (persisted, Settings dialog)
-
-## Milestone 5 — Performance ⬜
-
-- [ ] Hardware acceleration manager (VAAPI → NVDEC → software fallback ladder)
-- [x] Decoder selection UI (Settings > Playback)
-- [ ] Seek optimization + rapid-seek stress testing
-- [x] Statistics overlay (key I)
-- [ ] Benchmark suite vs mpv/VLC on identical hardware
-
-## Milestone 6 — Advanced Features ⬜
-
-A-B repeat, bookmarks, video processing (brightness/contrast/…), equalizer, playback profiles, advanced settings.
-
-## Milestone 7 — Media Library ⬜
-
-SQLite persistence, folder scanning, watch history, continue-watching, thumbnails, search/favorites. Library remains optional (spec rule 12).
-
-## Milestone 8 — Cross-platform ⬜
-
-Windows (D3D11VA) and macOS (VideoToolbox) builds, platform adapters, packaging (Flatpak/RPM/AppImage/DEB, installer, DMG).
-
-## Milestone 9 — Release Preparation ⬜
-
-Security review, license audit + SBOM, QA report, performance report, user docs, packages.
+## Milestone 9 — Release preparation: in progress
+- [x] User guide: `docs/USER_GUIDE.md`
+- [x] License audit + SBOM: `THIRD_PARTY_NOTICES.md`, `tools/make-sbom.sh`, `docs/sbom.example.json`
+- [x] Security review (paper review, findings open): `docs/SECURITY_REVIEW.md`
+- [x] QA report and performance report drafts: `docs/QA_REPORT.md`, `docs/PERFORMANCE_REPORT.md` (owner fills TODO rows)
+- [x] Package recipes (unbuilt): `packaging/rpm`, `packaging/deb`, `packaging/appimage`
+- [ ] Fix high-priority security findings (S1-S3)
+- [ ] Manual test matrix run on Fedora, macOS, Windows
+- [ ] Build and sign real packages; Flathub screenshots; tag 0.4.0

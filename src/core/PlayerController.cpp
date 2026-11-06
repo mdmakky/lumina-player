@@ -16,6 +16,10 @@
 #include <QSaveFile>
 #include <QJSValue>
 #include <QSettings>
+#include <QClipboard>
+#include <QGuiApplication>
+#include <QFile>
+#include "utilities/SettingsIO.h"
 #include <QStandardPaths>
 #include <QSysInfo>
 
@@ -75,9 +79,19 @@ PlayerController::PlayerController(QObject *parent)
         m_libraryProgress = n;
         emit libraryProgressChanged();
     });
-    connect(m_scanner, &LibraryScanner::finished, this, [this] {
+    m_prober = new LibraryProber(&m_libRepo, this);
+    m_plRepo = PlaylistRepository(m_database.get());
+    m_playlists = new PlaylistsModel(&m_plRepo, this);
+    connect(m_playlists, &PlaylistsModel::contentChanged, m_library, &LibraryModel::reload);
+    connect(m_prober, &LibraryProber::changed, m_library, &LibraryModel::reload);
+    connect(m_prober, &LibraryProber::finished, this, [this] { emit libraryProbingChanged(); });
+    connect(m_scanner, &LibraryScanner::finished, this, [this](bool canceled) {
         m_library->reload();
         emit libraryScanningChanged();
+        if (!canceled) {
+            m_prober->start();
+            emit libraryProbingChanged();
+        }
     });
 
     // Per-file profiles: restore tracks once the file is open; any later change marks the profile dirty.
@@ -89,7 +103,7 @@ PlayerController::PlayerController(QObject *parent)
         applyProfileTracks();
         m_armTimer->start();
     });
-    for (auto sig : {&MpvEngine::videoOptionsChanged, &MpvEngine::speedChanged, &MpvEngine::subtitleDelayChanged,
+    for (auto sig : {&MpvEngine::videoOptionsChanged, &MpvEngine::pictureChanged, &MpvEngine::speedChanged, &MpvEngine::subtitleDelayChanged,
                      &MpvEngine::audioDelayChanged, &MpvEngine::volumeChanged, &MpvEngine::tracksChanged})
         connect(m_engine, sig, this, &PlayerController::markProfileDirty);
     // Remote entries start with a URL-derived title; use mpv's media-title once it is known.
@@ -130,11 +144,15 @@ PlayerController::PlayerController(QObject *parent)
     migrateLegacy();
     reloadHistory();
     m_library->reload();
+    m_playlists->reload();
     if (!m_libraryFolders.isEmpty())
         QTimer::singleShot(0, this, &PlayerController::rescanLibrary);
     m_engine->setVolume(settings.value(QStringLiteral("playback/defaultVolume"),
                                        settings.value(QStringLiteral("playback/volume"), 100)).toInt());
     m_engine->setHwdec(settings.value(QStringLiteral("playback/hwdec"), QStringLiteral("auto-safe")).toString());
+    for (const char *k : {"scale", "tonemap", "interp"}) // global picture defaults (Settings > Video)
+        if (settings.contains(QStringLiteral("video/") + QLatin1String(k)))
+            m_engine->setPicture(QLatin1String(k), settings.value(QStringLiteral("video/") + QLatin1String(k)));
     if (settings.contains(QStringLiteral("subtitles/fontSize")))
         m_engine->setSubtitleFontSize(settings.value(QStringLiteral("subtitles/fontSize")).toInt());
     if (settings.contains(QStringLiteral("subtitles/color")))
@@ -167,6 +185,13 @@ PlayerController::PlayerController(QObject *parent)
     m_engine->setMuted(settings.value(QStringLiteral("playback/muted"), false).toBool());
     m_engine->setEqualizer(settings.value(QStringLiteral("eq/gains"), QVariantList(10, 0.0)).toList());
     m_engine->setEqEnabled(settings.value(QStringLiteral("eq/enabled"), false).toBool());
+    m_engine->setNormalization(settings.value(QStringLiteral("audio/normalization"), QStringLiteral("off")).toString());
+    m_engine->setVisualization(settings.value(QStringLiteral("audio/visualization"), QStringLiteral("off")).toString());
+    m_engine->setAudioPassthrough(settings.value(QStringLiteral("audio/passthrough"), false).toBool());
+    if (settings.contains(QStringLiteral("audio/channels")))
+        m_engine->setAudioChannels(settings.value(QStringLiteral("audio/channels")).toString());
+    if (settings.contains(QStringLiteral("audio/device")))
+        m_engine->setAudioDevice(settings.value(QStringLiteral("audio/device")).toString());
     connect(m_engine, &MpvEngine::eqChanged, this, [this] {
         setSetting(QStringLiteral("eq/gains"), m_engine->eqGains());
         setSetting(QStringLiteral("eq/enabled"), m_engine->eqEnabled());
@@ -381,6 +406,10 @@ void PlayerController::playIndex(int index)
             const QVariantMap &p = m_pendingProfile;
             for (const char *k : {"brightness", "contrast", "saturation", "gamma", "hue"})
                 m_engine->setVideoAdjust(QString::fromLatin1(k), p.value(QString::fromLatin1(k)).toInt());
+            for (const char *k : {"zoom", "panx", "pany", "crop", "sharpen", "denoise"})
+                m_engine->setPicture(QLatin1String(k), p.value(QLatin1String(k), k == QLatin1String("crop") ? QVariant("off") : QVariant(0)));
+            m_engine->setPicture("hflip", p.value("flip", 0).toInt() & 1);
+            m_engine->setPicture("vflip", p.value("flip", 0).toInt() & 2);
             m_engine->setAspect(p.value("aspect", "auto").toString());
             m_engine->setRotate(p.value("rotate", 0).toInt());
             m_engine->setSpeed(p.value("speed", 1.0).toDouble());
@@ -467,6 +496,31 @@ QVariantMap PlayerController::aboutInfo() const
         {QStringLiteral("renderer"), m_engine->rendererInfo()},
         {QStringLiteral("os"), QSysInfo::prettyProductName() + QLatin1Char(' ') + QSysInfo::currentCpuArchitecture()},
     };
+}
+
+void PlayerController::copyText(const QString &text) const
+{
+    if (QClipboard *c = QGuiApplication::clipboard())
+        c->setText(text);
+}
+
+QVariantMap PlayerController::exportSettings(const QUrl &file) const
+{
+    QFile f(file.toLocalFile());
+    if (!f.open(QIODevice::WriteOnly | QIODevice::Truncate) || f.write(Lumina::SettingsIO::exportJson(QSettings())) < 0)
+        return {{"ok", false}, {"count", 0}, {"error", f.errorString()}};
+    return {{"ok", true}, {"count", 0}, {"error", QString()}};
+}
+
+QVariantMap PlayerController::importSettings(const QUrl &file)
+{
+    QFile f(file.toLocalFile());
+    if (!f.open(QIODevice::ReadOnly))
+        return {{"ok", false}, {"count", 0}, {"error", f.errorString()}};
+    QString err;
+    QSettings s;
+    const int n = Lumina::SettingsIO::importJson(s, f.read(4 << 20), &err);
+    return {{"ok", n >= 0}, {"count", qMax(n, 0)}, {"error", err}};
 }
 
 QString PlayerController::takeScreenshot()
@@ -603,6 +657,10 @@ void PlayerController::saveProfileIfDirty()
         return;
     m_profileDirty = false;
     QVariantMap p = m_engine->videoAdjust();
+    const QVariantMap pic = m_engine->picture();
+    for (const char *k : {"zoom", "panx", "pany", "crop", "sharpen", "denoise"})
+        p.insert(QLatin1String(k), pic.value(QLatin1String(k)));
+    p.insert("flip", (pic.value("hflip").toBool() ? 1 : 0) | (pic.value("vflip").toBool() ? 2 : 0));
     p.insert("aspect", m_engine->aspect());
     p.insert("rotate", m_engine->rotate());
     p.insert("speed", m_engine->speed());
@@ -656,6 +714,11 @@ void PlayerController::applyProfileTracks()
 void PlayerController::resetFileState()
 {
     m_engine->resetVideoAdjust();
+    for (const char *k : {"zoom", "panx", "pany", "sharpen", "denoise"})
+        m_engine->setPicture(QLatin1String(k), 0);
+    m_engine->setPicture("crop", "off");
+    m_engine->setPicture("hflip", false);
+    m_engine->setPicture("vflip", false);
     m_engine->setAspect(setting(QStringLiteral("video/aspect"), QStringLiteral("auto")).toString());
     m_engine->setRotate(0);
     m_engine->setSpeed(setting(QStringLiteral("playback/defaultSpeed"), 1.0).toDouble());
@@ -687,6 +750,10 @@ bool PlayerController::openUrl(const QString &text)
     const QUrl url = Lumina::UrlUtils::parseMediaUrl(text);
     if (!url.isValid()) {
         emit toast(tr("That is not a valid media URL"));
+        return false;
+    }
+    if (Lumina::UrlUtils::needsOptionalProtocol(url) && !m_engine->protocolSupported(url.scheme().toLower())) {
+        emit toast(tr("This build of mpv/FFmpeg cannot open %1:// addresses (protocol not compiled in)").arg(url.scheme().toLower()));
         return false;
     }
     openFiles({url});

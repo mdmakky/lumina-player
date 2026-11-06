@@ -3,7 +3,9 @@
 #include "core/PlayerController.h"
 #include "utilities/Logger.h"
 
+#include <QClipboard>
 #include <QDir>
+#include <QGuiApplication>
 #include <QElapsedTimer>
 #include <algorithm>
 #include <QFile>
@@ -152,6 +154,30 @@ void UiTest::run()
                QString::number(p->library()->rowCount()));
         QTest::qWait(300);
         shot("library");
+        // tabs, grid toggle, duplicates (the 3 fixture files are byte-identical copies), playlists
+        auto click = [&](const char *n) { if (auto *it = find(n)) clickAt(center(it)); return find(n) != nullptr; };
+        result("library tab Music is empty", click("libraryTab_2") && waitFor([&] { return p->library()->tab() == 2 && p->library()->rowCount() == 0; }));
+        result("library tab Videos lists files", click("libraryTab_1") && waitFor([&] { return p->library()->rowCount() == 3; }));
+        result("library grid toggle shows tiles", click("libraryViewGrid") && waitFor([&] { return vis("libraryTile_0") && !vis("libraryRow_0"); }));
+        QTest::qWait(1500); // let poster frames render
+        shot("library-grid");
+        result("library grid choice persisted", p->setting("library/grid").toString() == "true");
+        result("library list toggle restores rows", click("libraryViewList") && waitFor([&] { return vis("libraryRow_0") && !vis("libraryTile_0"); }));
+        result("library metadata probed", waitFor([&] { p->library()->reload(); return p->library()->data(p->library()->index(0), LibraryModel::ProbedRole).toBool(); }, 20000));
+        result("library duplicates tab", click("libraryTab_8") && waitFor([&] { return p->library()->rowCount() == 3; }, 20000),
+               QString::number(p->library()->rowCount()));
+        shot("library-duplicates");
+        click("libraryTab_7");
+        const qint64 plId = p->libraryPlaylists()->create("UI test");
+        p->libraryPlaylists()->addPaths(plId, QStringList{lib.filePath("sunrise_alpha.mp4")});
+        p->library()->setPlaylistId(plId);
+        result("library playlist tab lists its items", waitFor([&] { return p->library()->rowCount() == 1 && vis("libraryRow_0"); }));
+        shot("library-playlists");
+        p->library()->setPlaylistId(0);
+        p->libraryPlaylists()->remove(plId);
+        click("libraryTab_0");
+        waitFor([&] { return p->library()->rowCount() == 3; });
+        clickAt(center(find("librarySearch")));
         for (char c : std::string("ocean")) QTest::keyClick(w, c);
         result("library search filters", waitFor([&] { return p->library()->rowCount() == 2 && vis("libraryRow_1") && !vis("libraryRow_2"); }),
                QString::number(p->library()->rowCount()));
@@ -434,6 +460,45 @@ void UiTest::run()
         eng->setAspect("auto"); eng->setRotate(0); eng->setDeinterlace(false);
         result("aspect/rotate reset", eng->aspect() == "auto" && eng->rotate() == 0);
 
+        // --- picture popup (zoom/crop/flip/sharpen/scaling/reset) ---
+        if (click("moreButton")) {
+            QTest::qWait(400);
+            if (auto *it = find("pictureItem")) clickAt(center(it));
+            QTest::qWait(400);
+            result("Picture popup opens", find("pictureZoom") != nullptr);
+            shot("picture");
+            auto prop = [&](const char *n) {
+                char *v = mpv_get_property_string(eng->handle(), n);
+                const QString r = v ? QString::fromUtf8(v) : QString();
+                mpv_free(v);
+                return r;
+            };
+            eng->setPicture("zoom", 1.0);
+            result("zoom sets video-zoom", waitFor([&] { return qAbs(eng->mpvProperty("video-zoom").toDouble() - 1.0) < 0.01; }));
+            result("zoom slider reflects engine", waitFor([&] { return find("pictureZoom") && qAbs(find("pictureZoom")->property("value").toDouble() - 1.0) < 0.01; }));
+            click("pictureCrop_16:9");
+            result("crop 16:9 sets video-crop", waitFor([&] { return eng->picture().value("crop").toString() == "16:9"; }));
+            click("pictureFlip_h");
+            click("pictureSharpen_2");
+            result("flip + sharpen build the vf chain", waitFor([&] { return prop("vf").contains("hflip") && prop("vf").contains("unsharp"); }), prop("vf"));
+            click("pictureScale_high");
+            result("scale high sets ewa_lanczossharp", waitFor([&] { return prop("scale") == "ewa_lanczossharp"; }), prop("scale"));
+            click("pictureTone_hable");
+            result("tone mapping sets hable", waitFor([&] { return prop("tone-mapping") == "hable"; }), prop("tone-mapping"));
+            click("pictureInterp_true");
+            result("interpolation turns on display-resample", waitFor([&] { return prop("interpolation") == "yes" && prop("video-sync") == "display-resample"; }));
+            click("pictureReset");
+            result("Reset picture clears everything", waitFor([&] {
+                return qAbs(eng->mpvProperty("video-zoom").toDouble()) < 0.01 && prop("vf").isEmpty()
+                    && prop("interpolation") == "no" && eng->picture().value("scale").toString() == "balanced"; }));
+            key(Qt::Key_Escape);
+            QTest::qWait(300);
+            key(Qt::Key_Plus);
+            result("Zoom-in key zooms", waitFor([&] { return eng->picture().value("zoom").toDouble() > 0.05; }));
+            key(Qt::Key_0);
+            result("Zoom-reset key resets", waitFor([&] { return eng->picture().value("zoom").toDouble() == 0.0; }));
+        }
+
         // --- equalizer popup ---
         if (click("moreButton")) {
             QTest::qWait(400);
@@ -452,6 +517,25 @@ void UiTest::run()
             click("eqReset");
             result("Reset zeroes bands", waitFor([&] { return eng->property("eqGains").toList().value(0).toDouble() == 0; }));
             key(Qt::Key_Escape);
+
+            // --- audio chain: normalization composes with the equalizer, device list is populated ---
+            auto afNow = [&] {
+                char *v = mpv_get_property_string(eng->handle(), "af");
+                const QString r = v ? QString::fromUtf8(v) : QString();
+                mpv_free(v);
+                return r;
+            };
+            result("audio device list has auto + a device", eng->audioDevices().size() >= 2, QString::number(eng->audioDevices().size()));
+            eng->setNormalization("night");
+            result("night mode puts dynaudnorm in af", waitFor([&] { return afNow().contains("dynaudnorm"); }), afNow().left(60));
+            eng->setEqEnabled(true);
+            eng->setEqualizer(QVariantList{6.0, 0, 0, 0, 0, 0, 0, 0, 0, 0});
+            result("EQ and normalization coexist", waitFor([&] { return afNow().contains("equalizer") && afNow().contains("dynaudnorm"); }), afNow().left(80));
+            eng->setNormalization("off");
+            result("normalization off keeps EQ", waitFor([&] { return afNow().contains("equalizer") && !afNow().contains("dynaudnorm"); }));
+            eng->setEqEnabled(false);
+            eng->setEqualizer(QVariantList(10, 0.0));
+            result("everything off clears af", waitFor([&] { return afNow().isEmpty(); }), afNow());
         }
 
         // --- bookmarks ---
@@ -1069,6 +1153,45 @@ void UiTest::run()
             result("remote playlist entry titled by file name", pl->rowCount() == 1
                    && pl->data(pl->index(0), PlaylistModel::TitleRole).toString() == QFileInfo(files.first()).fileName());
             result("URL is in recent URLs", p->recentUrls().contains(url));
+            // --- media info dialog, borderless mode, settings export/import ---
+            key(Qt::Key_I, Qt::ControlModifier);
+            result("Ctrl+I opens media information", waitFor([&] { return vis("mediaInfoCopyButton"); }));
+            if (auto *btn = find("mediaInfoCopyButton")) {
+                shot("media-info");
+                QGuiApplication::clipboard()->clear();
+                clickAt(center(btn));
+                const QString clip = QGuiApplication::clipboard()->text();
+                result("media info copied as text", clip.contains("Container:") && clip.contains("Codec:") && clip.contains("Decoder:"),
+                       clip.left(60));
+            }
+            key(Qt::Key_Escape);
+            result("media info closes", waitFor([&] { return !vis("mediaInfoCopyButton"); }));
+
+            key(Qt::Key_B, Qt::ControlModifier);
+            result("Ctrl+B makes the window borderless", waitFor([&] { return w->flags().testFlag(Qt::FramelessWindowHint); }));
+            QTest::qWait(500);
+            result("resize grips shown when borderless", vis("resizeGrips"));
+            key(Qt::Key_B, Qt::ControlModifier);
+            result("Ctrl+B restores the frame", waitFor([&] { return !w->flags().testFlag(Qt::FramelessWindowHint); }));
+            QTest::qWait(500);
+
+            {
+                QTemporaryDir td;
+                const QUrl f = QUrl::fromLocalFile(td.filePath("lumina-settings.json"));
+                p->setSetting("interface/language", "bn");
+                const auto ex = p->exportSettings(f);
+                p->setSetting("interface/language", "en");
+                const auto im = p->importSettings(f);
+                result("settings export/import round trip", ex.value("ok").toBool() && im.value("ok").toBool()
+                       && p->setting("interface/language").toString() == "bn");
+                p->setSetting("interface/language", "en");
+                QFile bad(td.filePath("bad.json"));
+                bad.open(QIODevice::WriteOnly);
+                bad.write("{\"x\":1}");
+                bad.close();
+                result("invalid settings file rejected", !p->importSettings(QUrl::fromLocalFile(bad.fileName())).value("ok").toBool());
+            }
+            result("unsupported protocol check answers", !eng->protocolSupported("definitely-not-a-protocol") && eng->protocolSupported("http"));
             result("URL history row, no resume key collision", p->history()->rowCount() > 0);
             QTest::qWait(800);
             shot("network-playing");

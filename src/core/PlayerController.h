@@ -14,6 +14,8 @@
 #include "storage/HistoryRepository.h"
 #include "storage/LibraryModel.h"
 #include "services/LibraryScanner.h"
+#include "services/LibraryProber.h"
+#include "storage/PlaylistsModel.h"
 #include "media/ThumbnailService.h"
 
 #include <memory>
@@ -39,6 +41,8 @@ class PlayerController : public QObject
     Q_PROPERTY(bool libraryScanning READ libraryScanning NOTIFY libraryScanningChanged FINAL)
     Q_PROPERTY(int libraryProgress READ libraryProgress NOTIFY libraryProgressChanged FINAL)
     Q_PROPERTY(bool libraryAvailable READ libraryAvailable CONSTANT FINAL)
+    Q_PROPERTY(PlaylistsModel *libraryPlaylists READ libraryPlaylists CONSTANT FINAL)
+    Q_PROPERTY(bool libraryProbing READ libraryProbing NOTIFY libraryProbingChanged FINAL) // reading metadata in the background
     Q_PROPERTY(bool hasMedia READ hasMedia NOTIFY hasMediaChanged FINAL)
     // OS output volume 0..100, or -1 when the OS backend cannot report it (the UI then drives the engine volume).
     Q_PROPERTY(int systemVolume READ systemVolume NOTIFY systemVolumeChanged FINAL)
@@ -77,6 +81,8 @@ public:
     bool rememberFileSettings() const { return m_rememberFile; }
     void setRememberFileSettings(bool on);
     LibraryModel *library() const { return m_library; }
+    PlaylistsModel *libraryPlaylists() const { return m_playlists; }
+    bool libraryProbing() const { return m_prober && m_prober->running(); }
     QStringList libraryFolders() const { return m_libraryFolders; }
     bool libraryScanning() const { return m_scanner && m_scanner->scanning(); }
     int libraryProgress() const { return m_libraryProgress; }
@@ -130,6 +136,11 @@ public slots:
     Q_INVOKABLE QString screenshotDir() const;
     // Version/environment strings for Settings > About.
     Q_INVOKABLE QVariantMap aboutInfo() const;
+    Q_INVOKABLE void copyText(const QString &text) const;
+    // Settings export/import (one JSON file, no history/library/resume data).
+    // Both return {ok, count, error}.
+    Q_INVOKABLE QVariantMap exportSettings(const QUrl &file) const;
+    Q_INVOKABLE QVariantMap importSettings(const QUrl &file);
     Q_INVOKABLE void openLogsFolder() const;
     Q_INVOKABLE void setVerboseLogging(bool on);
     void toggleFavorite(const QString &path);
@@ -155,6 +166,7 @@ signals:
     void libraryFoldersChanged();
     void libraryScanningChanged();
     void libraryProgressChanged();
+    void libraryProbingChanged();
 
 private:
     void reloadBookmarks();
@@ -195,6 +207,9 @@ private:
     LibraryRepository m_libRepo{nullptr};
     LibraryModel *m_library = nullptr;
     LibraryScanner *m_scanner = nullptr;
+    LibraryProber *m_prober = nullptr;
+    PlaylistRepository m_plRepo{nullptr};
+    PlaylistsModel *m_playlists = nullptr;
     QStringList m_libraryFolders;
     int m_libraryProgress = 0;
 };

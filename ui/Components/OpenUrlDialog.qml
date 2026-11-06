@@ -48,8 +48,8 @@ Popup {
         Text {
             Layout.fillWidth: true
             text: player.engine.ytdlAvailable
-                  ? qsTr("Paste a link to a video, a stream (HLS .m3u8, RTMP, RTSP) or a web page supported by yt-dlp.")
-                  : qsTr("Paste a link to a video or a stream (HLS .m3u8, RTMP, RTSP). Web pages such as YouTube need yt-dlp installed.")
+                  ? qsTr("Paste a link to a video, a stream (HLS .m3u8, DASH .mpd, RTMP, RTSP, SMB, NFS, SFTP) or a web page supported by yt-dlp.")
+                  : qsTr("Paste a link to a video or a stream (HLS .m3u8, DASH .mpd, RTMP, RTSP, SMB, NFS, SFTP). Web pages such as YouTube need yt-dlp installed.")
             wrapMode: Text.Wrap
             color: Theme.secondaryText
             font.family: Theme.fontFamily
@@ -84,7 +84,7 @@ Popup {
         Text {
             objectName: "urlError"
             visible: dlg.attempted && !dlg.valid
-            text: qsTr("Enter a full address starting with http://, https://, rtmp://, rtsp:// or ftp://")
+            text: qsTr("Enter a full address starting with http://, https://, rtmp://, rtsp://, ftp://, sftp://, smb:// or nfs://")
             wrapMode: Text.Wrap
             Layout.fillWidth: true
             color: Theme.error

@@ -14,6 +14,9 @@ MouseArea {
     signal fullscreenRequested()
     signal menuRequested()
     signal feedback(string text)
+    // Borderless windows have no title bar: dragging the video moves the window.
+    property bool borderless: false
+    signal windowMoveRequested()
 
     acceptedButtons: Qt.LeftButton | Qt.MiddleButton | Qt.RightButton
 
@@ -123,6 +126,12 @@ MouseArea {
     }
     onPositionChanged: (m) => {
         if (!pressed || !gesturesEnabled || m.buttons !== Qt.LeftButton) return
+        if (borderless && Math.abs(m.x - px) + Math.abs(m.y - py) > 8) {
+            clickTimer.stop()
+            moved = true
+            windowMoveRequested()
+            return
+        }
         const dx = m.x - px, dy = m.y - py
         if (dragKind === "") {
             if (Math.abs(dx) < 16 && Math.abs(dy) < 16) return
