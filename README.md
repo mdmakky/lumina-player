@@ -6,7 +6,7 @@ Lumina combines mpv-grade playback reliability with a modern, polished, dark-fir
 
 > Professional playback capabilities without compromising simplicity, beauty, or performance.
 
-![Status](https://img.shields.io/badge/status-early_development-8175F5) ![Platform](https://img.shields.io/badge/platform-Linux-blue) ![License](https://img.shields.io/badge/license-GPL--3.0-green)
+![Status](https://img.shields.io/badge/status-preview-8175F5) ![Platform](https://img.shields.io/badge/platform-Linux-blue) ![License](https://img.shields.io/badge/license-GPL--3.0-green)
 
 ## Highlights
 
@@ -20,9 +20,18 @@ Lumina combines mpv-grade playback reliability with a modern, polished, dark-fir
 
 | Platform | Status |
 |---|---|
-| Linux (Fedora first, Wayland + X11) | ✅ primary development |
-| Windows | planned |
-| macOS | planned |
+| Linux (Fedora first, Wayland + X11) | primary target; `.rpm`, `.deb`, Flatpak manifest, build from source |
+| macOS (Apple Silicon) | works; ad-hoc signed `.dmg` (Gatekeeper warns) |
+| Windows | experimental `.zip`; built by CI, **not yet run on a real Windows machine** |
+
+## Download
+
+Preview builds are on the [Releases page](https://github.com/mdmakky/lumina-player/releases).
+
+- **Windows:** unzip `Lumina-Player-*-windows-x64.zip`, run `lumina.exe` (needs the Microsoft Visual C++ runtime only if Windows reports a missing DLL; the package bundles Qt and libmpv). SmartScreen may warn because the file is unsigned: More info, Run anyway.
+- **Fedora / RHEL:** `sudo dnf install ./lumina-player-*.rpm`. For E-AC3/DTS audio also enable RPM Fusion and `sudo dnf install libavcodec-freeworld`.
+- **Debian / Ubuntu 24.04:** `sudo apt install ./lumina-player_*.deb`.
+- **macOS:** open the `.dmg`, drag Lumina to Applications, then right-click > Open the first time.
 
 ## Building
 

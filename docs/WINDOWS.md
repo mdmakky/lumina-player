@@ -1,6 +1,6 @@
 # Windows
 
-**Status: experimental and NEVER built or run on Windows by the author** (developed on macOS/Linux). Everything here, including the CI job, is unverified; expect fixes.
+**Status: experimental. CI builds `lumina.exe` and 15 of 16 unit tests pass on Windows (SingleInstance fails, cause unknown); the author has NEVER run the app on a Windows machine** (developed on macOS/Linux). Everything here, including the CI job, is unverified; expect fixes.
 
 ## What exists
 - `CMakeLists.txt`: libmpv via pkg-config, else `-DLIBMPV_ROOT=<mpv-dev>` (needs `include/mpv/client.h` and `lib/mpv.lib` or `libmpv.dll.a`); `WIN32_EXECUTABLE`; version resource + icon (`packaging/windows/lumina.rc.in`, `resources/icons/app/lumina.ico`); install rule for the libmpv DLL.

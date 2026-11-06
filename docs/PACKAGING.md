@@ -21,9 +21,12 @@ tools/macdeploy.sh      # -> build/mac-bundle/bin/lumina.app and build/mac-bundl
 ```
 Normal dev builds leave `LUMINA_MAC_BUNDLE` OFF (plain `build/mac/bin/lumina`). Turn it ON to get `bin/lumina.app` (Info.plist from `packaging/macos/Info.plist.in`, document types for Finder "Open With").
 
-## Other Linux package recipes (all unbuilt, syntax-checked only)
+## Release packages (CI)
+`.github/workflows/packages.yml` (manual: `gh workflow run Packages -f tag=v0.3.1-preview`) builds the Windows zip (MSYS2 MinGW64 + the shinchiro libmpv SDK + windeployqt), the `.deb` (Ubuntu 24.04) and the `.rpm` (Fedora container) and attaches them to the given release. The macOS dmg is built locally with `tools/macdeploy.sh` and uploaded with `gh release upload`.
+
+## Other Linux package recipes
 - RPM: `packaging/rpm/lumina.spec` (`Requires: mpv-libs`, `Recommends: libavcodec-freeworld`). Build with `rpmbuild -ba` after `git archive` of the tag; check with `rpmlint`.
-- DEB: `packaging/deb/debian/` (copy or symlink to `debian/` in the source root, then `dpkg-buildpackage -us -uc`). Verify Qt 6 QML module package names on the target Debian/Ubuntu.
+- DEB: `packaging/deb/debian/` (CI builds it; copy or symlink to `debian/` in the source root, then `dpkg-buildpackage -us -uc`). Verify Qt 6 QML module package names on the target Debian/Ubuntu.
 - AppImage: `packaging/appimage/build-appimage.sh` (linuxdeploy + Qt plugin; run on an old-glibc host; GPU/VAAPI libraries are excluded on purpose).
 - macOS signing and notarization steps: `packaging/macos/README.md`.
 
