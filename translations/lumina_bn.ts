@@ -426,6 +426,26 @@
         <source>Reset for this file</source>
         <translation>এই ফাইলের জন্য রিসেট</translation>
     </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Only one monitor detected</source>
+        <translation>শুধু একটি মনিটর পাওয়া গেছে</translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Borderless window</source>
+        <translation>বর্ডারবিহীন উইন্ডো</translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Move to next monitor</source>
+        <translation>পরবর্তী মনিটরে সরান</translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Media information…</source>
+        <translation>মিডিয়া তথ্য…</translation>
+    </message>
 </context>
 <context>
     <name>MpvEngine</name>
@@ -483,24 +503,9 @@
         <translation>URL খুলুন</translation>
     </message>
     <message>
-        <location filename="../ui/Components/OpenUrlDialog.qml" line="51"/>
-        <source>Paste a link to a video, a stream (HLS .m3u8, RTMP, RTSP) or a web page supported by yt-dlp.</source>
-        <translation>ভিডিও, স্ট্রিম (HLS .m3u8, RTMP, RTSP) বা yt-dlp সমর্থিত ওয়েব পেজের লিংক পেস্ট করুন।</translation>
-    </message>
-    <message>
-        <location filename="../ui/Components/OpenUrlDialog.qml" line="52"/>
-        <source>Paste a link to a video or a stream (HLS .m3u8, RTMP, RTSP). Web pages such as YouTube need yt-dlp installed.</source>
-        <translation>ভিডিও বা স্ট্রিমের (HLS .m3u8, RTMP, RTSP) লিংক পেস্ট করুন। YouTube-এর মতো ওয়েব পেজের জন্য yt-dlp ইনস্টল থাকতে হবে।</translation>
-    </message>
-    <message>
         <location filename="../ui/Components/OpenUrlDialog.qml" line="63"/>
         <source>https://example.com/video.mp4</source>
         <translation>https://example.com/video.mp4</translation>
-    </message>
-    <message>
-        <location filename="../ui/Components/OpenUrlDialog.qml" line="87"/>
-        <source>Enter a full address starting with http://, https://, rtmp://, rtsp:// or ftp://</source>
-        <translation>http://, https://, rtmp://, rtsp:// বা ftp:// দিয়ে শুরু হওয়া পূর্ণ ঠিকানা দিন</translation>
     </message>
     <message>
         <location filename="../ui/Components/OpenUrlDialog.qml" line="100"/>
@@ -521,6 +526,21 @@
         <location filename="../ui/Components/OpenUrlDialog.qml" line="154"/>
         <source>Open</source>
         <translation>খুলুন</translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Enter a full address starting with http://, https://, rtmp://, rtsp://, ftp://, sftp://, smb:// or nfs://</source>
+        <translation>http://, https://, rtmp://, rtsp://, ftp://, sftp://, smb:// বা nfs:// দিয়ে শুরু হওয়া পূর্ণ ঠিকানা দিন</translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Paste a link to a video, a stream (HLS .m3u8, DASH .mpd, RTMP, RTSP, SMB, NFS, SFTP) or a web page supported by yt-dlp.</source>
+        <translation>ভিডিও, স্ট্রিম (HLS .m3u8, DASH .mpd, RTMP, RTSP, SMB, NFS, SFTP) বা yt-dlp সমর্থিত ওয়েব পেজের লিংক পেস্ট করুন।</translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Paste a link to a video or a stream (HLS .m3u8, DASH .mpd, RTMP, RTSP, SMB, NFS, SFTP). Web pages such as YouTube need yt-dlp installed.</source>
+        <translation>ভিডিও বা স্ট্রিমের (HLS .m3u8, DASH .mpd, RTMP, RTSP, SMB, NFS, SFTP) লিংক পেস্ট করুন। YouTube-এর মতো ওয়েব পেজের জন্য yt-dlp ইনস্টল থাকতে হবে।</translation>
     </message>
 </context>
 <context>
@@ -559,6 +579,11 @@
         <location filename="../src/core/PlayerController.cpp" line="623"/>
         <source>That is not a valid media URL</source>
         <translation>এটি বৈধ মিডিয়া URL নয়</translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>This build of mpv/FFmpeg cannot open %1:// addresses (protocol not compiled in)</source>
+        <translation>mpv/FFmpeg-এর এই বিল্ড %1:// ঠিকানা খুলতে পারে না (প্রোটোকল যুক্ত নেই)</translation>
     </message>
 </context>
 <context>
@@ -1386,6 +1411,69 @@
         <source>Reset</source>
         <translation>রিসেট</translation>
     </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Export settings</source>
+        <translation>সেটিংস এক্সপোর্ট</translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Import settings</source>
+        <translation>সেটিংস ইমপোর্ট</translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Lumina settings (*.json)</source>
+        <translation>Lumina সেটিংস (*.json)</translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Settings exported</source>
+        <translation>সেটিংস এক্সপোর্ট হয়েছে</translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Export failed: %1</source>
+        <translation>এক্সপোর্ট ব্যর্থ: %1</translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Import failed: %1</source>
+        <translation>ইমপোর্ট ব্যর্থ: %1</translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Backup</source>
+        <translation>ব্যাকআপ</translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Settings file</source>
+        <translation>সেটিংস ফাইল</translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Save or load shortcuts, subtitle style, theme and language as one JSON file. History, library and resume positions are not included.</source>
+        <translation>শর্টকাট, সাবটাইটেল স্টাইল, থিম ও ভাষা একটি JSON ফাইলে সংরক্ষণ বা লোড করুন। হিস্টোরি, লাইব্রেরি ও রিজিউম অবস্থান অন্তর্ভুক্ত নয়।</translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Import settings…</source>
+        <translation>সেটিংস ইমপোর্ট…</translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Export settings…</source>
+        <translation>সেটিংস এক্সপোর্ট…</translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../ui/Settings/SettingsDialog.qml" line="1"/>
+        <source>Imported %n setting(s). Library folders and window layout apply after a restart.</source>
+        <translation>
+            <numerusform>%n টি সেটিং ইমপোর্ট হয়েছে। লাইব্রেরি ফোল্ডার ও উইন্ডো লেআউট রিস্টার্টের পর কার্যকর হবে।</numerusform>
+            <numerusform>%n টি সেটিং ইমপোর্ট হয়েছে। লাইব্রেরি ফোল্ডার ও উইন্ডো লেআউট রিস্টার্টের পর কার্যকর হবে।</numerusform>
+        </translation>
+    </message>
 </context>
 <context>
     <name>SettingsPage</name>
@@ -1643,6 +1731,21 @@
         <source>Cycle repeat mode</source>
         <translation>পুনরাবৃত্তি মোড বদলান</translation>
     </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Media information</source>
+        <translation>মিডিয়া তথ্য</translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Borderless window</source>
+        <translation>বর্ডারবিহীন উইন্ডো</translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Move to next monitor</source>
+        <translation>পরবর্তী মনিটরে সরান</translation>
+    </message>
 </context>
 <context>
     <name>ShortcutsEditor</name>
@@ -1794,6 +1897,272 @@
         <location filename="../ui/Components/VideoAdjustPopup.qml" line="73"/>
         <source>Reset</source>
         <translation>রিসেট</translation>
+    </message>
+</context>
+<context>
+    <name>MediaInfoDialog</name>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Yes</source>
+        <translation>হ্যাঁ</translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>No</source>
+        <translation>না</translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>File</source>
+        <translation>ফাইল</translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Size</source>
+        <translation>আকার</translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Container</source>
+        <translation>কন্টেইনার</translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Duration</source>
+        <translation>সময়কাল</translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Overall bitrate</source>
+        <translation>মোট বিটরেট</translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Title</source>
+        <translation>শিরোনাম</translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Artist</source>
+        <translation>শিল্পী</translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Chapters</source>
+        <translation>চ্যাপ্টার</translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>GENERAL</source>
+        <translation>সাধারণ</translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Codec</source>
+        <translation>কোডেক</translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Profile</source>
+        <translation>প্রোফাইল</translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Resolution</source>
+        <translation>রেজোলিউশন</translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Frame rate</source>
+        <translation>ফ্রেম রেট</translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Pixel format</source>
+        <translation>পিক্সেল ফরম্যাট</translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Bit depth</source>
+        <translation>বিট ডেপথ</translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Colour matrix</source>
+        <translation>কালার ম্যাট্রিক্স</translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Colour range</source>
+        <translation>কালার রেঞ্জ</translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Primaries</source>
+        <translation>প্রাইমারিজ</translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Transfer</source>
+        <translation>ট্রান্সফার</translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>HDR10 / PQ</source>
+        <translation>HDR10 / PQ</translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>HLG</source>
+        <translation>HLG</translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>HDR</source>
+        <translation>HDR</translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>SDR</source>
+        <translation>SDR</translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Dynamic range</source>
+        <translation>ডায়নামিক রেঞ্জ</translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Bitrate</source>
+        <translation>বিটরেট</translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Language</source>
+        <translation>ভাষা</translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Video %1</source>
+        <translation>ভিডিও %1</translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Channels</source>
+        <translation>চ্যানেল</translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Layout</source>
+        <translation>লেআউট</translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Sample rate</source>
+        <translation>স্যাম্পল রেট</translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Default</source>
+        <translation>ডিফল্ট</translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Audio %1</source>
+        <translation>অডিও %1</translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Format</source>
+        <translation>ফরম্যাট</translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Forced</source>
+        <translation>ফোর্সড</translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>External</source>
+        <translation>বাহ্যিক</translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Subtitle %1</source>
+        <translation>সাবটাইটেল %1</translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>VIDEO</source>
+        <translation>ভিডিও</translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>AUDIO</source>
+        <translation>অডিও</translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>SUBTITLES</source>
+        <translation>সাবটাইটেল</translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Decoder</source>
+        <translation>ডিকোডার</translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>software</source>
+        <translation>সফটওয়্যার</translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Renderer</source>
+        <translation>রেন্ডারার</translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>PLAYBACK</source>
+        <translation>প্লেব্যাক</translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Media information</source>
+        <translation>মিডিয়া তথ্য</translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Media information copied</source>
+        <translation>মিডিয়া তথ্য কপি হয়েছে</translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Copy as text</source>
+        <translation>টেক্সট হিসেবে কপি</translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Close</source>
+        <translation>বন্ধ করুন</translation>
+    </message>
+</context>
+<context>
+    <name>SettingsIO</name>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>The file is not valid JSON.</source>
+        <translation>ফাইলটি বৈধ JSON নয়।</translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>This is not a Lumina settings file.</source>
+        <translation>এটি Lumina সেটিংস ফাইল নয়।</translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>The file was made by a newer version of Lumina.</source>
+        <translation>ফাইলটি Lumina-র নতুন সংস্করণে তৈরি।</translation>
     </message>
 </context>
 </TS>

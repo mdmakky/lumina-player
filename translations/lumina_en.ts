@@ -426,6 +426,26 @@
         <source>Reset for this file</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Only one monitor detected</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Borderless window</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Move to next monitor</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Media information…</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>MpvEngine</name>
@@ -483,23 +503,8 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/Components/OpenUrlDialog.qml" line="51"/>
-        <source>Paste a link to a video, a stream (HLS .m3u8, RTMP, RTSP) or a web page supported by yt-dlp.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../ui/Components/OpenUrlDialog.qml" line="52"/>
-        <source>Paste a link to a video or a stream (HLS .m3u8, RTMP, RTSP). Web pages such as YouTube need yt-dlp installed.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../ui/Components/OpenUrlDialog.qml" line="63"/>
         <source>https://example.com/video.mp4</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../ui/Components/OpenUrlDialog.qml" line="87"/>
-        <source>Enter a full address starting with http://, https://, rtmp://, rtsp:// or ftp://</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -520,6 +525,21 @@
     <message>
         <location filename="../ui/Components/OpenUrlDialog.qml" line="154"/>
         <source>Open</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Enter a full address starting with http://, https://, rtmp://, rtsp://, ftp://, sftp://, smb:// or nfs://</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Paste a link to a video, a stream (HLS .m3u8, DASH .mpd, RTMP, RTSP, SMB, NFS, SFTP) or a web page supported by yt-dlp.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Paste a link to a video or a stream (HLS .m3u8, DASH .mpd, RTMP, RTSP, SMB, NFS, SFTP). Web pages such as YouTube need yt-dlp installed.</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -558,6 +578,11 @@
     <message>
         <location filename="../src/core/PlayerController.cpp" line="623"/>
         <source>That is not a valid media URL</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>This build of mpv/FFmpeg cannot open %1:// addresses (protocol not compiled in)</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -1386,6 +1411,69 @@
         <source>Reset</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Export settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Import settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Lumina settings (*.json)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Settings exported</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Export failed: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Import failed: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Backup</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Settings file</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Save or load shortcuts, subtitle style, theme and language as one JSON file. History, library and resume positions are not included.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Import settings…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Export settings…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../ui/Settings/SettingsDialog.qml" line="1"/>
+        <source>Imported %n setting(s). Library folders and window layout apply after a restart.</source>
+        <translation>
+            <numerusform>Imported %n setting. Library folders and window layout apply after a restart.</numerusform>
+            <numerusform>Imported %n settings. Library folders and window layout apply after a restart.</numerusform>
+        </translation>
+    </message>
 </context>
 <context>
     <name>SettingsPage</name>
@@ -1643,6 +1731,21 @@
         <source>Cycle repeat mode</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Media information</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Borderless window</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Move to next monitor</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>ShortcutsEditor</name>
@@ -1793,6 +1896,272 @@
     <message>
         <location filename="../ui/Components/VideoAdjustPopup.qml" line="73"/>
         <source>Reset</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>MediaInfoDialog</name>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Yes</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>No</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>File</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Size</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Container</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Duration</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Overall bitrate</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Title</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Artist</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Chapters</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>GENERAL</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Codec</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Profile</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Resolution</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Frame rate</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Pixel format</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Bit depth</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Colour matrix</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Colour range</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Primaries</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Transfer</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>HDR10 / PQ</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>HLG</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>HDR</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>SDR</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Dynamic range</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Bitrate</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Language</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Video %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Channels</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Layout</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Sample rate</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Default</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Audio %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Format</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Forced</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>External</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Subtitle %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>VIDEO</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>AUDIO</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>SUBTITLES</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Decoder</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>software</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Renderer</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>PLAYBACK</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Media information</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Media information copied</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Copy as text</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>Close</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>SettingsIO</name>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>The file is not valid JSON.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>This is not a Lumina settings file.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/Main.qml" line="1"/>
+        <source>The file was made by a newer version of Lumina.</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

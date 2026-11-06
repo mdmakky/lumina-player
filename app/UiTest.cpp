@@ -3,7 +3,9 @@
 #include "core/PlayerController.h"
 #include "utilities/Logger.h"
 
+#include <QClipboard>
 #include <QDir>
+#include <QGuiApplication>
 #include <QElapsedTimer>
 #include <algorithm>
 #include <QFile>
@@ -1008,6 +1010,45 @@ void UiTest::run()
             result("remote playlist entry titled by file name", pl->rowCount() == 1
                    && pl->data(pl->index(0), PlaylistModel::TitleRole).toString() == QFileInfo(files.first()).fileName());
             result("URL is in recent URLs", p->recentUrls().contains(url));
+            // --- media info dialog, borderless mode, settings export/import ---
+            key(Qt::Key_I, Qt::ControlModifier);
+            result("Ctrl+I opens media information", waitFor([&] { return vis("mediaInfoCopyButton"); }));
+            if (auto *btn = find("mediaInfoCopyButton")) {
+                shot("media-info");
+                QGuiApplication::clipboard()->clear();
+                clickAt(center(btn));
+                const QString clip = QGuiApplication::clipboard()->text();
+                result("media info copied as text", clip.contains("Container:") && clip.contains("Codec:") && clip.contains("Decoder:"),
+                       clip.left(60));
+            }
+            key(Qt::Key_Escape);
+            result("media info closes", waitFor([&] { return !vis("mediaInfoCopyButton"); }));
+
+            key(Qt::Key_B, Qt::ControlModifier);
+            result("Ctrl+B makes the window borderless", waitFor([&] { return w->flags().testFlag(Qt::FramelessWindowHint); }));
+            QTest::qWait(500);
+            result("resize grips shown when borderless", vis("resizeGrips"));
+            key(Qt::Key_B, Qt::ControlModifier);
+            result("Ctrl+B restores the frame", waitFor([&] { return !w->flags().testFlag(Qt::FramelessWindowHint); }));
+            QTest::qWait(500);
+
+            {
+                QTemporaryDir td;
+                const QUrl f = QUrl::fromLocalFile(td.filePath("lumina-settings.json"));
+                p->setSetting("interface/language", "bn");
+                const auto ex = p->exportSettings(f);
+                p->setSetting("interface/language", "en");
+                const auto im = p->importSettings(f);
+                result("settings export/import round trip", ex.value("ok").toBool() && im.value("ok").toBool()
+                       && p->setting("interface/language").toString() == "bn");
+                p->setSetting("interface/language", "en");
+                QFile bad(td.filePath("bad.json"));
+                bad.open(QIODevice::WriteOnly);
+                bad.write("{\"x\":1}");
+                bad.close();
+                result("invalid settings file rejected", !p->importSettings(QUrl::fromLocalFile(bad.fileName())).value("ok").toBool());
+            }
+            result("unsupported protocol check answers", !eng->protocolSupported("definitely-not-a-protocol") && eng->protocolSupported("http"));
             result("URL history row, no resume key collision", p->history()->rowCount() > 0);
             QTest::qWait(800);
             shot("network-playing");

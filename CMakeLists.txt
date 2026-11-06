@@ -66,6 +66,8 @@ qt_add_executable(lumina
     src/utilities/Logger.cpp
     src/utilities/TimeUtils.h
     src/utilities/TimeUtils.cpp
+    src/utilities/SettingsIO.h
+    src/utilities/SettingsIO.cpp
     src/utilities/UrlUtils.h
     src/utilities/UrlUtils.cpp
     src/utilities/TrackLabels.h
@@ -176,6 +178,8 @@ qt_add_qml_module(lumina
         ui/Components/EqualizerPopup.qml
         ui/Components/BookmarksPopup.qml
         ui/Components/OpenUrlDialog.qml
+        ui/Components/MediaInfoDialog.qml
+        ui/Components/ResizeGrips.qml
         ui/Library/LibraryView.qml
     RESOURCES
         resources/icons/play.svg
@@ -327,6 +331,14 @@ if(BUILD_TESTING)
     target_include_directories(tst_urlutils PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
     target_link_libraries(tst_urlutils PRIVATE Qt6::Core Qt6::Test)
     add_test(NAME UrlUtils COMMAND tst_urlutils)
+
+    add_executable(tst_settingsio
+        tests/unit/tst_SettingsIO.cpp
+        src/utilities/SettingsIO.cpp
+    )
+    target_include_directories(tst_settingsio PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+    target_link_libraries(tst_settingsio PRIVATE Qt6::Core Qt6::Test)
+    add_test(NAME SettingsIO COMMAND tst_settingsio)
 
     add_executable(tst_tracklabels
         tests/unit/tst_TrackLabels.cpp

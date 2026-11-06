@@ -36,6 +36,8 @@ public:
     Q_INVOKABLE void swap(const QString &id, const QString &seq);
     Q_INVOKABLE void reset(const QString &id);
     Q_INVOKABLE void resetAll();
+    // Re-reads every binding from QSettings (after a settings import).
+    Q_INVOKABLE void reload();
     // Key event -> normalized sequence; "" for modifier-only keys.
     Q_INVOKABLE QString fromKeyEvent(int key, int modifiers) const;
 

@@ -121,6 +121,11 @@ public slots:
     Q_INVOKABLE QString screenshotDir() const;
     // Version/environment strings for Settings > About.
     Q_INVOKABLE QVariantMap aboutInfo() const;
+    Q_INVOKABLE void copyText(const QString &text) const;
+    // Settings export/import (one JSON file, no history/library/resume data).
+    // Both return {ok, count, error}.
+    Q_INVOKABLE QVariantMap exportSettings(const QUrl &file) const;
+    Q_INVOKABLE QVariantMap importSettings(const QUrl &file);
     Q_INVOKABLE void openLogsFolder() const;
     Q_INVOKABLE void setVerboseLogging(bool on);
     void toggleFavorite(const QString &path);
