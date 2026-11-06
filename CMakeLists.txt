@@ -64,6 +64,10 @@ qt_add_executable(lumina
     app/UiTest.cpp
     src/utilities/Logger.h
     src/utilities/Logger.cpp
+    src/utilities/CrashReporter.h
+    src/utilities/CrashReporter.cpp
+    src/services/UpdateChecker.h
+    src/services/UpdateChecker.cpp
     src/utilities/TimeUtils.h
     src/utilities/TimeUtils.cpp
     src/utilities/SettingsIO.h
@@ -459,6 +463,14 @@ if(BUILD_TESTING)
     target_include_directories(tst_libraryextras PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
     target_link_libraries(tst_libraryextras PRIVATE Qt6::Core Qt6::Gui Qt6::Sql Qt6::Test)
     add_test(NAME LibraryExtras COMMAND tst_libraryextras)
+
+    add_executable(tst_updatechecker
+        tests/unit/tst_UpdateChecker.cpp
+        src/services/UpdateChecker.cpp
+    )
+    target_include_directories(tst_updatechecker PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+    target_link_libraries(tst_updatechecker PRIVATE Qt6::Core Qt6::Network Qt6::Test)
+    add_test(NAME UpdateChecker COMMAND tst_updatechecker)
 
     add_executable(tst_mpris
         tests/unit/tst_Mpris.cpp

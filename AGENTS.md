@@ -56,7 +56,7 @@ Rules:
 - **Milestone 6 — Advanced:** 🚧 A-B loop, screenshot, aspect/rotate/video adjust, equalizer, bookmarks, mini-player, rebindable shortcuts done; video profiles pending
 - **Milestone 7 — Library:** 🚧 SQLite history + Continue watching + favorites, optional folder library with search; thumbnails/metadata pending
 - **Milestone 8 — Cross-platform:** 🚧 macOS builds + CI; Linux packaging files (desktop, AppStream, Flatpak manifest — built + self-tested on Fedora) ; Windows not started; MPRIS/media keys/screensaver inhibit missing
-- **Milestone 9 — Release:** ⬜ signing, auto-update, translations, crash reporting
+- **Milestone 9 — Release:** 🚧 translations (bn), local crash reports and opt-in update check done; Developer ID signing/notarization and auto-install of updates need the owner's accounts
 - Settings dialog: General, Playback, Video, Audio, Subtitles, Appearance (Dark/Light/OLED, reduce motion), Library, Shortcuts, Advanced, About; global search + per-page reset.
 
 ### Continuation on macOS (dev machine moved)

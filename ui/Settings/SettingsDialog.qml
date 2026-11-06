@@ -1085,6 +1085,35 @@ Item {
                                 }
                             }
                             SettingSection {
+                                title: qsTr("Updates")
+                                SettingRow {
+                                    title: qsTr("Check for updates")
+                                    description: updater.status !== "" ? updater.status : qsTr("Looks at the GitHub releases page. Nothing is downloaded or installed automatically.")
+                                    keywords: "update upgrade new version release"
+                                    SettingsButton {
+                                        objectName: "updateCheckButton"
+                                        text: updater.checking ? qsTr("Checking…") : qsTr("Check now")
+                                        enabled: !updater.checking
+                                        onClicked: updater.check()
+                                    }
+                                    SettingsButton {
+                                        objectName: "updateOpenButton"
+                                        visible: updater.updateAvailable
+                                        primary: true
+                                        text: qsTr("View release")
+                                        onClicked: Qt.openUrlExternally(updater.releaseUrl)
+                                    }
+                                }
+                                SwitchRow {
+                                    name: "updateAutoSwitch"
+                                    title: qsTr("Check automatically at start")
+                                    description: qsTr("Off by default. One request to api.github.com when Lumina starts.")
+                                    keywords: "update automatic startup privacy"
+                                    checked: dlg.getBool("updates/auto", false)
+                                    onToggled: (v) => { dlg.set("updates/auto", v); checked = v }
+                                }
+                            }
+                            SettingSection {
                                 title: qsTr("System")
                                 SettingRow {
                                     title: qsTr("Qt")

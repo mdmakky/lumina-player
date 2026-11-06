@@ -3,7 +3,8 @@
 ## 0.3.1-preview (pre-release)
 
 First public preview. macOS (ad-hoc signed, Gatekeeper will warn) and Linux builds from source; Windows is experimental and untested.
-Not included yet: code signing/notarization, auto-update, crash reporting, OpenSubtitles download.
+Local crash reports (`logs/crash-*.txt`, nothing is sent) and an opt-in "Check for updates" (Settings > About, GitHub releases API; nothing is downloaded).
+Not included yet: code signing/notarization, automatic install of updates, OpenSubtitles download.
 Since 0.3.0 (details below): redesigned start screen, library and dialogs; subtitle styling, picture and audio processing; library metadata, duplicates and playlists; security hardening (mpv option deny-list, URL allow-list, private data dir).
 
 ## 0.4.0 (unreleased)

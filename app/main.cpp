@@ -8,6 +8,8 @@
 #include "SingleInstance.h"
 #include "UiTest.h"
 #include "utilities/Logger.h"
+#include "utilities/CrashReporter.h"
+#include "services/UpdateChecker.h"
 
 #include <QDir>
 #include <QFileOpenEvent>
@@ -21,6 +23,8 @@
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 #include <QQuickWindow>
+#include <QTimer>
+#include "core/PlayerController.h"
 #include <QSGRendererInterface>
 
 namespace {
@@ -99,6 +103,12 @@ int main(int argc, char *argv[])
     Logger::install();
     qCInfo(lcCore) << "Lumina Player" << LUMINA_VERSION << "starting"
                    << "- Qt" << QT_VERSION_STR;
+    const bool testRun = qEnvironmentVariableIsSet("LUMINA_PLAYBACK_TEST") || qEnvironmentVariableIsSet("LUMINA_UI_TEST");
+    QString previousCrash;
+    if (!testRun) {
+        previousCrash = CrashReporter::takePreviousReport(Logger::logsPath());
+        CrashReporter::install(Logger::logsPath(), QStringLiteral(LUMINA_VERSION));
+    }
 
     // Second launch hands its files to the running instance and exits
     // (skipped for self-tests so they can run alongside a normal session).
@@ -119,6 +129,8 @@ int main(int argc, char *argv[])
 
     QQmlApplicationEngine engine;
     context.registerOnEngine(&engine);
+    UpdateChecker updater{QStringLiteral(LUMINA_VERSION)};
+    engine.rootContext()->setContextProperty(QStringLiteral("updater"), &updater);
 
     QObject::connect(
         &engine, &QQmlApplicationEngine::objectCreationFailed, &app,
@@ -127,6 +139,14 @@ int main(int argc, char *argv[])
     engine.load(QUrl(QStringLiteral("qrc:/qt/qml/Lumina/Player/ui/Main.qml")));
     if (engine.rootObjects().isEmpty())
         return 1;
+
+    if (!previousCrash.isEmpty())
+        QTimer::singleShot(2500, &app, [&context, previousCrash] {
+            context.player()->toast(QCoreApplication::translate("main", "Lumina closed unexpectedly last time. A report was saved in the logs folder."));
+            qCWarning(lcCore) << "previous run crashed; report:" << previousCrash;
+        });
+    if (!testRun && context.player()->setting(QStringLiteral("updates/auto"), false).toString() == QLatin1String("true"))
+        QTimer::singleShot(5000, &updater, &UpdateChecker::check);
 
     QObject::connect(&single, &SingleInstance::argumentsReceived, &app,
                      [&](const QStringList &files) {
