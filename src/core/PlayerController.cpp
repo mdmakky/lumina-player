@@ -13,6 +13,10 @@
 #include <QFileInfo>
 #include <QJSValue>
 #include <QSettings>
+#include <QClipboard>
+#include <QGuiApplication>
+#include <QFile>
+#include "utilities/SettingsIO.h"
 #include <QStandardPaths>
 #include <QSysInfo>
 
@@ -410,6 +414,31 @@ QVariantMap PlayerController::aboutInfo() const
     };
 }
 
+void PlayerController::copyText(const QString &text) const
+{
+    if (QClipboard *c = QGuiApplication::clipboard())
+        c->setText(text);
+}
+
+QVariantMap PlayerController::exportSettings(const QUrl &file) const
+{
+    QFile f(file.toLocalFile());
+    if (!f.open(QIODevice::WriteOnly | QIODevice::Truncate) || f.write(Lumina::SettingsIO::exportJson(QSettings())) < 0)
+        return {{"ok", false}, {"count", 0}, {"error", f.errorString()}};
+    return {{"ok", true}, {"count", 0}, {"error", QString()}};
+}
+
+QVariantMap PlayerController::importSettings(const QUrl &file)
+{
+    QFile f(file.toLocalFile());
+    if (!f.open(QIODevice::ReadOnly))
+        return {{"ok", false}, {"count", 0}, {"error", f.errorString()}};
+    QString err;
+    QSettings s;
+    const int n = Lumina::SettingsIO::importJson(s, f.read(4 << 20), &err);
+    return {{"ok", n >= 0}, {"count", qMax(n, 0)}, {"error", err}};
+}
+
 QString PlayerController::takeScreenshot()
 {
     const QString dir = screenshotDir();
@@ -628,6 +657,10 @@ bool PlayerController::openUrl(const QString &text)
     const QUrl url = Lumina::UrlUtils::parseMediaUrl(text);
     if (!url.isValid()) {
         emit toast(tr("That is not a valid media URL"));
+        return false;
+    }
+    if (Lumina::UrlUtils::needsOptionalProtocol(url) && !m_engine->protocolSupported(url.scheme().toLower())) {
+        emit toast(tr("This build of mpv/FFmpeg cannot open %1:// addresses (protocol not compiled in)").arg(url.scheme().toLower()));
         return false;
     }
     openFiles({url});

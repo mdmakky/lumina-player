@@ -854,6 +854,11 @@ void MpvEngine::setStatsEnabled(bool enabled)
     emit statsEnabledChanged();
 }
 
+bool MpvEngine::protocolSupported(const QString &scheme) const
+{
+    return getProp("protocol-list").toStringList().contains(scheme);
+}
+
 QVariant MpvEngine::getProp(const char *name) const
 {
     mpv_node node;
