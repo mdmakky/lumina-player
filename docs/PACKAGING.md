@@ -10,8 +10,8 @@ Fedora, no RPM needed:
 ```bash
 sudo dnf install flatpak flatpak-builder
 flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-flatpak install --user flathub org.kde.Platform//6.8 org.kde.Sdk//6.8
-flatpak-builder --user --install --force-clean build-flatpak packaging/flatpak/io.github.mdmakky.Lumina.yml
+flatpak install --user flathub org.kde.Platform//6.10 org.kde.Sdk//6.10 org.flatpak.Builder
+flatpak run org.flatpak.Builder --user --install --force-clean build-flatpak packaging/flatpak/io.github.mdmakky.Lumina.yml
 flatpak run io.github.mdmakky.Lumina /path/to/video.mkv
 ```
 
@@ -25,8 +25,8 @@ Normal dev builds leave `LUMINA_MAC_BUNDLE` OFF (plain `build/mac/bin/lumina`). 
 Verified on macOS: both bundle ON/OFF build; bundle plist/icns valid; `macdeploy.sh` runs and produces an 83 MB dmg, main binary has no `/opt/homebrew` references left.
 
 **Unverified:**
-- Flatpak manifest: NOT built (YAML syntax only); mpv/FFmpeg tags, runtime version and module options are guesses; libass tarball sha256 unchecked.
-- `.desktop` / metainfo: `desktop-file-validate` and `appstreamcli validate` not available here (XML well-formedness only); screenshots missing (Flathub requires them).
+- Flatpak manifest: built and run on Fedora 45 (KDE 6.10 runtime, Wayland + X11 self-test pass, VAAPI works, E-AC3/DTS decoders present). Not checked: sound by ear, Flathub submission lint.
+- `.desktop` / metainfo: `desktop-file-validate` and `appstreamcli validate --no-net` pass (Fedora); screenshots still missing (Flathub requires them).
 - macOS: bundled app launch/playback not tested; macdeployqt prints rpath errors for QML plugins whose Qt modules are not installed (VirtualKeyboard, Multimedia); libmpv dylib rewriting is best-effort; signing is ad-hoc only (no Developer ID/notarization, Gatekeeper warns); Finder "Open With" not exercised.
 - Windows packaging: see docs/WINDOWS.md (experimental, never built on Windows).
 

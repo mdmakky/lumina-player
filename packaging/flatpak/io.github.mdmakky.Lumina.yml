@@ -1,7 +1,7 @@
-# UNBUILT / UNTESTED: written on macOS, validated for YAML syntax only.
+# Built and self-tested on Fedora 45 (see docs/PACKAGING.md). Build: flatpak run org.flatpak.Builder --user --force-clean <dir> this-file
 app-id: io.github.mdmakky.Lumina
 runtime: org.kde.Platform
-runtime-version: '6.8'
+runtime-version: '6.10'
 sdk: org.kde.Sdk
 command: lumina
 finish-args:
@@ -29,9 +29,14 @@ modules:
     config-opts: [--enable-shared, --disable-static, --disable-doc, --disable-programs, --enable-gpl, --enable-vaapi, --enable-libass]
     sources:
       - {type: git, url: "https://github.com/FFmpeg/FFmpeg.git", tag: n7.1}
+  - name: libplacebo
+    buildsystem: meson
+    config-opts: [-Ddemos=false, -Dtests=false, -Dvulkan=disabled, -Dd3d11=disabled]
+    sources:
+      - {type: git, url: "https://code.videolan.org/videolan/libplacebo.git", tag: v7.349.0}
   - name: libmpv
     buildsystem: meson
-    config-opts: [-Dlibmpv=true, -Dcplayer=false, -Dlua=disabled, -Dvaapi=enabled, -Dgl=enabled, -Dpulse=enabled, -Dwayland=enabled, -Dx11=enabled]
+    config-opts: [-Dlibmpv=true, -Dcplayer=false, -Dlua=disabled, -Dvaapi=enabled, -Dgl=enabled, -Dpulse=enabled, -Dwayland=enabled, -Dx11=disabled]
     sources:
       - {type: git, url: "https://github.com/mpv-player/mpv.git", tag: v0.39.0}
   - name: lumina

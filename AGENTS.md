@@ -55,7 +55,7 @@ Rules:
 - **Milestone 5 — Performance:** 🚧 seek/cache tuning, seek coalescing + keyframe scrubbing, stats overlay (I), `LUMINA_SEEK_STRESS/SPEED_TEST/SEEK_BENCH`, Linux VAAPI→NVDEC ladder (**unverified on Linux hardware**), docs/BENCHMARK.md for Fedora comparison vs mpv/VLC
 - **Milestone 6 — Advanced:** 🚧 A-B loop, screenshot, aspect/rotate/video adjust, equalizer, bookmarks, mini-player, rebindable shortcuts done; video profiles pending
 - **Milestone 7 — Library:** 🚧 SQLite history + Continue watching + favorites, optional folder library with search; thumbnails/metadata pending
-- **Milestone 8 — Cross-platform:** 🚧 macOS builds + CI; Linux packaging files (desktop, AppStream, Flatpak manifest — **never built**) ; Windows not started; MPRIS/media keys/screensaver inhibit missing
+- **Milestone 8 — Cross-platform:** 🚧 macOS builds + CI; Linux packaging files (desktop, AppStream, Flatpak manifest — built + self-tested on Fedora) ; Windows not started; MPRIS/media keys/screensaver inhibit missing
 - **Milestone 9 — Release:** ⬜ signing, auto-update, translations, crash reporting
 - Settings dialog: General, Playback, Video, Audio, Subtitles, Appearance (Dark/Light/OLED, reduce motion), Library, Shortcuts, Advanced, About; global search + per-page reset.
 
