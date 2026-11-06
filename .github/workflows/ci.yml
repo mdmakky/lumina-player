@@ -127,7 +127,9 @@ jobs:
         run: cmake --build build
 
       - name: Test
-        run: ctest --test-dir build --output-on-failure
+        run: |
+          export PATH="$PWD/mpv-dev:$PATH"   # libmpv-2.dll for the tests that link mpv
+          ctest --test-dir build --output-on-failure || { echo "--- verbose SingleInstance ---"; ./build/bin/tst_singleinstance.exe -v2 || true; exit 1; }
 
       - name: Stage with windeployqt
         run: |
