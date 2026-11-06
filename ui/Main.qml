@@ -166,6 +166,10 @@ ApplicationWindow {
             player.setVolumePercent(Math.max(0, Math.min(sys ? 100 : 150, cur + steps)))
         }
     }
+    PanDragLayer {
+        anchors.fill: parent
+        enabled: player.hasMedia && !root.miniMode
+    }
     Timer {
         id: clickTimer
         interval: 220
@@ -973,6 +977,11 @@ ApplicationWindow {
             onTriggered: adjustPopup.open()
         }
         MenuRow {
+            objectName: "pictureItem"
+            text: qsTr("Picture…")
+            onTriggered: picturePopup.open()
+        }
+        MenuRow {
             objectName: "equalizerItem"
             text: qsTr("Equalizer…")
             onTriggered: eqPopup.open()
@@ -1010,6 +1019,15 @@ ApplicationWindow {
         objectName: "adjustPopup"
         x: root.width - width - Theme.spacingLarge
         y: root.height - height - 150
+        onAboutToShow: root.menuOpen = true
+        onClosed: root.menuOpen = false
+    }
+
+    PicturePopup {
+        id: picturePopup
+        objectName: "picturePopup"
+        x: root.width - width - Theme.spacingLarge
+        y: Math.max(8, root.height - height - 150)
         onAboutToShow: root.menuOpen = true
         onClosed: root.menuOpen = false
     }
@@ -1130,6 +1148,11 @@ ApplicationWindow {
             player.setVolumePercent(v); break
         }
         case "mute": e.setMuted(!e.muted); break
+        case "zoomIn": case "zoomOut": case "zoomReset": {
+            const z = id === "zoomReset" ? 0 : Math.max(-2, Math.min(3, e.picture.zoom + (id === "zoomIn" ? 0.1 : -0.1)))
+            e.setPicture("zoom", Math.abs(z) < 0.05 ? 0 : z)
+            toast.show(qsTr("Zoom %1%").arg(Math.round(Math.pow(2, e.picture.zoom) * 100))); break
+        }
         case "stats": e.statsEnabled = !e.statsEnabled; break
         case "fullscreen": root.toggleFullscreen(); break
         case "alwaysOnTop": root.flags = root.flags ^ Qt.WindowStaysOnTopHint; break

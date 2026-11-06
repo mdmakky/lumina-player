@@ -426,6 +426,14 @@
         <source>Reset for this file</source>
         <translation>এই ফাইলের জন্য রিসেট</translation>
     </message>
+    <message>
+        <source>Picture…</source>
+        <translation>ছবি…</translation>
+    </message>
+    <message>
+        <source>Zoom %1%</source>
+        <translation>জুম %1%</translation>
+    </message>
 </context>
 <context>
     <name>MpvEngine</name>
@@ -1643,6 +1651,22 @@
         <source>Cycle repeat mode</source>
         <translation>পুনরাবৃত্তি মোড বদলান</translation>
     </message>
+    <message>
+        <source>Zoom in</source>
+        <translation>জুম ইন</translation>
+    </message>
+    <message>
+        <source>Zoom out</source>
+        <translation>জুম আউট</translation>
+    </message>
+    <message>
+        <source>Reset zoom</source>
+        <translation>জুম রিসেট</translation>
+    </message>
+    <message>
+        <source>Video</source>
+        <translation>ভিডিও</translation>
+    </message>
 </context>
 <context>
     <name>ShortcutsEditor</name>
@@ -1794,6 +1818,172 @@
         <location filename="../ui/Components/VideoAdjustPopup.qml" line="73"/>
         <source>Reset</source>
         <translation>রিসেট</translation>
+    </message>
+</context>
+<context>
+    <name>PicturePopup</name>
+    <message>
+        <source>Zoom &amp; pan</source>
+        <translation>জুম ও প্যান</translation>
+    </message>
+    <message>
+        <source>Reset</source>
+        <translation>রিসেট</translation>
+    </message>
+    <message>
+        <source>Zoom</source>
+        <translation>জুম</translation>
+    </message>
+    <message>
+        <source>Pan X</source>
+        <translation>প্যান X</translation>
+    </message>
+    <message>
+        <source>Pan Y</source>
+        <translation>প্যান Y</translation>
+    </message>
+    <message>
+        <source>Shift + drag the video to pan.</source>
+        <translation>প্যান করতে Shift চেপে ভিডিও টানুন।</translation>
+    </message>
+    <message>
+        <source>Crop</source>
+        <translation>ক্রপ</translation>
+    </message>
+    <message>
+        <source>Off</source>
+        <translation>বন্ধ</translation>
+    </message>
+    <message>
+        <source>Flip</source>
+        <translation>ফ্লিপ</translation>
+    </message>
+    <message>
+        <source>Horizontal</source>
+        <translation>আড়াআড়ি</translation>
+    </message>
+    <message>
+        <source>Vertical</source>
+        <translation>উল্লম্ব</translation>
+    </message>
+    <message>
+        <source>Sharpen</source>
+        <translation>শার্পেন</translation>
+    </message>
+    <message>
+        <source>Denoise</source>
+        <translation>নয়েজ কমান</translation>
+    </message>
+    <message>
+        <source>Low</source>
+        <translation>কম</translation>
+    </message>
+    <message>
+        <source>Medium</source>
+        <translation>মাঝারি</translation>
+    </message>
+    <message>
+        <source>High</source>
+        <translation>বেশি</translation>
+    </message>
+    <message>
+        <source>Scaling quality</source>
+        <translation>স্কেলিং মান</translation>
+    </message>
+    <message>
+        <source>Fast</source>
+        <translation>দ্রুত</translation>
+    </message>
+    <message>
+        <source>Balanced</source>
+        <translation>সুষম</translation>
+    </message>
+    <message>
+        <source>High quality</source>
+        <translation>উচ্চ মান</translation>
+    </message>
+    <message>
+        <source>HDR tone mapping</source>
+        <translation>HDR টোন ম্যাপিং</translation>
+    </message>
+    <message>
+        <source>Auto</source>
+        <translation>অটো</translation>
+    </message>
+    <message>
+        <source>Smooth motion</source>
+        <translation>মসৃণ গতি</translation>
+    </message>
+    <message>
+        <source>On</source>
+        <translation>চালু</translation>
+    </message>
+    <message>
+        <source>Frame interpolation blends frames to match your display. It uses more GPU.</source>
+        <translation>ফ্রেম ইন্টারপোলেশন ডিসপ্লের সাথে মেলাতে ফ্রেম মিশিয়ে দেয়। এতে GPU বেশি লাগে।</translation>
+    </message>
+    <message>
+        <source>Custom shader</source>
+        <translation>কাস্টম শেডার</translation>
+    </message>
+    <message>
+        <source>Clear</source>
+        <translation>মুছুন</translation>
+    </message>
+    <message>
+        <source>None</source>
+        <translation>কিছু নয়</translation>
+    </message>
+    <message>
+        <source>Choose…</source>
+        <translation>বাছুন…</translation>
+    </message>
+    <message>
+        <source>Choose a GLSL shader</source>
+        <translation>একটি GLSL শেডার বাছুন</translation>
+    </message>
+    <message>
+        <source>GLSL shaders (*.glsl *.hook *.frag)</source>
+        <translation>GLSL শেডার (*.glsl *.hook *.frag)</translation>
+    </message>
+    <message>
+        <source>All files (*)</source>
+        <translation>সব ফাইল (*)</translation>
+    </message>
+    <message>
+        <source>Reset picture</source>
+        <translation>ছবি রিসেট</translation>
+    </message>
+</context>
+<context>
+    <name>VideoExtraRows</name>
+    <message>
+        <source>Quality</source>
+        <translation>মান</translation>
+    </message>
+    <message>
+        <source>Scaling quality</source>
+        <translation>স্কেলিং মান</translation>
+    </message>
+    <message>
+        <source>High quality uses a sharper scaler and needs a capable GPU.</source>
+        <translation>উচ্চ মানে আরও ধারালো স্কেলার ব্যবহার হয়, ভালো GPU লাগে।</translation>
+    </message>
+    <message>
+        <source>HDR tone mapping</source>
+        <translation>HDR টোন ম্যাপিং</translation>
+    </message>
+    <message>
+        <source>How HDR video is squeezed onto a standard display.</source>
+        <translation>সাধারণ ডিসপ্লেতে HDR ভিডিও কীভাবে দেখানো হবে।</translation>
+    </message>
+    <message>
+        <source>Smooth motion (frame interpolation)</source>
+        <translation>মসৃণ গতি (ফ্রেম ইন্টারপোলেশন)</translation>
+    </message>
+    <message>
+        <source>Blends frames to match your display refresh. Uses more GPU; off by default.</source>
+        <translation>ডিসপ্লে রিফ্রেশের সাথে মেলাতে ফ্রেম মিশায়। GPU বেশি লাগে; ডিফল্টে বন্ধ।</translation>
     </message>
 </context>
 </TS>

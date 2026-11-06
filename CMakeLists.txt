@@ -173,6 +173,9 @@ qt_add_qml_module(lumina
         ui/Settings/ShortcutsEditor.qml
         ui/Components/Toast.qml
         ui/Components/VideoAdjustPopup.qml
+        ui/Components/PicturePopup.qml
+        ui/Components/PanDragLayer.qml
+        ui/Settings/VideoExtraRows.qml
         ui/Components/EqualizerPopup.qml
         ui/Components/BookmarksPopup.qml
         ui/Components/OpenUrlDialog.qml

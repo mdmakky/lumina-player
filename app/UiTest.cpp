@@ -434,6 +434,45 @@ void UiTest::run()
         eng->setAspect("auto"); eng->setRotate(0); eng->setDeinterlace(false);
         result("aspect/rotate reset", eng->aspect() == "auto" && eng->rotate() == 0);
 
+        // --- picture popup (zoom/crop/flip/sharpen/scaling/reset) ---
+        if (click("moreButton")) {
+            QTest::qWait(400);
+            if (auto *it = find("pictureItem")) clickAt(center(it));
+            QTest::qWait(400);
+            result("Picture popup opens", find("pictureZoom") != nullptr);
+            shot("picture");
+            auto prop = [&](const char *n) {
+                char *v = mpv_get_property_string(eng->handle(), n);
+                const QString r = v ? QString::fromUtf8(v) : QString();
+                mpv_free(v);
+                return r;
+            };
+            eng->setPicture("zoom", 1.0);
+            result("zoom sets video-zoom", waitFor([&] { return qAbs(eng->mpvProperty("video-zoom").toDouble() - 1.0) < 0.01; }));
+            result("zoom slider reflects engine", waitFor([&] { return find("pictureZoom") && qAbs(find("pictureZoom")->property("value").toDouble() - 1.0) < 0.01; }));
+            click("pictureCrop_16:9");
+            result("crop 16:9 sets video-crop", waitFor([&] { return eng->picture().value("crop").toString() == "16:9"; }));
+            click("pictureFlip_h");
+            click("pictureSharpen_2");
+            result("flip + sharpen build the vf chain", waitFor([&] { return prop("vf").contains("hflip") && prop("vf").contains("unsharp"); }), prop("vf"));
+            click("pictureScale_high");
+            result("scale high sets ewa_lanczossharp", waitFor([&] { return prop("scale") == "ewa_lanczossharp"; }), prop("scale"));
+            click("pictureTone_hable");
+            result("tone mapping sets hable", waitFor([&] { return prop("tone-mapping") == "hable"; }), prop("tone-mapping"));
+            click("pictureInterp_true");
+            result("interpolation turns on display-resample", waitFor([&] { return prop("interpolation") == "yes" && prop("video-sync") == "display-resample"; }));
+            click("pictureReset");
+            result("Reset picture clears everything", waitFor([&] {
+                return qAbs(eng->mpvProperty("video-zoom").toDouble()) < 0.01 && prop("vf").isEmpty()
+                    && prop("interpolation") == "no" && eng->picture().value("scale").toString() == "balanced"; }));
+            key(Qt::Key_Escape);
+            QTest::qWait(300);
+            key(Qt::Key_Plus);
+            result("Zoom-in key zooms", waitFor([&] { return eng->picture().value("zoom").toDouble() > 0.05; }));
+            key(Qt::Key_0);
+            result("Zoom-reset key resets", waitFor([&] { return eng->picture().value("zoom").toDouble() == 0.0; }));
+        }
+
         // --- equalizer popup ---
         if (click("moreButton")) {
             QTest::qWait(400);

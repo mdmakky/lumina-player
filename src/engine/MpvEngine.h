@@ -56,6 +56,9 @@ class MpvEngine : public QObject
     Q_PROPERTY(bool deinterlace READ deinterlace NOTIFY videoOptionsChanged FINAL)
     // {brightness, contrast, saturation, gamma, hue} each -100..100.
     Q_PROPERTY(QVariantMap videoAdjust READ videoAdjust NOTIFY videoOptionsChanged FINAL)
+    // Picture tweaks: zoom (log2, 0 = 100%), panx/pany (-1..1), crop ("off"|"16:9"|...), hflip, vflip,
+    // sharpen/denoise (0 off .. 3 high), scale (fast|balanced|high), tonemap, interp, shader (file path).
+    Q_PROPERTY(QVariantMap picture READ picture NOTIFY pictureChanged FINAL)
     // 10-band graphic equalizer (31 Hz .. 16 kHz), gains in dB (-12..12).
     Q_PROPERTY(bool eqEnabled READ eqEnabled WRITE setEqEnabled NOTIFY eqChanged FINAL)
     // Network streams: true while a remote file is loading or mpv is waiting for cache data.
@@ -99,6 +102,7 @@ public:
     int rotate() const { return m_rotate; }
     bool deinterlace() const { return m_deinterlace; }
     QVariantMap videoAdjust() const { return m_adjust; }
+    QVariantMap picture() const { return m_picture; }
     bool buffering() const { return m_pausedForCache || m_loadingRemote; }
     double cacheBufferedSeconds() const { return m_cacheAhead; }
     bool ytdlAvailable() const { return m_ytdl; }
@@ -150,6 +154,10 @@ public:
     // name: brightness|contrast|saturation|gamma|hue; value -100..100.
     Q_INVOKABLE void setVideoAdjust(const QString &name, int value);
     Q_INVOKABLE void resetVideoAdjust();
+    // Sets one picture key (see `picture`); unknown keys and bad values are ignored.
+    Q_INVOKABLE void setPicture(const QString &key, const QVariant &value);
+    // Back to the untouched picture (also scaling/tone-mapping/interpolation defaults).
+    Q_INVOKABLE void resetPicture();
     // Saves the current video frame (no subtitles/OSD) as an image file.
     Q_INVOKABLE bool screenshot(const QString &path);
     Q_INVOKABLE void setHwdec(const QString &mode);
@@ -197,6 +205,7 @@ signals:
     void statsEnabledChanged();
     void loopChanged();
     void videoOptionsChanged();
+    void pictureChanged();
     // mpv finished a seek (MPV_EVENT_PLAYBACK_RESTART); also fires after file load.
     void seekFinished();
     void bufferingChanged();
@@ -275,5 +284,11 @@ private:
     QString m_aspect = QStringLiteral("auto");
     int m_rotate = 0;
     bool m_deinterlace = false;
+    void applyPicture(const QString &key);
+    void applyFilters();
+    void applyCrop();
+    QVariantMap m_picture{{"zoom", 0.0}, {"panx", 0.0}, {"pany", 0.0}, {"crop", "off"}, {"hflip", false}, {"vflip", false},
+                          {"sharpen", 0}, {"denoise", 0}, {"scale", "balanced"}, {"tonemap", "auto"},
+                          {"interp", false}, {"shader", ""}};
     QVariantMap m_adjust{{"brightness", 0}, {"contrast", 0}, {"saturation", 0}, {"gamma", 0}, {"hue", 0}};
 };

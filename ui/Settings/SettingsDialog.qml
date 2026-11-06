@@ -632,6 +632,7 @@ Item {
                                     onToggled: (v) => dlg.setDeinterlace(v)
                                 }
                             }
+                            VideoExtraRows {}
                             SettingSection {
                                 title: qsTr("Screenshots")
                                 SettingRow {

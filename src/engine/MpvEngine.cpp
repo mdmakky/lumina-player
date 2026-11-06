@@ -308,6 +308,7 @@ void MpvEngine::processEvents()
             QTimer::singleShot(1800, this, &MpvEngine::checkAudioPipeline);
             setLoadingRemote(false);
             refreshTrackLists(); // make sure listeners see this file's tracks, not the previous one's
+            applyCrop(); // video-crop is in pixels of the previous file otherwise
             emit fileLoaded();
             break;
         case MPV_EVENT_START_FILE:
@@ -744,6 +745,89 @@ void MpvEngine::resetVideoAdjust()
 {
     for (const QString &name : m_adjust.keys())
         setVideoAdjust(name, 0);
+}
+
+void MpvEngine::setPicture(const QString &key, const QVariant &value)
+{
+    if (!m_picture.contains(key))
+        return;
+    QVariant v = value;
+    if (key == QLatin1String("zoom")) v = qBound(-2.0, value.toDouble(), 3.0);
+    else if (key == QLatin1String("panx") || key == QLatin1String("pany")) v = qBound(-1.0, value.toDouble(), 1.0);
+    else if (key == QLatin1String("sharpen") || key == QLatin1String("denoise")) v = qBound(0, value.toInt(), 3);
+    else if (key == QLatin1String("hflip") || key == QLatin1String("vflip") || key == QLatin1String("interp")) v = value.toBool();
+    else v = value.toString();
+    if (m_picture.value(key) == v)
+        return;
+    m_picture[key] = v;
+    applyPicture(key);
+    emit pictureChanged();
+}
+
+void MpvEngine::resetPicture()
+{
+    const QVariantMap defaults{{"zoom", 0.0}, {"panx", 0.0}, {"pany", 0.0}, {"crop", "off"}, {"hflip", false},
+                               {"vflip", false}, {"sharpen", 0}, {"denoise", 0}, {"scale", "balanced"},
+                               {"tonemap", "auto"}, {"interp", false}, {"shader", ""}};
+    for (auto it = defaults.begin(); it != defaults.end(); ++it)
+        setPicture(it.key(), it.value());
+}
+
+void MpvEngine::applyPicture(const QString &key)
+{
+    auto set = [this](const char *name, const QString &v) { command({QStringLiteral("set"), QLatin1String(name), v}); };
+    const QVariant v = m_picture.value(key);
+    if (key == QLatin1String("zoom")) set("video-zoom", QString::number(v.toDouble(), 'f', 3));
+    else if (key == QLatin1String("panx")) set("video-pan-x", QString::number(v.toDouble(), 'f', 3));
+    else if (key == QLatin1String("pany")) set("video-pan-y", QString::number(v.toDouble(), 'f', 3));
+    else if (key == QLatin1String("crop")) applyCrop();
+    else if (key == QLatin1String("hflip") || key == QLatin1String("vflip") || key == QLatin1String("sharpen")
+             || key == QLatin1String("denoise")) applyFilters();
+    else if (key == QLatin1String("scale")) {
+        const QString s = v.toString();
+        const bool fast = s == QLatin1String("fast"), high = s == QLatin1String("high");
+        set("scale", fast ? "bilinear" : high ? "ewa_lanczossharp" : "spline36");
+        set("cscale", fast ? "bilinear" : high ? "ewa_lanczossharp" : "spline36");
+        set("dscale", fast ? "bilinear" : "mitchell");
+    } else if (key == QLatin1String("tonemap")) {
+        set("tone-mapping", v.toString());
+        set("target-peak", QStringLiteral("auto"));
+    } else if (key == QLatin1String("interp")) {
+        set("video-sync", v.toBool() ? "display-resample" : "audio");
+        set("interpolation", v.toBool() ? "yes" : "no");
+    } else if (key == QLatin1String("shader")) set("glsl-shaders", v.toString());
+}
+
+// hflip/vflip/unsharp/hqdn3d as one lavfi graph (the equalizer uses `af`; `vf` is ours alone).
+// ponytail: software filters; with zero-copy hwdec (plain vaapi) mpv may refuse them. Use *-copy then.
+void MpvEngine::applyFilters()
+{
+    QStringList f;
+    if (m_picture.value("hflip").toBool()) f << QStringLiteral("hflip");
+    if (m_picture.value("vflip").toBool()) f << QStringLiteral("vflip");
+    static const char *sharp[] = {"", "unsharp=5:5:0.4", "unsharp=5:5:0.8", "unsharp=5:5:1.4"};
+    static const char *dn[] = {"", "hqdn3d=2:1.5:3:2.25", "hqdn3d=4:3:6:4.5", "hqdn3d=8:6:10:7.5"};
+    if (const int s = m_picture.value("sharpen").toInt()) f << QLatin1String(sharp[s]);
+    if (const int d = m_picture.value("denoise").toInt()) f << QLatin1String(dn[d]);
+    command({QStringLiteral("set"), QStringLiteral("vf"),
+             f.isEmpty() ? QString() : QStringLiteral("lavfi=[%1]").arg(f.join(','))});
+}
+
+// Centered crop to the requested aspect, computed from the decoded size (video-crop is WxH+X+Y pixels).
+void MpvEngine::applyCrop()
+{
+    const QString c = m_picture.value("crop").toString();
+    QString geom;
+    const int w = getProp("video-params/w").toInt(), h = getProp("video-params/h").toInt();
+    const int colon = c.indexOf(QLatin1Char(':'));
+    if (colon > 0 && w > 0 && h > 0) {
+        const double ar = c.left(colon).toDouble() / qMax(0.01, c.mid(colon + 1).toDouble());
+        int cw = w, ch = h;
+        if (ar > 0 && double(w) / h > ar) cw = qRound(h * ar); else if (ar > 0) ch = qRound(w / ar);
+        cw &= ~1; ch &= ~1;
+        geom = QStringLiteral("%1x%2+%3+%4").arg(cw).arg(ch).arg((w - cw) / 2).arg((h - ch) / 2);
+    }
+    command({QStringLiteral("set"), QStringLiteral("video-crop"), geom});
 }
 
 void MpvEngine::setEqualizer(const QVariantList &gains)

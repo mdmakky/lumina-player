@@ -86,7 +86,7 @@ PlayerController::PlayerController(QObject *parent)
         applyProfileTracks();
         m_armTimer->start();
     });
-    for (auto sig : {&MpvEngine::videoOptionsChanged, &MpvEngine::speedChanged, &MpvEngine::subtitleDelayChanged,
+    for (auto sig : {&MpvEngine::videoOptionsChanged, &MpvEngine::pictureChanged, &MpvEngine::speedChanged, &MpvEngine::subtitleDelayChanged,
                      &MpvEngine::audioDelayChanged, &MpvEngine::volumeChanged, &MpvEngine::tracksChanged})
         connect(m_engine, sig, this, &PlayerController::markProfileDirty);
     // Remote entries start with a URL-derived title; use mpv's media-title once it is known.
@@ -130,6 +130,9 @@ PlayerController::PlayerController(QObject *parent)
     m_engine->setVolume(settings.value(QStringLiteral("playback/defaultVolume"),
                                        settings.value(QStringLiteral("playback/volume"), 100)).toInt());
     m_engine->setHwdec(settings.value(QStringLiteral("playback/hwdec"), QStringLiteral("auto-safe")).toString());
+    for (const char *k : {"scale", "tonemap", "interp"}) // global picture defaults (Settings > Video)
+        if (settings.contains(QStringLiteral("video/") + QLatin1String(k)))
+            m_engine->setPicture(QLatin1String(k), settings.value(QStringLiteral("video/") + QLatin1String(k)));
     if (settings.contains(QStringLiteral("subtitles/fontSize")))
         m_engine->setSubtitleFontSize(settings.value(QStringLiteral("subtitles/fontSize")).toInt());
     if (settings.contains(QStringLiteral("subtitles/color")))
@@ -322,6 +325,10 @@ void PlayerController::playIndex(int index)
             const QVariantMap &p = m_pendingProfile;
             for (const char *k : {"brightness", "contrast", "saturation", "gamma", "hue"})
                 m_engine->setVideoAdjust(QString::fromLatin1(k), p.value(QString::fromLatin1(k)).toInt());
+            for (const char *k : {"zoom", "panx", "pany", "crop", "sharpen", "denoise"})
+                m_engine->setPicture(QLatin1String(k), p.value(QLatin1String(k), k == QLatin1String("crop") ? QVariant("off") : QVariant(0)));
+            m_engine->setPicture("hflip", p.value("flip", 0).toInt() & 1);
+            m_engine->setPicture("vflip", p.value("flip", 0).toInt() & 2);
             m_engine->setAspect(p.value("aspect", "auto").toString());
             m_engine->setRotate(p.value("rotate", 0).toInt());
             m_engine->setSpeed(p.value("speed", 1.0).toDouble());
@@ -544,6 +551,10 @@ void PlayerController::saveProfileIfDirty()
         return;
     m_profileDirty = false;
     QVariantMap p = m_engine->videoAdjust();
+    const QVariantMap pic = m_engine->picture();
+    for (const char *k : {"zoom", "panx", "pany", "crop", "sharpen", "denoise"})
+        p.insert(QLatin1String(k), pic.value(QLatin1String(k)));
+    p.insert("flip", (pic.value("hflip").toBool() ? 1 : 0) | (pic.value("vflip").toBool() ? 2 : 0));
     p.insert("aspect", m_engine->aspect());
     p.insert("rotate", m_engine->rotate());
     p.insert("speed", m_engine->speed());
@@ -597,6 +608,11 @@ void PlayerController::applyProfileTracks()
 void PlayerController::resetFileState()
 {
     m_engine->resetVideoAdjust();
+    for (const char *k : {"zoom", "panx", "pany", "sharpen", "denoise"})
+        m_engine->setPicture(QLatin1String(k), 0);
+    m_engine->setPicture("crop", "off");
+    m_engine->setPicture("hflip", false);
+    m_engine->setPicture("vflip", false);
     m_engine->setAspect(setting(QStringLiteral("video/aspect"), QStringLiteral("auto")).toString());
     m_engine->setRotate(0);
     m_engine->setSpeed(setting(QStringLiteral("playback/defaultSpeed"), 1.0).toDouble());
