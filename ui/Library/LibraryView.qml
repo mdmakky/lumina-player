@@ -115,26 +115,97 @@ Item {
     component Pill: Button {
         id: pill
         property bool active: false
-        implicitHeight: 30
-        implicitWidth: Math.max(34, pillLabel.implicitWidth + 24)
+        property bool primary: false
+        property string glyph: ""
+        implicitHeight: 34
+        implicitWidth: Math.max(34, pillRow.implicitWidth + 28)
         hoverEnabled: true
+        focusPolicy: Qt.StrongFocus
+        Accessible.name: pill.text
         background: Rectangle {
-            radius: Theme.radius
-            color: pill.active ? Theme.accentSoft
+            radius: height / 2
+            color: pill.primary ? (pill.pressed ? Theme.accentPressed : pill.hovered ? Theme.accentHover : Theme.accent)
+                 : pill.active ? Theme.accentSoft
                  : pill.pressed ? Theme.surfacePressed
-                 : pill.hovered ? Theme.surfaceHover : Theme.elevated
-            border.width: pill.visualFocus || pill.active ? 1 : 0
-            border.color: pill.visualFocus ? Theme.focusRing : Theme.accent
+                 : pill.hovered ? Theme.surfaceHover : "transparent"
+            border.width: pill.primary ? 0 : 1
+            border.color: pill.visualFocus ? Theme.focusRing : pill.active ? Theme.accent : Theme.border
+            Behavior on color { ColorAnimation { duration: Theme.animationFast } }
         }
-        contentItem: Text {
-            id: pillLabel
-            text: pill.text
-            color: !pill.enabled ? Theme.disabledText : pill.active ? Theme.accentHover : Theme.primaryText
-            font.family: Theme.fontFamily
-            font.pixelSize: Theme.fontSizeMedium
-            horizontalAlignment: Text.AlignHCenter
-            verticalAlignment: Text.AlignVCenter
+        contentItem: Item {
+            implicitWidth: pillRow.implicitWidth
+            Row {
+                id: pillRow
+                anchors.centerIn: parent
+                spacing: 7
+                Glyph {
+                    visible: pill.glyph !== ""
+                    name: pill.glyph; size: 15
+                    anchors.verticalCenter: parent.verticalCenter
+                    tint: !pill.enabled ? Theme.disabledText : pill.primary ? Theme.accentText : Theme.primaryText
+                }
+                Text {
+                    id: pillLabel
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: pill.text
+                    color: !pill.enabled ? Theme.disabledText : pill.primary ? Theme.accentText : pill.active ? Theme.accentHover : Theme.primaryText
+                    font.family: Theme.fontFamily
+                    font.pixelSize: Theme.fontSizeMedium
+                    font.weight: Font.Medium
+                }
+            }
         }
+    }
+
+    // One option of a segmented control (sort order, list/grid).
+    component Segment: Button {
+        id: seg
+        property bool active: false
+        property string glyph: ""
+        implicitHeight: 30
+        implicitWidth: segRow.implicitWidth + 26
+        hoverEnabled: true
+        focusPolicy: Qt.StrongFocus
+        Accessible.name: seg.text
+        background: Rectangle {
+            radius: height / 2
+            color: seg.active ? Theme.accentSoft : seg.hovered ? Theme.surfaceHover : "transparent"
+            border.width: seg.visualFocus || seg.active ? 1 : 0
+            border.color: seg.visualFocus ? Theme.focusRing : Theme.accent
+            Behavior on color { ColorAnimation { duration: Theme.animationFast } }
+        }
+        contentItem: Item {
+            Row {
+                id: segRow
+                anchors.centerIn: parent
+                spacing: 6
+                Glyph { visible: seg.glyph !== ""; name: seg.glyph; size: 15; anchors.verticalCenter: parent.verticalCenter; tint: seg.active ? Theme.accentHover : Theme.secondaryText }
+                Text {
+                    visible: seg.text !== ""
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: seg.text
+                    color: seg.active ? Theme.accentHover : Theme.secondaryText
+                    font.family: Theme.fontFamily
+                    font.pixelSize: Theme.fontSizeMedium
+                    font.weight: seg.active ? Font.DemiBold : Font.Medium
+                }
+            }
+        }
+    }
+    component SegGroup: Rectangle {
+        default property alias content: segLayout.data
+        implicitHeight: 38
+        implicitWidth: segLayout.implicitWidth + 8
+        radius: height / 2
+        color: Theme.surface
+        border.color: Theme.border
+        Row { id: segLayout; anchors.centerIn: parent; spacing: 2 }
+    }
+
+    component Muted: Text {
+        color: Theme.secondaryText
+        font.family: Theme.fontFamily
+        font.pixelSize: Theme.fontSizeSmall
     }
 
     // Modal card used by the confirm / name / playlist-picker dialogs.
@@ -165,14 +236,19 @@ Item {
         width: 20; height: 20; radius: 10
         color: marked ? Theme.accent : Theme.scrimSoft
         border.color: marked ? Theme.accent : Theme.videoTextSecondary
-        Text {
-            anchors.centerIn: parent
-            visible: chk.marked
-            text: "✓"
-            color: Theme.accentText
-            font.pixelSize: Theme.fontSizeSmall
-        }
+        Glyph { anchors.centerIn: parent; visible: chk.marked; name: "check"; size: 12; stroke: 2.6; tint: Theme.accentText }
         MouseArea { anchors.fill: parent; anchors.margins: -6; cursorShape: Qt.PointingHandCursor; onClicked: chk.toggled() }
+    }
+
+    // Star toggle drawn as an icon (replaces the text glyphs).
+    component Star: Item {
+        id: st
+        property bool on: false
+        property color idle: Theme.secondaryText
+        signal toggled()
+        width: 28; height: 28
+        Glyph { anchors.centerIn: parent; name: "star"; size: 16; filled: st.on; tint: st.on ? Theme.accentHover : st.idle }
+        MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: st.toggled() }
     }
 
     // --- context menu for a row/tile ---
@@ -302,114 +378,179 @@ Item {
 
     Rectangle {
         anchors.fill: parent
-        color: Theme.background
+        gradient: Gradient {
+            GradientStop { position: 0.0; color: Theme.background }
+            GradientStop { position: 1.0; color: Theme.surface }
+        }
         // swallow input so nothing underneath reacts
         MouseArea { anchors.fill: parent; hoverEnabled: true }
     }
 
     ColumnLayout {
-        anchors.fill: parent
-        anchors.margins: Theme.spacingLarge * 2
+        id: page
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.topMargin: 24
+        anchors.bottomMargin: 20
+        width: Math.min(1120, view.width - 64)
         spacing: Theme.spacingMedium
 
+        // ---- Header ----
         RowLayout {
             Layout.fillWidth: true
             spacing: Theme.spacingMedium
 
+            Pill {
+                id: backBtn
+                objectName: "libraryClose"
+                text: qsTr("Back")
+                glyph: "back"
+                Accessible.description: qsTr("Return to the start screen (Esc)")
+                onClicked: view.close()
+            }
             Text {
+                Layout.leftMargin: 6
                 text: qsTr("Library")
                 color: Theme.primaryText
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSizeTitle
-                font.weight: Font.Light
-                font.letterSpacing: 2
+                font.weight: Font.DemiBold
             }
-            Text {
+            Muted {
                 text: qsTr("%n item(s)", "", player.library.count)
-                color: Theme.secondaryText
-                font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSizeMedium
                 Layout.alignment: Qt.AlignBottom
                 Layout.bottomMargin: 4
             }
             Item { Layout.fillWidth: true }
             Pill {
-                objectName: "libraryAddFolder"
-                text: qsTr("Add folder…")
-                active: true
-                enabled: player.libraryAvailable
-                onClicked: folderDialog.open()
-            }
-            Pill {
                 objectName: "libraryRescan"
                 text: qsTr("Rescan")
+                glyph: "refresh"
                 enabled: player.libraryAvailable && player.libraryFolders.length > 0 && !player.libraryScanning
                 onClicked: player.rescanLibrary()
             }
             Pill {
-                objectName: "libraryClose"
-                text: qsTr("Close")
-                onClicked: view.close()
+                objectName: "libraryAddFolder"
+                text: qsTr("Add folder…")
+                glyph: "folderPlus"
+                primary: true
+                enabled: player.libraryAvailable
+                onClicked: folderDialog.open()
             }
         }
 
-        // Sections.
-        Flow {
+        // ---- Sections: underlined text tabs ----
+        Item {
             Layout.fillWidth: true
-            spacing: Theme.spacingSmall
-            Repeater {
-                model: [qsTr("All"), qsTr("Videos"), qsTr("Music"), qsTr("Favorites"), qsTr("Recently added"),
-                        qsTr("Recently played"), qsTr("Folders"), qsTr("Playlists"), qsTr("Duplicates")]
-                delegate: Pill {
-                    required property int index
-                    required property string modelData
-                    objectName: "libraryTab_" + index
-                    text: modelData
-                    active: player.library.tab === index
-                    onClicked: player.library.tab = index
+            Layout.topMargin: 4
+            implicitHeight: 40
+            Rectangle { anchors { left: parent.left; right: parent.right; bottom: parent.bottom } height: 1; color: Theme.border }
+            Flickable {
+                anchors.fill: parent
+                contentWidth: tabRow.implicitWidth
+                flickableDirection: Flickable.HorizontalFlick
+                boundsBehavior: Flickable.StopAtBounds
+                clip: true
+                Row {
+                    id: tabRow
+                    height: parent.height
+                    spacing: 4
+                    Repeater {
+                        model: [qsTr("All"), qsTr("Videos"), qsTr("Music"), qsTr("Favorites"), qsTr("Recently added"),
+                                qsTr("Recently played"), qsTr("Folders"), qsTr("Playlists"), qsTr("Duplicates")]
+                        delegate: Button {
+                            id: tab
+                            required property int index
+                            required property string modelData
+                            readonly property bool current: player.library.tab === index
+                            objectName: "libraryTab_" + index
+                            text: modelData
+                            height: parent.height
+                            implicitWidth: tabLabel.implicitWidth + 28
+                            hoverEnabled: true
+                            focusPolicy: Qt.StrongFocus
+                            Accessible.name: tab.text
+                            onClicked: player.library.tab = index
+                            background: Rectangle {
+                                radius: Theme.radius
+                                color: tab.hovered && !tab.current ? Theme.surfaceHover : "transparent"
+                                border.width: tab.visualFocus ? 1 : 0
+                                border.color: Theme.focusRing
+                                Rectangle {
+                                    anchors { left: parent.left; right: parent.right; bottom: parent.bottom; leftMargin: 14; rightMargin: 14 }
+                                    height: 2; radius: 1
+                                    color: Theme.accent
+                                    opacity: tab.current ? 1 : 0
+                                    Behavior on opacity { NumberAnimation { duration: Theme.animationFast } }
+                                }
+                            }
+                            contentItem: Text {
+                                id: tabLabel
+                                text: tab.text
+                                horizontalAlignment: Text.AlignHCenter
+                                verticalAlignment: Text.AlignVCenter
+                                color: tab.current ? Theme.primaryText : Theme.secondaryText
+                                font.family: Theme.fontFamily
+                                font.pixelSize: Theme.fontSizeMedium
+                                font.weight: tab.current ? Font.DemiBold : Font.Medium
+                            }
+                        }
+                    }
                 }
             }
         }
 
+        // ---- Search + view mode ----
         RowLayout {
             Layout.fillWidth: true
-            spacing: Theme.spacingSmall
+            Layout.topMargin: 2
+            spacing: Theme.spacingMedium
 
             TextField {
                 id: search
                 objectName: "librarySearch"
                 Layout.fillWidth: true
-                implicitHeight: Theme.controlHeight
+                implicitHeight: 40
                 placeholderText: qsTr("Search title, artist, album or folder")
                 placeholderTextColor: Theme.disabledText
                 color: Theme.primaryText
                 selectByMouse: true
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSizeMedium
-                leftPadding: Theme.spacingLarge
+                leftPadding: 42
+                rightPadding: 14
                 onTextChanged: player.library.search = text
+                Accessible.name: qsTr("Search library")
                 background: Rectangle {
-                    radius: Theme.radius
+                    radius: height / 2
                     color: Theme.surface
                     border.color: search.activeFocus ? Theme.focusRing : Theme.border
+                    border.width: search.activeFocus ? 2 : 1
+                    Glyph { x: 15; anchors.verticalCenter: parent.verticalCenter; name: "search"; size: 16; tint: Theme.secondaryText }
                 }
             }
-            Pill { objectName: "libraryViewList"; text: qsTr("List"); active: !view.gridMode; onClicked: view.applyGrid(false) }
-            Pill { objectName: "libraryViewGrid"; text: qsTr("Grid"); active: view.gridMode; onClicked: view.applyGrid(true) }
+            SegGroup {
+                Segment { objectName: "libraryViewList"; text: qsTr("List"); glyph: "list"; active: !view.gridMode; onClicked: view.applyGrid(false) }
+                Segment { objectName: "libraryViewGrid"; text: qsTr("Grid"); glyph: "library"; active: view.gridMode; onClicked: view.applyGrid(true) }
+            }
         }
 
-        // Sorting and filters.
+        // ---- Sort + filters ----
         Flow {
             Layout.fillWidth: true
-            spacing: Theme.spacingSmall
-            Pill { objectName: "librarySortTitle";    text: qsTr("Title");       active: player.library.sortBy === 0 && !player.library.groupByFolder; onClicked: { player.library.groupByFolder = false; player.library.sortBy = 0 } }
-            Pill { objectName: "librarySortDate";     text: qsTr("Newest");      active: player.library.sortBy === 1 && !player.library.groupByFolder; onClicked: { player.library.groupByFolder = false; player.library.sortBy = 1 } }
-            Pill { objectName: "librarySortDuration"; text: qsTr("Longest");     active: player.library.sortBy === 3 && !player.library.groupByFolder; onClicked: { player.library.groupByFolder = false; player.library.sortBy = 3 } }
-            Pill { objectName: "librarySortPlayed";   text: qsTr("Last played"); active: player.library.sortBy === 4 && !player.library.groupByFolder; onClicked: { player.library.groupByFolder = false; player.library.sortBy = 4 } }
-            Pill { objectName: "libraryGroup";        text: qsTr("By folder");   active: player.library.groupByFolder; onClicked: player.library.groupByFolder = !player.library.groupByFolder }
-            Item { width: Theme.spacingLarge; height: 1 }
+            spacing: Theme.spacingMedium
+            SegGroup {
+                Segment { objectName: "librarySortTitle";    text: qsTr("Title");       active: player.library.sortBy === 0 && !player.library.groupByFolder; onClicked: { player.library.groupByFolder = false; player.library.sortBy = 0 } }
+                Segment { objectName: "librarySortDate";     text: qsTr("Newest");      active: player.library.sortBy === 1 && !player.library.groupByFolder; onClicked: { player.library.groupByFolder = false; player.library.sortBy = 1 } }
+                Segment { objectName: "librarySortDuration"; text: qsTr("Longest");     active: player.library.sortBy === 3 && !player.library.groupByFolder; onClicked: { player.library.groupByFolder = false; player.library.sortBy = 3 } }
+                Segment { objectName: "librarySortPlayed";   text: qsTr("Last played"); active: player.library.sortBy === 4 && !player.library.groupByFolder; onClicked: { player.library.groupByFolder = false; player.library.sortBy = 4 } }
+                Segment { objectName: "libraryGroup";        text: qsTr("By folder");   active: player.library.groupByFolder; onClicked: player.library.groupByFolder = !player.library.groupByFolder }
+            }
             Pill {
                 objectName: "libraryFilterRes"
+                height: 38
                 readonly property var steps: [0, 720, 1080, 2160]
                 text: [qsTr("Any resolution"), qsTr("720p and up"), qsTr("1080p and up"), qsTr("4K")][Math.max(0, steps.indexOf(player.library.minHeight))]
                 active: player.library.minHeight !== 0
@@ -417,12 +558,14 @@ Item {
             }
             Pill {
                 objectName: "libraryFilterDuration"
+                height: 38
                 text: [qsTr("Any length"), qsTr("Under 10 min"), qsTr("10 – 60 min"), qsTr("Over 1 hour")][player.library.durationBucket]
                 active: player.library.durationBucket !== 0
                 onClicked: player.library.durationBucket = (player.library.durationBucket + 1) % 4
             }
             Pill {
                 objectName: "libraryFilterWatched"
+                height: 38
                 readonly property var steps: [0, 2, 1]
                 text: [qsTr("Watched or not"), qsTr("Watched"), qsTr("Unwatched")][player.library.watched]
                 active: player.library.watched !== 0
@@ -449,11 +592,11 @@ Item {
                     onClicked: player.library.playlistId = playlistId
                 }
             }
-            Pill { objectName: "libraryPlaylistNew"; text: qsTr("New playlist…"); active: true; onClicked: { nameDialog.renaming = false; nameDialog.paths = []; nameDialog.open() } }
+            Pill { objectName: "libraryPlaylistNew"; text: qsTr("New playlist…"); primary: true; onClicked: { nameDialog.renaming = false; nameDialog.paths = []; nameDialog.open() } }
             Pill { objectName: "libraryPlaylistImport"; text: qsTr("Import .m3u…"); onClicked: importDialog.open() }
             Item { width: Theme.spacingLarge; height: 1 }
             Pill {
-                text: qsTr("Play"); enabled: player.library.playlistId > 0 && player.library.count > 0
+                text: qsTr("Play"); glyph: "play"; enabled: player.library.playlistId > 0 && player.library.count > 0
                 onClicked: { player.playLibrary(0); view.close() }
             }
             Pill { text: qsTr("Rename…"); enabled: player.library.playlistId > 0; onClicked: { nameDialog.renaming = true; nameDialog.open() } }
@@ -479,21 +622,29 @@ Item {
         }
 
         // Selection actions.
-        RowLayout {
+        Rectangle {
             objectName: "librarySelectionBar"
             visible: view.selCount > 0
             Layout.fillWidth: true
-            spacing: Theme.spacingSmall
-            Text {
-                text: qsTr("%n selected", "", view.selCount)
-                color: Theme.primaryText
-                font.family: Theme.fontFamily
-                font.pixelSize: Theme.fontSizeMedium
+            implicitHeight: 52
+            radius: Theme.radiusLarge
+            color: Theme.accentSoft
+            border.color: Theme.accent
+            RowLayout {
+                anchors { fill: parent; leftMargin: 18; rightMargin: 10 }
+                spacing: Theme.spacingSmall
+                Text {
+                    text: qsTr("%n selected", "", view.selCount)
+                    color: Theme.primaryText
+                    font.family: Theme.fontFamily
+                    font.pixelSize: Theme.fontSizeMedium
+                    font.weight: Font.DemiBold
+                    Layout.fillWidth: true
+                }
+                Pill { text: qsTr("Clear selection"); onClicked: view.clearSel() }
+                Pill { text: qsTr("Play selected"); glyph: "play"; onClicked: { player.openFiles(player.library.urlsOf(Object.keys(view.selected))); view.close() } }
+                Pill { objectName: "libraryAddSelected"; text: qsTr("Add to playlist…"); primary: true; onClicked: view.addToPlaylist(Object.keys(view.selected)) }
             }
-            Pill { objectName: "libraryAddSelected"; text: qsTr("Add to playlist…"); active: true; onClicked: view.addToPlaylist(Object.keys(view.selected)) }
-            Pill { text: qsTr("Play selected"); onClicked: { player.openFiles(player.library.urlsOf(Object.keys(view.selected))); view.close() } }
-            Pill { text: qsTr("Clear selection"); onClicked: view.clearSel() }
-            Item { Layout.fillWidth: true }
         }
 
         // Scan progress (indeterminate bar + count) while the worker runs.
@@ -547,10 +698,10 @@ Item {
                 delegate: Rectangle {
                     required property string modelData
                     required property int index
-                    height: 26
-                    width: chipText.implicitWidth + 36
-                    radius: 13
-                    color: Theme.surface
+                    height: 28
+                    width: chipText.implicitWidth + 40
+                    radius: 14
+                    color: "transparent"
                     border.color: Theme.border
                     Text {
                         id: chipText
@@ -564,14 +715,13 @@ Item {
                         font.family: Theme.fontFamily
                         font.pixelSize: Theme.fontSizeSmall
                     }
-                    Text {
+                    Glyph {
                         objectName: "libraryFolderRemove_" + index
                         anchors.right: parent.right
                         anchors.rightMargin: 9
                         anchors.verticalCenter: parent.verticalCenter
-                        text: "×"
-                        color: removeArea.containsMouse ? Theme.error : Theme.disabledText
-                        font.pixelSize: Theme.fontSizeLarge
+                        name: "close"; size: 12
+                        tint: removeArea.containsMouse ? Theme.error : Theme.disabledText
                         MouseArea {
                             id: removeArea
                             anchors.fill: parent
@@ -612,7 +762,7 @@ Item {
                     color: Theme.disabledText
                     font.family: Theme.fontFamily
                     font.pixelSize: Theme.fontSizeSmall
-                    font.letterSpacing: 1
+                    font.weight: Font.DemiBold
                 }
 
                 delegate: Rectangle {
@@ -633,11 +783,13 @@ Item {
                     required property string album
                     required property int year
                     required property bool favorite
+                    required property bool hasCover
+                    required property string thumb
                     readonly property bool isSel: view.selected[path] === true
                     objectName: "libraryRow_" + index
                     width: list.width
-                    height: 56
-                    radius: Theme.radius
+                    height: 62
+                    radius: Theme.radius + 2
                     color: isSel ? Theme.accentSoft : rowMouse.containsMouse ? Theme.elevated : "transparent"
                     Behavior on color { ColorAnimation { duration: Theme.animationFast } }
 
@@ -655,25 +807,51 @@ Item {
                     }
                     RowLayout {
                         anchors.fill: parent
-                        anchors.leftMargin: Theme.spacingLarge
-                        anchors.rightMargin: Theme.spacingLarge
-                        spacing: Theme.spacingLarge
+                        anchors.leftMargin: 14
+                        anchors.rightMargin: 10
+                        spacing: 14
                         Check {
                             objectName: "libraryCheck_" + row.index
                             marked: row.isSel
-                            opacity: row.isSel || rowMouse.containsMouse || view.selCount > 0 ? 1 : 0.35
+                            opacity: row.isSel || rowMouse.containsMouse || view.selCount > 0 ? 1 : 0.3
                             onToggled: view.toggleSel(row.path)
+                        }
+                        Rectangle { // thumbnail / generated poster
+                            id: poster
+                            Layout.preferredWidth: 72
+                            Layout.preferredHeight: 42
+                            radius: 8
+                            clip: true
+                            readonly property real h: {
+                                let v = 0
+                                for (let i = 0; i < row.title.length; ++i) v = (v * 31 + row.title.charCodeAt(i)) % 360
+                                return v / 360
+                            }
+                            gradient: Gradient {
+                                GradientStop { position: 0; color: Qt.hsla(poster.h, 0.4, Theme.isLight ? 0.62 : 0.30, 1) }
+                                GradientStop { position: 1; color: Qt.hsla((poster.h + 0.08) % 1, 0.5, Theme.isLight ? 0.5 : 0.18, 1) }
+                            }
+                            Glyph { anchors.centerIn: parent; anchors.horizontalCenterOffset: row.kind === 1 ? 0 : 1; name: row.kind === 1 ? "music" : "play"; filled: row.kind !== 1; size: 16; tint: "#F4F5F7" }
+                            Image {
+                                anchors.fill: parent
+                                asynchronous: true
+                                fillMode: Image.PreserveAspectCrop
+                                source: row.kind === 0 || row.hasCover ? row.thumb : ""
+                                opacity: status === Image.Ready ? 1 : 0
+                                Behavior on opacity { NumberAnimation { duration: Theme.animationMedium } }
+                            }
                         }
                         ColumnLayout {
                             Layout.fillWidth: true
-                            spacing: 2
+                            spacing: 3
                             Text {
                                 Layout.fillWidth: true
                                 text: row.title
                                 elide: Text.ElideRight
                                 color: Theme.primaryText
                                 font.family: Theme.fontFamily
-                                font.pixelSize: Theme.fontSizeLarge
+                                font.pixelSize: Theme.fontSizeMedium + 1
+                                font.weight: Font.Medium
                             }
                             Text {
                                 Layout.fillWidth: true
@@ -686,32 +864,30 @@ Item {
                         }
                         Text {
                             Layout.preferredWidth: 160
+                            visible: view.width > 860
                             text: view.inDuplicates ? row.folder : row.folderName
                             elide: view.inDuplicates ? Text.ElideMiddle : Text.ElideRight
                             color: Theme.secondaryText
                             font.family: Theme.fontFamily
-                            font.pixelSize: Theme.fontSizeMedium
+                            font.pixelSize: Theme.fontSizeSmall
                         }
                         Text {
-                            Layout.preferredWidth: 90
+                            Layout.preferredWidth: 88
+                            visible: view.width > 720
                             horizontalAlignment: Text.AlignRight
                             text: view.relTime(row.addedAt)
                             color: Theme.disabledText
                             font.family: Theme.fontFamily
                             font.pixelSize: Theme.fontSizeSmall
                         }
-                        Text {
-                            text: row.favorite ? "★" : "☆"
-                            color: row.favorite ? Theme.accentHover : Theme.disabledText
-                            font.pixelSize: Theme.fontSizeLarge
-                            MouseArea { anchors.fill: parent; anchors.margins: -6; cursorShape: Qt.PointingHandCursor; onClicked: player.library.toggleFavorite(row.path) }
-                        }
-                        Text {
+                        Star { on: row.favorite; onToggled: player.library.toggleFavorite(row.path) }
+                        Item {
                             objectName: "libraryMore_" + row.index
-                            text: "⋯"
-                            color: Theme.secondaryText
-                            font.pixelSize: Theme.fontSizeHeading
-                            MouseArea { anchors.fill: parent; anchors.margins: -6; cursorShape: Qt.PointingHandCursor; onClicked: view.openMenu(row, row) }
+                            width: 28; height: 28
+                            Accessible.role: Accessible.Button
+                            Accessible.name: qsTr("More actions")
+                            Glyph { anchors.centerIn: parent; name: "more"; size: 18; stroke: 2.6; tint: Theme.secondaryText }
+                            MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: view.openMenu(row, row) }
                         }
                     }
                 }
@@ -725,9 +901,9 @@ Item {
                 clip: true
                 boundsBehavior: Flickable.StopAtBounds
                 model: player.library
-                readonly property int cols: Math.max(1, Math.floor(width / 210))
+                readonly property int cols: Math.max(1, Math.floor(width / 220))
                 cellWidth: Math.floor(width / cols)
-                cellHeight: 176
+                cellHeight: 190
                 ScrollBar.vertical: ScrollBar { }
 
                 delegate: Item {
@@ -768,8 +944,10 @@ Item {
                     Rectangle {
                         anchors.fill: parent
                         anchors.margins: 4
-                        radius: Theme.radius
-                        color: tile.isSel ? Theme.accentSoft : tileMouse.containsMouse ? Theme.elevated : "transparent"
+                        radius: Theme.radiusLarge
+                        color: tile.isSel ? Theme.accentSoft : tileMouse.containsMouse ? Theme.elevated : Theme.surface
+                        border.color: tile.isSel || tileMouse.containsMouse ? Theme.accent : Theme.border
+                        Behavior on color { ColorAnimation { duration: Theme.animationFast } }
 
                         ColumnLayout {
                             anchors.fill: parent
@@ -779,14 +957,15 @@ Item {
                                 id: poster
                                 Layout.fillWidth: true
                                 Layout.preferredHeight: width * 9 / 16
-                                radius: Theme.radiusSmall
-                                color: Theme.surface
+                                radius: Theme.radius
+                                color: Theme.elevated
                                 clip: true
-                                Text { // placeholder while the frame is pending (or missing)
+                                Glyph { // placeholder while the frame is pending (or missing)
                                     anchors.centerIn: parent
-                                    text: tile.kind === 1 ? "♪" : "▶"
-                                    color: Theme.disabledText
-                                    font.pixelSize: Theme.fontSizeTitle
+                                    name: tile.kind === 1 ? "music" : "play"
+                                    filled: tile.kind !== 1
+                                    size: 26
+                                    tint: Theme.disabledText
                                 }
                                 Image {
                                     anchors.fill: parent
@@ -823,14 +1002,14 @@ Item {
                                     visible: tile.isSel || tileMouse.containsMouse || view.selCount > 0
                                     onToggled: view.toggleSel(tile.path)
                                 }
-                                Text {
+                                Rectangle {
                                     anchors.right: parent.right
                                     anchors.top: parent.top
                                     anchors.margins: 6
-                                    text: tile.favorite ? "★" : (tileMouse.containsMouse ? "☆" : "")
-                                    color: tile.favorite ? Theme.accentHover : Theme.videoText
-                                    font.pixelSize: Theme.fontSizeLarge
-                                    MouseArea { anchors.fill: parent; anchors.margins: -6; cursorShape: Qt.PointingHandCursor; onClicked: player.library.toggleFavorite(tile.path) }
+                                    width: 28; height: 28; radius: 14
+                                    color: Theme.scrimSoft
+                                    visible: tile.favorite || tileMouse.containsMouse
+                                    Star { anchors.centerIn: parent; on: tile.favorite; idle: Theme.videoText; onToggled: player.library.toggleFavorite(tile.path) }
                                 }
                             }
                             Text {
@@ -856,7 +1035,7 @@ Item {
 
             Text {
                 anchors.centerIn: parent
-                width: parent.width * 0.7
+                width: Math.min(560, parent.width * 0.8)
                 visible: player.library.count === 0
                 horizontalAlignment: Text.AlignHCenter
                 wrapMode: Text.Wrap

@@ -196,6 +196,9 @@ void UiTest::run()
         result("remove library folder empties library", waitFor([&] { return p->library()->rowCount() == 0; }));
         p->library()->setSearch({});
     }
+    if (qEnvironmentVariableIsSet("LUMINA_UI_ONLY_HOME_LIBRARY")) { // quick pass: home + library only
+        qCInfo(lcCore) << "stopping after home + library"; QCoreApplication::exit(fails ? 1 : 0); return;
+    }
     if (files.isEmpty()) { qCInfo(lcCore) << "no media arg; stopping after home"; QCoreApplication::exit(fails ? 1 : 0); return; }
 
     // --- load media ---

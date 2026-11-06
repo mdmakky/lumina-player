@@ -201,6 +201,8 @@ qt_add_qml_module(lumina
         ui/Settings/PlaylistPage.qml
         ui/Components/MouseActions.qml
         ui/Components/Toast.qml
+        ui/Components/Glyph.qml
+        ui/Components/HomeView.qml
         ui/Components/VideoAdjustPopup.qml
         ui/Components/PicturePopup.qml
         ui/Components/PanDragLayer.qml
