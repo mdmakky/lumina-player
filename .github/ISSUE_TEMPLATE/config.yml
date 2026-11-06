@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Install problem?
+    url: https://github.com/mdmakky/lumina-player/blob/main/docs/INSTALL.md#troubleshooting
+    about: Check the troubleshooting table first.

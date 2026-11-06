@@ -1,30 +1,49 @@
 # Changelog
 
-## 0.3.1-preview (pre-release)
+All notable changes are listed here. The format follows [Keep a Changelog](https://keepachangelog.com/).
+Versions marked "preview" are pre-releases.
 
-First public preview. macOS (ad-hoc signed, Gatekeeper will warn) and Linux builds from source; Windows is experimental and untested.
-Local crash reports (`logs/crash-*.txt`, nothing is sent) and an opt-in "Check for updates" (Settings > About, GitHub releases API; nothing is downloaded).
-Not included yet: code signing/notarization, automatic install of updates, OpenSubtitles download.
-Since 0.3.0 (details below): redesigned start screen, library and dialogs; subtitle styling, picture and audio processing; library metadata, duplicates and playlists; security hardening (mpv option deny-list, URL allow-list, private data dir).
+## [0.3.1-preview] - 2026-11-06
 
-## 0.4.0 (unreleased)
+First public preview. Linux (Flatpak, Fedora RPM, Ubuntu DEB) and macOS (DMG, ad-hoc signed). Windows is not released.
 
-Features and fixes since 0.3.0:
-- Network streams: Open URL dialog (Ctrl+U), yt-dlp for page URLs, buffering, per-file playback profiles
-- Seek-bar hover thumbnail preview (second lightweight mpv handle, LRU cache)
-- Linux integration: MPRIS2, screensaver inhibit, system volume sync via pactl (slider, keys, wheel, laptop keys); new volume bar and volume OSD
-- Rotating file logs (5 x 1 MB) and "Open logs folder"; mpv warnings forwarded to the log
-- Bengali translation with live language switching (Qt Linguist pipeline)
-- Track labels with language names, codec and layout; unified popup panels; video adjustment presets (Default/Cinema/Vivid/Night)
-- "No sound" diagnostic banner with distro-specific fix (libavcodec-freeworld); `tools/diagnose-linux.sh`, `tools/install-deps-fedora.sh`
-- Flatpak manifest now builds and runs on Fedora (KDE 6.10 runtime, libplacebo, Wayland + X11 verified, VAAPI works)
-- Windows build files and experimental CI job; macOS GL 3.3 core profile and coreaudio fallback
-- Library: a drive that is not mounted (empty mount-point folder) keeps its entries; if you delete every file of a library folder, use "remove folder" to clear its entries; a damaged library database is set aside and recreated
-- Packaging: one `.rpm` per Fedora release (43/44/45) and one `.deb` per Ubuntu release (24.04/25.10/26.04), each installed and smoke-tested (starts, plays, seeks) in a clean container by CI; the app now starts on Qt 6.4 (Ubuntu 24.04); packages depend on the SVG plugin; relative file paths on the command line open
-- Fixes: menus are modal (outside click no longer pauses), chrome auto-hide re-arms, smaller default subtitle size, upside-down video, Qt 6.4 compatibility
-- Release preparation: user guide, security review, license audit + SBOM generator (`tools/make-sbom.sh`), QA and performance reports, RPM/DEB/AppImage recipes (unbuilt)
+### Added
+- Start screen and media library: video and music tabs, search, tags, thumbnails, duplicate detection, playlists, favorites
+- Network streams: Open URL (Ctrl+U), yt-dlp for page URLs, buffering, per-file playback profiles
+- Seek-bar hover thumbnails; keyframe scrubbing while dragging the timeline
+- Linux: MPRIS media controls, screensaver inhibit, volume follows the system volume (slider, keys, mouse wheel, laptop keys)
+- Volume bar with live percentage, volume overlay, mute shows 0, mouse wheel and touchpad volume
+- Video adjustment presets (Default, Cinema, Vivid, Night)
+- Subtitle styling (including Bengali fonts), track labels with language, codec and layout
+- Bengali translation with live language switching; Dark, Light and OLED themes; rebindable shortcuts and mouse actions
+- Local crash reports (`logs/crash-*.txt`, nothing is sent) and an opt-in update check (Settings, About; at most once a day; downloads nothing)
+- Rotating log files and **Open logs folder**; "No sound" banner with a distro-specific fix
+- Packages: Flatpak bundle, one RPM per Fedora release (43, 44, 45), one DEB per Ubuntu release (24.04, 25.10, 26.04).
+  CI installs each in a clean container of its release and plays a test video before it is attached
+- Documentation: install guide, contributing guide, security policy, issue and pull request templates
 
-## 0.3.0 (unreleased)
+### Changed
+- Menus and dialogs share one modal system; clicking outside a menu only closes it
+- Controls hide after the idle delay even if the cursor rests on them
+- Default subtitle size is smaller (40)
+- A drive that is not mounted keeps its library entries; a damaged library database is set aside and recreated
+- `.ts` files under 1 MB are no longer treated as video (TypeScript and Qt Linguist sources)
+- The update check skips pre-releases when you run a stable version
+
+### Fixed
+- The app did not start on Qt 6.4 (Ubuntu 24.04): QML resource prefix, `Overlay`, cyclic singleton import, `font.features`
+- `lumina file.mkv` with a relative path did not open the file
+- Controls never hid while a video played (the pointer position was re-sent every frame)
+- RPM depended on packages that do not exist on Fedora; DEB lacked the QML Dialogs, Models and SVG packages
+- Upside-down video, Qt 6.4 compatibility issues, startup volume flash
+
+### Security
+- mpv option deny-list, URL scheme allow-list for files and links from outside the app, private data directory and settings file permissions (see `docs/SECURITY_REVIEW.md`)
+
+### Not included yet
+Developer ID signing and notarization, automatic update install, a signed RPM, OpenSubtitles download, a Windows build, 360/VR/3D.
+
+## [0.3.0] - not released separately
 
 - New floating-overlay player UI, home screen with Continue watching / Recent / Favorites
 - Playlist: drag-reorder, shuffle, repeat, search, M3U save/load, auto-advance, resume position

@@ -4,31 +4,12 @@ Lumina Player is a fast desktop media player (Qt 6 + libmpv). Smooth seeking and
 
 ## 1. Install (ইনস্টল)
 
-### Linux: Flatpak (recommended, codecs included)
-```bash
-sudo dnf install flatpak flatpak-builder
-flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-flatpak install --user flathub org.kde.Platform//6.10 org.kde.Sdk//6.10 org.flatpak.Builder
-flatpak run org.flatpak.Builder --user --install --force-clean build-flatpak packaging/flatpak/io.github.mdmakky.Lumina.yml
-flatpak run io.github.mdmakky.Lumina /path/to/video.mkv
-```
-FFmpeg and mpv are built into the Flatpak, so E-AC3/DTS and H.264 work without extra packages. (A Flathub listing is not published yet.)
+Download the package for your system from the [Releases page](https://github.com/mdmakky/lumina-player/releases)
+and follow **[INSTALL.md](INSTALL.md)** (Flatpak for any Linux, RPM for Fedora 43/44/45, DEB for Ubuntu
+24.04/25.10/26.04, DMG for macOS). It also covers codecs, uninstalling and troubleshooting.
 
-### Fedora: from source
-```bash
-git clone git@github.com:mdmakky/lumina-player.git && cd lumina-player
-tools/install-deps-fedora.sh        # build deps + RPM Fusion libavcodec-freeworld
-cmake --preset linux-debug && cmake --build --preset linux-debug
-./build/linux-debug/lumina /path/to/video.mkv
-```
-Install `qt6-linguist qt6-qttools-devel` before configuring if you want the Bengali translation.
-
-### macOS: dmg
-`tools/macdeploy.sh` builds `build/mac-bundle/Lumina-Player.dmg`. The app is not notarized yet: on first launch,
-right-click the app, choose Open, and confirm. Dev build: `brew install cmake ninja qt libmpv`, then see `docs/BUILDING.md`.
-
-### Windows
-Experimental, never built on real Windows yet: see `docs/WINDOWS.md`.
+To build from source instead, see [BUILDING.md](BUILDING.md). Install `qt6-linguist qt6-qttools-devel` before
+configuring if you want the Bengali translation.
 
 ## 2. First run (প্রথম চালু)
 Start Lumina, then press `Ctrl+O`, drop a file onto the window, or run `lumina movie.mkv`. Opening another file while

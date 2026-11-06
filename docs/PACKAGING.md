@@ -1,5 +1,25 @@
 # Packaging
 
+## How a release is built
+
+Run the **Packages** workflow (`gh workflow run Packages -f tag=<release tag>`) for an existing draft release.
+It builds and attaches:
+
+| Job | Output | Checked before it is attached |
+|---|---|---|
+| Fedora 43 / 44 / 45 | `lumina-player-<ver>.fc<N>.x86_64.rpm` (+ source RPM) | installs in a clean container of that release, then the app starts and plays `tests/data/smoke.mkv` (self-test, virtual display, no audio) |
+| Ubuntu 24.04 / 25.10 / 26.04 | `lumina-player_<ver>_ubuntu<N>_amd64.deb` | same, in a clean Ubuntu container; runtime package names are checked first |
+| Flatpak | `Lumina-Player-<tag>.flatpak` | builds from `packaging/flatpak/` (not auto-installed in CI) |
+| Windows (opt-in: `-f windows=true`) | `Lumina-Player-<tag>-windows-x64.zip` | nothing: never run on real Windows |
+| checksums | `SHA256SUMS.txt` | |
+
+RPM and DEB are built per distro release because they link that release's Qt. When a new Fedora or Ubuntu
+release appears, add it to the matrix in `packages.yml`; the install and smoke steps show what breaks.
+The macOS DMG is built on a Mac (`tools/macdeploy.sh`) and uploaded by hand.
+
+Release checklist: CI green on `main` → run **Packages** → all jobs green → read the draft notes
+(`docs/releases/`) → publish. Do not publish assets that were not verified.
+
 ## Icons
 `resources/icons/app/lumina.svg` is the source. `tools/make-icons.sh` regenerates `lumina-{16..1024}.png` and `lumina.icns` (rsvg-convert if present, else AppKit via swift on macOS; `.icns` needs `iconutil`). The 1024 px PNG is git-ignored.
 

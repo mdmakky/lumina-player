@@ -9,6 +9,10 @@ on:
         description: Existing release tag to attach the files to
         required: true
         default: v0.3.1-preview
+      windows:
+        description: Also build the experimental Windows zip (never tested on real Windows, so off by default)
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -19,6 +23,7 @@ env:
 jobs:
   windows:
     name: Windows x64 (zip)
+    if: ${{ inputs.windows }}
     runs-on: windows-latest
     defaults:
       run:
@@ -203,3 +208,20 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }} # this job has no checkout, so gh needs the repo named
         run: gh release upload "$TAG" *.flatpak --clobber
+
+  checksums:
+    name: SHA256SUMS.txt
+    needs: [deb-attach, rpm, flatpak-attach]
+    if: ${{ always() && !cancelled() }}
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - name: Checksums of everything attached to the release
+        run: |
+          mkdir assets && cd assets
+          gh release download "$TAG" --pattern '*.rpm' --pattern '*.deb' --pattern '*.flatpak' --pattern '*.dmg' --pattern '*.zip'
+          rm -f ./*.src.rpm
+          sha256sum -- * | tee ../SHA256SUMS.txt
+          cd .. && gh release upload "$TAG" SHA256SUMS.txt --clobber
