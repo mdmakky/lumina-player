@@ -1,5 +1,5 @@
 #!/usr/bin/make -f
-# Unbuilt recipe. Use: ln -s packaging/deb/debian debian && dpkg-buildpackage -us -uc
+# Built by .github/workflows/packages.yml. Use: ln -s packaging/deb/debian debian && dpkg-buildpackage -us -uc
 %:
 	dh $@ --buildsystem=cmake+ninja
 

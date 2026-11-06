@@ -1,7 +1,7 @@
-# Unbuilt recipe (syntax-checked only). Build: rpmbuild -ba packaging/rpm/lumina.spec
-# Source0 is a tarball of the git tag: git archive --prefix=lumina-player-0.4.0/ -o ~/rpmbuild/SOURCES/lumina-player-0.4.0.tar.gz v0.4.0
+# Built by .github/workflows/packages.yml. Build: rpmbuild -ba packaging/rpm/lumina.spec
+# Source0 is a tarball of the git tag: git archive --prefix=lumina-player-0.3.1/ -o ~/rpmbuild/SOURCES/lumina-player-0.3.1.tar.gz v0.3.1-preview
 Name:           lumina-player
-Version:        0.4.0
+Version:        0.3.1
 Release:        1%{?dist}
 Summary:        Modern media player built on Qt 6 and libmpv
 License:        GPL-3.0-or-later
@@ -57,5 +57,5 @@ appstream-util validate-relax --nonet %{buildroot}%{_datadir}/metainfo/io.github
 %{_datadir}/icons/hicolor/*/apps/io.github.mdmakky.Lumina.*
 
 %changelog
-* Fri Nov 06 2026 mdmakky <makky.cse@gmail.com> - 0.4.0-1
-- Initial RPM recipe
+* Fri Nov 06 2026 mdmakky <makky.cse@gmail.com> - 0.3.1-1
+- Preview build

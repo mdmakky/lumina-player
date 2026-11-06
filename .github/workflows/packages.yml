@@ -1,0 +1,128 @@
+name: Packages
+
+# Manual: builds the Windows zip, a .deb and an .rpm and attaches them to a (draft) release.
+#   gh workflow run Packages -f tag=v0.3.1-preview
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing release tag to attach the files to
+        required: true
+        default: v0.3.1-preview
+
+permissions:
+  contents: write
+
+jobs:
+  windows:
+    name: Windows x64 (zip)
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: >-
+            mingw-w64-x86_64-toolchain
+            mingw-w64-x86_64-cmake
+            mingw-w64-x86_64-ninja
+            mingw-w64-x86_64-pkgconf
+            mingw-w64-x86_64-qt6-base
+            mingw-w64-x86_64-qt6-declarative
+            mingw-w64-x86_64-qt6-svg
+            mingw-w64-x86_64-qt6-tools
+            mingw-w64-x86_64-curl
+            mingw-w64-x86_64-github-cli
+            p7zip
+            zip
+      - name: Fetch libmpv SDK
+        run: |
+          url=$(curl -s https://api.github.com/repos/shinchiro/mpv-winbuild-cmake/releases/latest | grep browser_download_url | grep -E 'mpv-dev-x86_64-[0-9]' | head -1 | cut -d'"' -f4)
+          curl -L -o mpv-dev.7z "$url"
+          mkdir -p mpv-dev && 7z x -ompv-dev mpv-dev.7z >/dev/null
+      - name: Build
+        run: |
+          cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF -DLIBMPV_ROOT="$PWD/mpv-dev"
+          cmake --build build
+      - name: Stage
+        run: |
+          mkdir -p dist/Lumina-Player
+          cp build/bin/lumina.exe dist/Lumina-Player/
+          cp mpv-dev/libmpv-2.dll dist/Lumina-Player/
+          windeployqt6 --qmldir ui --no-translations dist/Lumina-Player/lumina.exe || windeployqt --qmldir ui dist/Lumina-Player/lumina.exe
+          ldd dist/Lumina-Player/lumina.exe | awk '/mingw64/ {print $3}' | xargs -I{} cp -n {} dist/Lumina-Player/
+          cp LICENSE THIRD_PARTY_NOTICES.md README.md dist/Lumina-Player/
+          cd dist && zip -qr ../Lumina-Player-${{ inputs.tag }}-windows-x64.zip Lumina-Player
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-zip
+          path: Lumina-Player-*.zip
+      - name: Attach to release
+        run: gh release upload "${{ inputs.tag }}" Lumina-Player-*.zip --clobber
+
+  deb:
+    name: Debian / Ubuntu (.deb)
+    runs-on: ubuntu-24.04
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            debhelper dpkg-dev fakeroot ninja-build cmake g++ pkg-config desktop-file-utils \
+            qt6-tools-dev qt6-tools-dev-tools qt6-l10n-tools qt6-base-dev qt6-base-private-dev \
+            qt6-declarative-dev qt6-declarative-dev-tools qt6-base-dev-tools libgl-dev libmpv-dev
+      - name: Check runtime dependency names exist
+        run: |
+          for p in libqt6sql6-sqlite qml6-module-qtquick qml6-module-qtquick-controls qml6-module-qtquick-layouts \
+                   qml6-module-qtquick-window qml6-module-qtqml-workerscript qml6-module-qtquick-templates \
+                   qml6-module-qt-labs-platform qml6-module-qtcore qml6-module-qtquick-dialogs; do
+            apt-cache show "$p" >/dev/null 2>&1 && echo "ok      $p" || echo "MISSING $p"
+          done
+      - name: Build
+        run: |
+          ln -s packaging/deb/debian debian
+          dpkg-buildpackage -us -uc -b -d
+          ls -l ../*.deb
+      - uses: actions/upload-artifact@v4
+        with:
+          name: deb
+          path: ../*.deb
+      - name: Attach to release
+        run: gh release upload "${{ inputs.tag }}" ../lumina-player_*.deb --clobber
+
+  rpm:
+    name: Fedora (.rpm)
+    runs-on: ubuntu-latest
+    container: fedora:latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Tools
+        run: dnf -y install git rpm-build rpmdevtools dnf-plugins-core gh
+      - uses: actions/checkout@v4
+      - name: Build
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          ver=$(awk '/^Version:/{print $2}' packaging/rpm/lumina.spec)
+          dnf -y builddep packaging/rpm/lumina.spec
+          mkdir -p ~/rpmbuild/SOURCES
+          git archive --prefix=lumina-player-$ver/ -o ~/rpmbuild/SOURCES/lumina-player-$ver.tar.gz HEAD
+          rpmbuild -ba packaging/rpm/lumina.spec
+          ls -l ~/rpmbuild/RPMS/*/*.rpm ~/rpmbuild/SRPMS/*.rpm
+          rpm -qpR ~/rpmbuild/RPMS/*/lumina-player-*.rpm | head -30
+          mkdir -p out && cp ~/rpmbuild/RPMS/*/lumina-player-*.rpm ~/rpmbuild/SRPMS/*.rpm out/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rpm
+          path: out/*.rpm
+      - name: Attach to release
+        run: gh release upload "${{ inputs.tag }}" out/*.rpm --clobber
