@@ -7,10 +7,10 @@ Lumina Player is in **preview** (0.3.1-preview). All downloads are on the
 
 | You use | Download | Install |
 |---|---|---|
-| **Any Linux** with Flatpak | `Lumina-Player-<version>.flatpak` | `flatpak install --user ./Lumina-Player-*.flatpak` |
-| **Fedora 43 / 44 / 45** | `lumina-player-<version>.fc<N>.x86_64.rpm` (N = your release) | `sudo dnf install ./lumina-player-*.rpm` |
-| **Ubuntu 24.04 / 25.10 / 26.04** | `lumina-player_<version>_ubuntu<N>_amd64.deb` (N = your release) | `sudo apt install ./lumina-player_*.deb` |
-| **macOS** (Apple Silicon) | `Lumina-Player-<version>-macOS.dmg`, built on a Mac and attached to a release when ready (it may lag the Linux packages; if the release has none yet, build from source) | open, drag to Applications |
+| **Any Linux** with Flatpak | `Lumina-Player_<version>_Any-Linux-Flatpak.flatpak` | `flatpak install --user ./Lumina-Player_*_Any-Linux-Flatpak.flatpak` |
+| **Fedora 43 / 44 / 45** | `Lumina-Player_<version>_Fedora-<N>.rpm` (N = your release) | `sudo dnf install ./Lumina-Player_*_Fedora-<N>.rpm` |
+| **Ubuntu 24.04 / 25.10 / 26.04** | `Lumina-Player_<version>_Ubuntu-<N>.deb` (N = your release) | `sudo apt install ./Lumina-Player_*_Ubuntu-<N>.deb` |
+| **macOS** (Apple Silicon) | `Lumina-Player_<version>_macOS.dmg`, built on a Mac and attached to a release when ready (it may lag the Linux packages; if the release has none yet, build from source) | open, drag to Applications |
 | **Windows** | not available yet | see [WINDOWS.md](WINDOWS.md) to build it yourself |
 
 Check your release first: `rpm -E %fedora` (Fedora) or `lsb_release -rs` (Ubuntu).
@@ -39,7 +39,7 @@ Needs [Flatpak](https://flatpak.org/setup/). The bundle adds Flathub as the sour
 runtime it needs, so the first install is a large one-time download.
 
 ```bash
-flatpak install --user ./Lumina-Player-*.flatpak
+flatpak install --user ./Lumina-Player_*_Any-Linux-Flatpak.flatpak
 flatpak run io.github.mdmakky.Lumina /path/to/video.mkv
 ```
 
@@ -52,7 +52,7 @@ for other folders.
 
 ```bash
 cd ~/Downloads
-sudo dnf install ./lumina-player-0.3.1-1.fc45.x86_64.rpm     # use the file for your release
+sudo dnf install ./Lumina-Player_0.3.1-preview_Fedora-45.rpm     # use the file for your release
 ```
 
 Install from a terminal. GNOME Software can open the file too, but the package is **not
@@ -74,7 +74,7 @@ Press `I` in the player to see whether `vaapi` is in use.
 
 ```bash
 cd ~/Downloads
-sudo apt install ./lumina-player_0.3.1-1_ubuntu24.04_amd64.deb   # use the file for your release
+sudo apt install ./Lumina-Player_0.3.1-preview_Ubuntu-24.04.deb   # use the file for your release
 ```
 
 Not supported: Ubuntu 22.04 and Debian 12 (their Qt is older than the required 6.4), and

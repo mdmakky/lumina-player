@@ -17,14 +17,14 @@ It was started because seeking in other players stutters on Linux; fast, accurat
 
 | Platform | Package | Command |
 |---|---|---|
-| Any Linux | Flatpak | `flatpak install --user ./Lumina-Player-*.flatpak` |
-| Fedora 43, 44, 45 | RPM (one per release) | `sudo dnf install ./lumina-player-*.rpm` |
-| Ubuntu 24.04, 25.10, 26.04 | DEB (one per release) | `sudo apt install ./lumina-player_*.deb` |
+| Any Linux | Flatpak | `flatpak install --user ./Lumina-Player_*_Any-Linux-Flatpak.flatpak` |
+| Fedora 43, 44, 45 | RPM (one per release) | `sudo dnf install ./Lumina-Player_*_Fedora-<N>.rpm` |
+| Ubuntu 24.04, 25.10, 26.04 | DEB (one per release) | `sudo apt install ./Lumina-Player_*_Ubuntu-<N>.deb` |
 | macOS (Apple Silicon) | DMG, built on a Mac and attached to a release when ready (may lag the Linux packages) | open it and drag to Applications |
 | Windows | not available yet | |
 
 Download from the [Releases page](https://github.com/mdmakky/lumina-player/releases). Pick the
-file that matches your distro release. Full instructions, codec setup, what has been tested, and
+file whose name ends with your system, for example `..._Fedora-45.rpm` or `..._Ubuntu-24.04.deb`. Full instructions, codec setup, what has been tested, and
 troubleshooting: **[docs/INSTALL.md](docs/INSTALL.md)**.
 
 ## Features

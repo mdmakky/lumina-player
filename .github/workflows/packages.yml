@@ -63,16 +63,16 @@ jobs:
           windeployqt6 --qmldir ui --no-translations dist/Lumina-Player/lumina.exe || windeployqt --qmldir ui dist/Lumina-Player/lumina.exe
           ldd dist/Lumina-Player/lumina.exe | awk '/mingw64/ {print $3}' | xargs -I{} cp -n {} dist/Lumina-Player/
           cp LICENSE THIRD_PARTY_NOTICES.md README.md dist/Lumina-Player/
-          cd dist && zip -qr "../Lumina-Player-${TAG}-windows-x64.zip" Lumina-Player
+          cd dist && zip -qr "../Lumina-Player_${TAG#v}_Windows-experimental.zip" Lumina-Player
       - uses: actions/upload-artifact@v4
         with:
           name: windows-zip
-          path: Lumina-Player-*.zip
+          path: Lumina-Player_*.zip
       - name: Attach to release
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release upload $env:TAG (Get-ChildItem Lumina-Player-*.zip).FullName --clobber
+        run: gh release upload $env:TAG (Get-ChildItem Lumina-Player_*.zip).FullName --clobber
 
   deb:
     name: Ubuntu ${{ matrix.ubuntu }} (.deb)
@@ -107,11 +107,11 @@ jobs:
           ln -s packaging/deb/debian debian
           dpkg-buildpackage -us -uc -b -d
           mkdir -p out
-          f=$(ls ../lumina-player_*_amd64.deb)
-          cp "$f" "out/$(basename "$f" _amd64.deb)_ubuntu${{ matrix.ubuntu }}_amd64.deb"
+          # User-facing name: says which system the file is for (the .deb inside is unchanged)
+          cp ../lumina-player_*_amd64.deb "out/Lumina-Player_${TAG#v}_Ubuntu-${{ matrix.ubuntu }}.deb"
           ls -l out
       - name: Install test (the package must install on a clean Ubuntu ${{ matrix.ubuntu }})
-        run: apt-get install -y ./out/lumina-player_*.deb && dpkg -L lumina-player | head -5
+        run: apt-get install -y ./out/Lumina-Player_*.deb && dpkg -L lumina-player | head -5
       - name: Smoke test (the installed app must start and play a video)
         run: |
           apt-get install -y --no-install-recommends xvfb xauth libgl1-mesa-dri libegl1
@@ -160,9 +160,9 @@ jobs:
           rpmbuild -ba packaging/rpm/lumina.spec
           ls -l ~/rpmbuild/RPMS/*/*.rpm ~/rpmbuild/SRPMS/*.rpm
           rpm -qpR ~/rpmbuild/RPMS/*/lumina-player-*.rpm | head -30
-          mkdir -p out && cp ~/rpmbuild/RPMS/*/lumina-player-[0-9]*.rpm ~/rpmbuild/SRPMS/*.rpm out/
+          mkdir -p out && cp ~/rpmbuild/RPMS/*/lumina-player-[0-9]*.rpm "out/Lumina-Player_${TAG#v}_Fedora-${{ matrix.fedora }}.rpm"
       - name: Install test (the package must install on a clean Fedora ${{ matrix.fedora }})
-        run: dnf -y install out/lumina-player-[0-9]*.x86_64.rpm && rpm -ql lumina-player | head -5
+        run: dnf -y install out/Lumina-Player_*.rpm && rpm -ql lumina-player | head -5
       - name: Smoke test (the installed app must start and play a video)
         run: |
           dnf -y install xorg-x11-server-Xvfb xorg-x11-xauth mesa-dri-drivers mesa-libEGL
@@ -188,7 +188,7 @@ jobs:
       - name: Build
         run: |
           flatpak-builder --force-clean --disable-rofiles-fuse --repo=repo build-dir packaging/flatpak/io.github.mdmakky.Lumina.yml
-          flatpak build-bundle --runtime-repo=https://flathub.org/repo/flathub.flatpakrepo repo "Lumina-Player-${TAG}.flatpak" io.github.mdmakky.Lumina
+          flatpak build-bundle --runtime-repo=https://flathub.org/repo/flathub.flatpakrepo repo "Lumina-Player_${TAG#v}_Any-Linux-Flatpak.flatpak" io.github.mdmakky.Lumina
           ls -l *.flatpak
       - uses: actions/upload-artifact@v4
         with:

@@ -7,15 +7,17 @@ It builds and attaches:
 
 | Job | Output | Checked before it is attached |
 |---|---|---|
-| Fedora 43 / 44 / 45 | `lumina-player-<ver>.fc<N>.x86_64.rpm` (+ source RPM) | installs in a clean container of that release, then the app starts and plays `tests/data/smoke.mkv` (self-test, virtual display, no audio) |
-| Ubuntu 24.04 / 25.10 / 26.04 | `lumina-player_<ver>_ubuntu<N>_amd64.deb` | same, in a clean Ubuntu container; runtime package names are checked first |
-| Flatpak | `Lumina-Player-<tag>.flatpak` | builds from `packaging/flatpak/` (not auto-installed in CI) |
-| Windows (opt-in: `-f windows=true`) | `Lumina-Player-<tag>-windows-x64.zip` | nothing: never run on real Windows |
+| Fedora 43 / 44 / 45 | `Lumina-Player_<ver>_Fedora-<N>.rpm` | installs in a clean container of that release, then the app starts and plays `tests/data/smoke.mkv` (self-test, virtual display, no audio) |
+| Ubuntu 24.04 / 25.10 / 26.04 | `Lumina-Player_<ver>_Ubuntu-<N>.deb` | same, in a clean Ubuntu container; runtime package names are checked first |
+| Flatpak | `Lumina-Player_<ver>_Any-Linux-Flatpak.flatpak` | builds from `packaging/flatpak/` (not auto-installed in CI) |
+| Windows (opt-in: `-f windows=true`) | `Lumina-Player_<ver>_Windows-experimental.zip` | nothing: never run on real Windows |
 | checksums | `SHA256SUMS.txt` | |
 
 RPM and DEB are built per distro release because they link that release's Qt. When a new Fedora or Ubuntu
 release appears, add it to the matrix in `packages.yml`; the install and smoke steps show what breaks.
-The macOS DMG is built on a Mac (`tools/macdeploy.sh`) and uploaded by hand.
+Release file names say which system they are for (`..._Fedora-45.rpm`) so a user can pick without knowing
+package-naming rules. The macOS DMG is built on a Mac (`tools/macdeploy.sh`) and uploaded by hand as
+`Lumina-Player_<ver>_macOS.dmg`.
 
 Release checklist: CI green on `main` → run **Packages** → all jobs green → read the draft notes
 (`docs/releases/`) → publish. Do not publish assets that were not verified.
