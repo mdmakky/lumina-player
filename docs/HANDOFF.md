@@ -103,3 +103,18 @@ Built `5df9950` cleanly. `LUMINA_UI_ONLY_HOME_LIBRARY=1 LUMINA_UI_TEST=1` passes
   Make it with: `ffmpeg -f lavfi -i testsrc2=size=1280x720:rate=30 -f lavfi -i sine=f=440 -t 6 -c:v libx264 -pix_fmt yuv420p -c:a aac /tmp/short1.mp4`. (Consider making the fixture refuse files > 50 MB.)
 - **`qt.svg: Invalid path data` warning fixed:** it was not a bad path. `Glyph.qml` built an SVG with `d=""` while a bound `name` was still empty at creation. Now `source` stays empty until `d` is set; warnings 5 -> 0 on Linux (all 15 paths parse fine in QtSvg).
 - Not checked on Linux: Settings pages, Open URL / Media info dialogs, Equalizer/Picture/Bookmarks popup interiors, window clamp on GNOME, CI Qt 6.4.
+
+## Remaining work — owner will continue on macOS (2026-11-06)
+Owner tested the app on macOS and Fedora and says it works ("so far thik ase"). **Windows has never been built.** Decision: ship a **preview** (`v0.3.1-preview`, GitHub pre-release), not a full release: signing, auto-update and crash reporting do not exist yet.
+
+Do on macOS, in this order:
+1. **CI first.** Several runs for `361696c`..`4df7b13` were still `in_progress` when this was written. Check `gh run list`; fix any Linux Qt 6.4 failure (known traps: `font.features`, JS reserved words, QStringLiteral). Do not tag until CI is green.
+2. **Make the UI-test fixture safe** (`app/UiTest.cpp`, "library fixture media"): it copies the first media argument 3x when `/tmp/short1.mp4` is missing and filled a 7.5 GB tmpfs with a 5.7 GB movie. Refuse files > 50 MB or generate a tiny file instead.
+3. **Run `tools/run-ui-test.sh` once** (popups are modal now, volume model changed — see the Linux session section) and `ctest`. Fix only what fails.
+4. **macOS volume:** `systemVolume` is -1 on macOS so the slider drives mpv volume. Decide whether to mirror the Linux behaviour (slider = system output volume via CoreAudio in `MacIntegration.mm`; implement `PlatformIntegration::setSystemVolume` + emit `systemVolumeChanged`). Probably not worth it; at least confirm nothing regressed.
+5. **macOS integration:** Now Playing / media keys (`MPNowPlayingInfoCenter`, `MPRemoteCommandCenter`) in `MacIntegration.mm`; test the bundle (`tools/macdeploy.sh`, Finder "Open With", launch from the dmg).
+6. **Windows:** cannot be built on a Mac. Use the manual Windows CI job (`docs/WINDOWS.md`, MSYS2 package names unverified) to get a first build; expect fixes. Do not claim Windows works until a Windows machine runs it.
+7. **Preview release:** write the CHANGELOG entry, tag `v0.3.1-preview`, attach the macOS dmg (ad-hoc signed: Gatekeeper warns, say so in the notes). Create it as a **draft** pre-release; the owner publishes.
+8. Still unbuilt/unchecked, needs the owner's accounts or hardware: Developer ID signing + notarization, auto-update, crash reporting, OpenSubtitles.
+
+Back on Fedora later (cannot be done on macOS): VLC seek comparison (`tools/vlc_seekbench.py`, needs `sudo dnf install vlc python3-vlc`), Flatpak hand-test of sound/MPRIS/portals, Flathub screenshots, hand-check of Settings/Open URL/Media info/Equalizer/Picture/Bookmarks on Linux.
