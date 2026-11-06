@@ -22,8 +22,8 @@ SettingSection {
             { label: qsTr("5.1 surround"), value: "5.1" },
             { label: qsTr("7.1 surround"), value: "7.1" }
         ]
-        value: player.setting("audio/channels", "auto")
-        onPicked: (v) => { sec.pick("audio/channels", v, player.engine.setAudioChannels); value = v }
+        value: { SettingsState.resetTick; return player.setting("audio/channels", "auto") }
+        onPicked: (v) => { sec.pick("audio/channels", v, player.engine.setAudioChannels); SettingsState.resetTick++ }
     }
     ComboRow {
         name: "audioNormalization"
@@ -35,16 +35,16 @@ SettingSection {
             { label: qsTr("Night mode"), value: "night" },
             { label: qsTr("Movie"), value: "movie" }
         ]
-        value: player.setting("audio/normalization", "off")
-        onPicked: (v) => { sec.pick("audio/normalization", v, player.engine.setNormalization); value = v }
+        value: { SettingsState.resetTick; return player.setting("audio/normalization", "off") }
+        onPicked: (v) => { sec.pick("audio/normalization", v, player.engine.setNormalization); SettingsState.resetTick++ }
     }
     SwitchRow {
         name: "audioPassthrough"
         title: qsTr("Audio passthrough")
         description: qsTr("Sends AC3, E-AC3, DTS and TrueHD untouched over HDMI or S/PDIF. Needs a receiver that decodes them; the equalizer and normalization are skipped for those tracks.")
         keywords: "spdif hdmi dolby dts truehd receiver bitstream"
-        checked: player.setting("audio/passthrough", false) === true || player.setting("audio/passthrough", false) === "true"
-        onToggled: (v) => { sec.pick("audio/passthrough", v, player.engine.setAudioPassthrough); checked = v }
+        checked: { SettingsState.resetTick; const v = player.setting("audio/passthrough", false); return v === true || v === "true" }
+        onToggled: (v) => { sec.pick("audio/passthrough", v, player.engine.setAudioPassthrough); SettingsState.resetTick++ }
     }
     ComboRow {
         name: "audioVisualization"
@@ -58,7 +58,7 @@ SettingSection {
             { label: qsTr("Vectorscope"), value: "scope" },
             { label: qsTr("Frequency bars"), value: "freqs" }
         ]
-        value: player.setting("audio/visualization", "off")
-        onPicked: (v) => { sec.pick("audio/visualization", v, player.engine.setVisualization); value = v }
+        value: { SettingsState.resetTick; return player.setting("audio/visualization", "off") }
+        onPicked: (v) => { sec.pick("audio/visualization", v, player.engine.setVisualization); SettingsState.resetTick++ }
     }
 }

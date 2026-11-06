@@ -124,10 +124,16 @@ Item {
             break
         case 2:
             setVideoAspect("auto"); setDeinterlace(false); setShotFormat("png"); setShotDir("")
+            for (const [k, v] of [["scale", "balanced"], ["tonemap", "auto"], ["interp", false]]) { player.engine.setPicture(k, v); set("video/" + k, v) }
             break
-        case 3: setDefaultVolume(100); break
-        case 4: setSubSize(55); setSubColor("#FFFFFF"); setSubBorder(3); setSubPos(100); setSubLangs("bn,ben,en,eng"); subStyle.resetStyle(); break
-        case 5: setThemeMode("dark"); setReducedMotion(false); setHideDelay(2.6); break
+        case 3:
+            setDefaultVolume(100)
+            for (const [k, v, f] of [["audio/channels", "auto", player.engine.setAudioChannels], ["audio/normalization", "off", player.engine.setNormalization],
+                                     ["audio/passthrough", false, player.engine.setAudioPassthrough], ["audio/visualization", "off", player.engine.setVisualization]]) { f(v); set(k, v) }
+            SettingsState.resetTick++
+            break
+        case 4: setSubSize(40); setSubColor("#FFFFFF"); setSubBorder(3); setSubPos(100); setSubLangs("bn,ben,en,eng"); subStyle.resetStyle(); break
+        case 5: setThemeMode("dark"); setReducedMotion(false); setHideDelay(2.6); accentSec.setAccent(""); break
         case 7: shortcuts.resetAll(); break
         case 8:
             setCacheMiB(192); setReadahead(30); setVerboseLog(false)
@@ -839,7 +845,7 @@ Item {
                                     onToggled: (v) => dlg.setReducedMotion(v)
                                 }
                             }
-                            AccentSection { dlg: dlg }
+                            AccentSection { id: accentSec; dlg: dlg }
                             SettingSection {
                                 title: qsTr("Player controls")
                                 StepperRow {

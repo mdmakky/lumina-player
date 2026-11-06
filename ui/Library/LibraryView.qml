@@ -170,7 +170,7 @@ Item {
             visible: chk.marked
             text: "✓"
             color: Theme.accentText
-            font.pixelSize: 12
+            font.pixelSize: Theme.fontSizeSmall
         }
         MouseArea { anchors.fill: parent; anchors.margins: -6; cursorShape: Qt.PointingHandCursor; onClicked: chk.toggled() }
     }
@@ -320,7 +320,7 @@ Item {
                 text: qsTr("Library")
                 color: Theme.primaryText
                 font.family: Theme.fontFamily
-                font.pixelSize: 26
+                font.pixelSize: Theme.fontSizeTitle
                 font.weight: Font.Light
                 font.letterSpacing: 2
             }
@@ -786,7 +786,7 @@ Item {
                                     anchors.centerIn: parent
                                     text: tile.kind === 1 ? "♪" : "▶"
                                     color: Theme.disabledText
-                                    font.pixelSize: 28
+                                    font.pixelSize: Theme.fontSizeTitle
                                 }
                                 Image {
                                     anchors.fill: parent

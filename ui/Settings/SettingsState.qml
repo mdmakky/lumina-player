@@ -10,5 +10,6 @@ QtObject {
     readonly property string q: query.trim().toLowerCase()
     // Card/sidebar surface: one step away from the dialog panel in every theme.
     readonly property color card: Theme.pick(Theme.surface, Theme.background, Theme.surface)
+    property int resetTick: 0   // bumped by a page reset so non-reactive rows re-read their settings
     signal reveal(Item item)
 }

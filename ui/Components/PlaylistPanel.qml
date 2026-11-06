@@ -10,7 +10,7 @@ import Lumina.Player
 Rectangle {
     id: panel
 
-    width: 360
+    width: Math.min(360, parent ? parent.width - 2 * Theme.spacingMedium : 360)
     color: Theme.surface
     border.color: Theme.border
 

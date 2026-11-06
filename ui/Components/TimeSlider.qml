@@ -20,7 +20,9 @@ Slider {
 
     hoverEnabled: true
     implicitWidth: 200
-    implicitHeight: 22
+    implicitHeight: 32
+    Accessible.name: qsTr("Seek")
+    Accessible.description: qsTr("Playback position")
 
     background: Rectangle {
         x: control.leftPadding
@@ -151,9 +153,9 @@ Slider {
         // Neutral near-black card (matches the video chrome) instead of the grey-blue panel color.
         background: Rectangle {
             radius: 10
-            color: Qt.rgba(0.06, 0.06, 0.07, 0.94)
+            color: Theme.videoCard
             border.width: 1
-            border.color: Qt.rgba(1, 1, 1, 0.10)
+            border.color: Theme.videoCardBorder
         }
         contentItem: Column {
             spacing: 6

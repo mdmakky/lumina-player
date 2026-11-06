@@ -252,7 +252,7 @@ ApplicationWindow {
                 text: qsTr("Lumina")
                 color: Theme.primaryText
                 font.family: Theme.fontFamily
-                font.pixelSize: 44
+                font.pixelSize: Theme.fontSizeDisplay
                 font.weight: Font.Light
                 font.letterSpacing: 6
             }

@@ -143,7 +143,7 @@ Popup {
 
     onAboutToShow: sections = collect()
 
-    Overlay.modal: Rectangle { color: Qt.rgba(0, 0, 0, 0.5) }
+    Overlay.modal: Rectangle { color: Theme.scrimModal }
     background: Rectangle {
         color: Theme.surface
         border.color: Theme.border

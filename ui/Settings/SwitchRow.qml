@@ -43,6 +43,7 @@ SettingRow {
         }
         MouseArea {
             anchors.fill: parent
+            anchors.margins: -8
             cursorShape: Qt.PointingHandCursor
             onClicked: { sw.forceActiveFocus(); row.toggled(!row.checked) }
         }

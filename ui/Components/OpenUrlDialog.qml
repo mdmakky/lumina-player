@@ -28,7 +28,7 @@ Popup {
     onAboutToShow: { field.text = ""; attempted = false }
     onOpened: field.forceActiveFocus()
 
-    Overlay.modal: Rectangle { color: Qt.rgba(0, 0, 0, 0.5) }
+    Overlay.modal: Rectangle { color: Theme.scrimModal }
     background: Rectangle {
         color: Theme.surface
         border.color: Theme.border

@@ -16,7 +16,8 @@ Slider {
     hoverEnabled: true
     stepSize: 1
     implicitWidth: 128
-    implicitHeight: 24
+    implicitHeight: 32
+    Accessible.name: qsTr("Volume")
 
     background: Rectangle {
         x: control.leftPadding
@@ -55,7 +56,7 @@ Slider {
             width: pct.implicitWidth + 12
             height: pct.implicitHeight + 6
             radius: 6
-            color: Qt.rgba(0, 0, 0, 0.72)
+            color: Theme.videoBubble
             Text {
                 id: pct
                 anchors.centerIn: parent

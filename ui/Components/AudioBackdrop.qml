@@ -35,7 +35,7 @@ Rectangle {
                 anchors.centerIn: parent
                 text: "♫"
                 color: Theme.accent
-                font.pixelSize: 56
+                font.pixelSize: Theme.fontSizeHero
                 font.family: Theme.fontFamily
             }
         }

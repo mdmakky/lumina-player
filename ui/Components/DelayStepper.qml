@@ -35,7 +35,7 @@ Item {
             text: b.glyph
             color: Theme.primaryText
             font.family: Theme.fontFamily
-            font.pixelSize: 18
+            font.pixelSize: Theme.fontSizeHeading
             horizontalAlignment: Text.AlignHCenter
             verticalAlignment: Text.AlignVCenter
         }

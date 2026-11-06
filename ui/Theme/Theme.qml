@@ -14,7 +14,7 @@ QtObject {
     readonly property color background: pick("#101114", "#F3F4F7", "#000000")
     readonly property color surface: pick("#191B20", "#FFFFFF", "#0A0A0C")
     readonly property color elevated: pick("#22252B", "#E7E9EF", "#15161A")
-    readonly property color border: pick("#30333B", "#CDD1DA", "#2A2B31")
+    readonly property color border: pick("#40444E", "#B9BEC9", "#363840")
 
     // Interaction surfaces (hover/pressed overlays on panels)
     readonly property color surfaceHover: isLight ? Qt.rgba(0, 0, 0, 0.07) : Qt.rgba(1, 1, 1, 0.08)
@@ -31,6 +31,10 @@ QtObject {
     readonly property color videoTextSecondary: "#A3A7B0"
     readonly property color videoHover: Qt.rgba(1, 1, 1, 0.08)
     readonly property color videoPressed: Qt.rgba(1, 1, 1, 0.14)
+    readonly property color videoCard: Qt.rgba(0.06, 0.06, 0.07, 0.94)
+    readonly property color videoCardBorder: Qt.rgba(1, 1, 1, 0.10)
+    readonly property color videoBubble: Qt.rgba(0, 0, 0, 0.72)
+    readonly property color scrimModal: Qt.rgba(0, 0, 0, 0.5)
     readonly property color videoTrackIdle: Qt.rgba(1, 1, 1, 0.22)
 
     readonly property color panelOverlay: pick(Qt.rgba(16 / 255, 17 / 255, 20 / 255, 0.95),
@@ -52,15 +56,17 @@ QtObject {
         const l = isLight ? Math.min(accentSrc.hslLightness, 0.46) : Math.max(accentSrc.hslLightness, 0.64)
         return Qt.hsla(accentSrc.hslHue, accentSrc.hslSaturation, Math.max(0.08, Math.min(0.92, l + delta)), 1)
     }
-    readonly property color accent: customAccent ? accentTone(0) : (isLight ? "#6557E8" : "#8175F5")
-    readonly property color accentHover: customAccent ? accentTone(isLight ? -0.07 : 0.06) : (isLight ? "#5446D6" : "#9186F7")
-    readonly property color accentPressed: customAccent ? accentTone(isLight ? -0.13 : -0.08) : (isLight ? "#4538BC" : "#6C60E0")
+    readonly property color accent: customAccent ? accentTone(0) : (isLight ? "#6557E8" : "#6A5EEA")
+    readonly property color accentHover: customAccent ? accentTone(isLight ? -0.07 : 0.06) : (isLight ? "#5446D6" : "#6E62EC")
+    readonly property color accentPressed: customAccent ? accentTone(isLight ? -0.13 : -0.08) : (isLight ? "#4538BC" : "#5A4ED6")
     readonly property color accentSoft: customAccent ? Qt.rgba(accent.r, accent.g, accent.b, isLight ? 0.14 : 0.16)
                                       : (isLight ? Qt.rgba(101 / 255, 87 / 255, 232 / 255, 0.14)
-                                                 : Qt.rgba(129 / 255, 117 / 255, 245 / 255, 0.16))
-    // Text on accent fills: white, unless the accent is light enough that dark text reads better.
-    readonly property color accentText: customAccent && (0.2126 * accent.r + 0.7152 * accent.g + 0.0722 * accent.b) > 0.55
-                                        ? "#16181D" : "#FFFFFF"
+                                                 : Qt.rgba(106 / 255, 94 / 255, 234 / 255, 0.20))
+    // Text on accent fills: whichever of white / near-black has the higher WCAG contrast.
+    function lin(v) { return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4) }
+    function luminance(c) { return 0.2126 * lin(c.r) + 0.7152 * lin(c.g) + 0.0722 * lin(c.b) }
+    readonly property color accentText: (1.05 / (luminance(accent) + 0.05)) >= ((luminance(accent) + 0.05) / 0.059)
+                                        ? "#FFFFFF" : "#16181D"
 
     // Status
     readonly property color error: isLight ? "#C0392F" : "#F26B6B"
@@ -72,6 +78,9 @@ QtObject {
     readonly property int fontSizeMedium: 13
     readonly property int fontSizeLarge: 15
     readonly property int fontSizeHeading: 18
+    readonly property int fontSizeTitle: 26
+    readonly property int fontSizeDisplay: 44
+    readonly property int fontSizeHero: 56
 
     // Spacing & metrics
     readonly property int spacingSmall: 6
