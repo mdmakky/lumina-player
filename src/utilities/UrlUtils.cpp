@@ -46,4 +46,16 @@ bool looksLikeDirectMedia(const QUrl &url)
     return exts.contains(url.path().section(QLatin1Char('.'), -1).toLower());
 }
 
-} // namespace Lumina::UrlUtils
+
+bool isAllowedMediaUrl(const QUrl &url)
+{
+    if (url.isEmpty() || url.isLocalFile())
+        return true;
+    const QString scheme = url.scheme().toLower();
+    if (scheme.isEmpty() || scheme.size() == 1) // relative path or a Windows drive letter
+        return !url.path().isEmpty() || !url.toString().isEmpty();
+    static const QStringList allowed{"http", "https", "rtmp", "rtmps", "rtmpe", "rtsp", "rtsps", "ftp", "sftp", "smb", "nfs"};
+    return allowed.contains(scheme);
+}
+
+}

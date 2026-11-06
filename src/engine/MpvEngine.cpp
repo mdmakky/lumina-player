@@ -1,4 +1,5 @@
 #include "MpvEngine.h"
+#include "utilities/MpvOptionPolicy.h"
 
 #include <QSysInfo>
 #include "utilities/AudioFilters.h"
@@ -1035,6 +1036,8 @@ QString MpvEngine::setMpvOption(const QString &name, const QString &value)
 {
     if (!m_mpv)
         return tr("Engine unavailable");
+    if (Lumina::isBlockedMpvOption(name))
+        return tr("The option '%1' is blocked for safety.").arg(name);
     const int rc = mpv_set_property_string(m_mpv, name.toUtf8().constData(), value.toUtf8().constData());
     return rc < 0 ? QString::fromUtf8(mpv_error_string(rc)) : QString();
 }

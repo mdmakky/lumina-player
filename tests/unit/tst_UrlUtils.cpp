@@ -1,3 +1,4 @@
+#include "utilities/MpvOptionPolicy.h"
 #include "utilities/UrlUtils.h"
 
 #include <QTest>
@@ -8,6 +9,26 @@ class TstUrlUtils : public QObject
 {
     Q_OBJECT
 private slots:
+    void externalUrlAllowList()
+    {
+        using Lumina::UrlUtils::isAllowedMediaUrl;
+        QVERIFY(isAllowedMediaUrl(QUrl::fromLocalFile("/tmp/a.mkv")));
+        QVERIFY(isAllowedMediaUrl(QUrl("https://example.com/a.mp4")));
+        QVERIFY(isAllowedMediaUrl(QUrl("rtsp://cam/stream")));
+        QVERIFY(isAllowedMediaUrl(QUrl("smb://nas/movies/a.mkv")));
+        for (const char *bad : {"edl://!no_clip;/etc/passwd", "av://lavfi:testsrc", "lavf://x", "ytdl://abc",
+                                "fd://3", "memory://x", "hex://00", "appending://a", "javascript:alert(1)"})
+            QVERIFY2(!isAllowedMediaUrl(QUrl(QString::fromLatin1(bad))), bad);
+    }
+    void mpvOptionDenyList()
+    {
+        using Lumina::isBlockedMpvOption;
+        for (const char *bad : {"script", "--scripts", "Script_Opts", "script-opts/ytdl_hook-ytdl_path", "include", "input-ipc-server",
+                                "input_conf", "ytdl-raw-options", "log-file", "config-dir", "profile"})
+            QVERIFY2(isBlockedMpvOption(QString::fromLatin1(bad)), bad);
+        for (const char *ok : {"hwdec", "sub-font-size", "cache", "demuxer-max-bytes", "video-sync"})
+            QVERIFY2(!isBlockedMpvOption(QString::fromLatin1(ok)), ok);
+    }
     void accepts_data()
     {
         QTest::addColumn<QString>("in");

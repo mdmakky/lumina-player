@@ -14,6 +14,9 @@ QUrl parseMediaUrl(const QString &input);
 bool needsOptionalProtocol(const QUrl &url);
 
 bool isRemote(const QUrl &url);
+// Scheme allow-list for URLs that come from outside (CLI, single-instance, MPRIS OpenUri, drops):
+// local files and plain network media only; mpv-internal protocols (edl, av, lavf, ytdl, fd, memory ...) are rejected.
+bool isAllowedMediaUrl(const QUrl &url);
 
 // Display title for a URL: last path segment (percent-decoded), else the host.
 QString titleFor(const QUrl &url);

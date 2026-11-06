@@ -12,6 +12,8 @@
 #include <QDir>
 #include <QFileOpenEvent>
 #include <QGuiApplication>
+#include <QFileDevice>
+#include <QFile>
 #include <QSurfaceFormat>
 #include <QIcon>
 #include <QStandardPaths>
@@ -41,6 +43,22 @@ private:
     ApplicationContext *m_context;
 };
 } // namespace
+
+// Keep history, library and settings private to the user (watch history, file paths).
+static void hardenPermissions()
+{
+#ifndef Q_OS_WIN
+    const QString dataDir = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+    if (!dataDir.isEmpty()) {
+        QDir().mkpath(dataDir);
+        QFile::setPermissions(dataDir, QFileDevice::ReadOwner | QFileDevice::WriteOwner | QFileDevice::ExeOwner);
+    }
+    QSettings settings;
+    settings.sync();
+    if (QFile::exists(settings.fileName()))
+        QFile::setPermissions(settings.fileName(), QFileDevice::ReadOwner | QFileDevice::WriteOwner);
+#endif
+}
 
 int main(int argc, char *argv[])
 {
@@ -76,6 +94,8 @@ int main(int argc, char *argv[])
     QGuiApplication app(argc, argv);
     app.setWindowIcon(QIcon(QStringLiteral(":/qt/qml/Lumina/Player/icons/lumina.png")));
 
+    hardenPermissions();
+    QObject::connect(&app, &QCoreApplication::aboutToQuit, &hardenPermissions);
     Logger::install();
     qCInfo(lcCore) << "Lumina Player" << LUMINA_VERSION << "starting"
                    << "- Qt" << QT_VERSION_STR;

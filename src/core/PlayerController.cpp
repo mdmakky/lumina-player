@@ -302,8 +302,25 @@ bool PlayerController::hasMedia() const
     return !m_engine->idle();
 }
 
-void PlayerController::openFiles(const QVariantList &urls)
+
+namespace {
+// Drops entries whose URL scheme is not on the allow-list (see UrlUtils::isAllowedMediaUrl).
+QVariantList allowedOnly(const QVariantList &urls)
 {
+    QVariantList out;
+    for (const QVariant &u : urls) {
+        if (Lumina::UrlUtils::isAllowedMediaUrl(u.toUrl()))
+            out << u;
+        else
+            qCWarning(lcCore) << "Rejected URL with a disallowed scheme:" << u.toUrl().scheme();
+    }
+    return out;
+}
+} // namespace
+
+void PlayerController::openFiles(const QVariantList &rawUrls)
+{
+    const QVariantList urls = allowedOnly(rawUrls);
     if (urls.isEmpty())
         return;
 
@@ -374,8 +391,9 @@ QString PlayerController::readTextFile(const QUrl &file) const
     return f.open(QIODevice::ReadOnly) ? QString::fromUtf8(f.readAll()) : QString();
 }
 
-void PlayerController::enqueue(const QVariantList &urls)
+void PlayerController::enqueue(const QVariantList &rawUrls)
 {
+    const QVariantList urls = allowedOnly(rawUrls);
     const int first = m_playlist->rowCount();
     m_playlist->append(urls);
     if (m_playlist->currentIndex() < 0 && m_playlist->rowCount() > first && !hasMedia())

@@ -36,3 +36,8 @@ user or process on the same machine, (c) a malicious web page/URL fed to the URL
 7. **S7 (low):** note in verbose-log help that logs can contain URLs/paths; strip URL query strings in logs.
 8. **S8 (Flatpak):** add `--own-name=org.mpris.MediaPlayer2.lumina` (the name registered in `MprisIntegration.cpp` l.151; no `own-name` is in the manifest today) and test MPRIS inside the sandbox.
 9. **S9 (process):** run the app under ASan/UBSan once with a corpus of malformed media and subtitle files, and keep distro/runtime FFmpeg current (release notes should tell users to update).
+
+## Fix status (2026-11-06)
+- **S1 fixed:** `src/utilities/MpvOptionPolicy.h` deny-list is enforced in `MpvEngine::setMpvOption` (Settings > Advanced override box). Unit tested.
+- **S2 fixed:** `UrlUtils::isAllowedMediaUrl` allow-list is applied in `PlayerController::openFiles/enqueue`, the single funnel for CLI args, single-instance payloads, MPRIS `OpenUri`, drops and M3U loading. Unit tested.
+- **S3 fixed:** app-data directory is set to 0700 and the settings file to 0600 at startup and on quit (`hardenPermissions` in `app/main.cpp`; not on Windows).
