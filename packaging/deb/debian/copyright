@@ -1,0 +1,8 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: lumina-player
+Source: https://github.com/mdmakky/lumina-player
+
+Files: *
+Copyright: 2026 mdmakky
+License: GPL-3.0+
+ On Debian systems the full text is in /usr/share/common-licenses/GPL-3.
