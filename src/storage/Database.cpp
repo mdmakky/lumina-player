@@ -28,7 +28,9 @@ Database::Database(const QString &pathIn)
         return;
     }
     m_valid = open(path);
-    if (!m_valid && !m_tooNew && path != QLatin1String(":memory:") && QFileInfo::exists(path)) {
+    // SQLite codes 11 (corrupt) and 26 (not a database) only: a locked file or a full disk is temporary and must not cost the user their history.
+    const bool damaged = m_errorCode == QLatin1String("11") || m_errorCode == QLatin1String("26");
+    if (!m_valid && !m_tooNew && damaged && path != QLatin1String(":memory:") && QFileInfo::exists(path)) {
         // Damaged file: keep it for inspection and start over, so history/favorites work again.
         const QString backup = path + QStringLiteral(".broken-") + QDateTime::currentDateTime().toString(QStringLiteral("yyyyMMdd-HHmmss"));
         if (QFile::rename(path, backup)) {
@@ -81,8 +83,10 @@ bool Database::migrate()
 {
     QSqlDatabase d = db();
     QSqlQuery q(d);
-    if (!q.exec(QStringLiteral("CREATE TABLE IF NOT EXISTS schema_version (version INTEGER NOT NULL)")))
+    if (!q.exec(QStringLiteral("CREATE TABLE IF NOT EXISTS schema_version (version INTEGER NOT NULL)"))) {
+        m_errorCode = q.lastError().nativeErrorCode();
         return false;
+    }
     const int v = schemaVersion();
     if (v > kSchemaVersion) { // written by a newer build; don't touch
         qCWarning(lcCore) << "Library disabled: schema" << v << "is newer than" << kSchemaVersion;
@@ -100,6 +104,7 @@ bool Database::migrate()
             && q.exec(QStringLiteral("DELETE FROM schema_version"))
             && q.exec(QStringLiteral("INSERT INTO schema_version VALUES (1)"));
         if (!ok) {
+            m_errorCode = q.lastError().nativeErrorCode();
             qCWarning(lcCore) << "Library migration failed:" << q.lastError().text();
             d.rollback();
             return false;
@@ -117,6 +122,7 @@ bool Database::migrate()
             && q.exec(QStringLiteral("DELETE FROM schema_version"))
             && q.exec(QStringLiteral("INSERT INTO schema_version VALUES (2)"));
         if (!ok) {
+            m_errorCode = q.lastError().nativeErrorCode();
             qCWarning(lcCore) << "Library migration failed:" << q.lastError().text();
             d.rollback();
             return false;
@@ -132,6 +138,7 @@ bool Database::migrate()
             && q.exec(QStringLiteral("DELETE FROM schema_version"))
             && q.exec(QStringLiteral("INSERT INTO schema_version VALUES (3)"));
         if (!ok) {
+            m_errorCode = q.lastError().nativeErrorCode();
             qCWarning(lcCore) << "Library migration failed:" << q.lastError().text();
             d.rollback();
             return false;
@@ -145,6 +152,7 @@ bool Database::migrate()
             && q.exec(QStringLiteral("DELETE FROM schema_version"))
             && q.exec(QStringLiteral("INSERT INTO schema_version VALUES (4)"));
         if (!ok) {
+            m_errorCode = q.lastError().nativeErrorCode();
             qCWarning(lcCore) << "Library migration failed:" << q.lastError().text();
             d.rollback();
             return false;
@@ -173,6 +181,7 @@ bool Database::migrate()
             && q.exec(QStringLiteral("DELETE FROM schema_version"))
             && q.exec(QStringLiteral("INSERT INTO schema_version VALUES (5)"));
         if (!ok) {
+            m_errorCode = q.lastError().nativeErrorCode();
             qCWarning(lcCore) << "Library migration failed:" << q.lastError().text();
             d.rollback();
             return false;

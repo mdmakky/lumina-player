@@ -19,6 +19,7 @@ Features and fixes since 0.3.0:
 - "No sound" diagnostic banner with distro-specific fix (libavcodec-freeworld); `tools/diagnose-linux.sh`, `tools/install-deps-fedora.sh`
 - Flatpak manifest now builds and runs on Fedora (KDE 6.10 runtime, libplacebo, Wayland + X11 verified, VAAPI works)
 - Windows build files and experimental CI job; macOS GL 3.3 core profile and coreaudio fallback
+- Library: a drive that is not mounted (empty mount-point folder) keeps its entries; if you delete every file of a library folder, use "remove folder" to clear its entries; a damaged library database is set aside and recreated
 - Fixes: menus are modal (outside click no longer pauses), chrome auto-hide re-arms, smaller default subtitle size, upside-down video, Qt 6.4 compatibility
 - Release preparation: user guide, security review, license audit + SBOM generator (`tools/make-sbom.sh`), QA and performance reports, RPM/DEB/AppImage recipes (unbuilt)
 

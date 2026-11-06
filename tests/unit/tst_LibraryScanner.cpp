@@ -94,6 +94,34 @@ private slots:
         QCOMPARE(repo.count(), 1);
     }
 
+    void emptyMountPointKeepsRows()
+    {
+        // An unmounted drive leaves its mount-point folder behind, empty: that must not read as "everything deleted".
+        QTemporaryDir dir;
+        touch(dir.path() + "/a.mp4");
+        Database db(":memory:");
+        LibraryRepository repo(&db);
+        LibraryScanner scanner(&repo);
+        scanAndWait(scanner, {dir.path()});
+        QCOMPARE(repo.count(), 1);
+        QVERIFY(QFile::remove(dir.path() + "/a.mp4"));
+        scanAndWait(scanner, {dir.path()});
+        QCOMPARE(repo.count(), 1); // kept (deleting a whole folder's files needs "remove folder")
+    }
+
+    void smallTsFilesAreNotMedia()
+    {
+        QTemporaryDir dir;
+        touch(dir.path() + "/code.ts"); // TypeScript / Qt Linguist source
+        touch(dir.path() + "/stream.ts", QByteArray(2 << 20, 'x')); // plausible transport stream
+        Database db(":memory:");
+        LibraryRepository repo(&db);
+        LibraryScanner scanner(&repo);
+        scanAndWait(scanner, {dir.path()});
+        QCOMPARE(repo.count(), 1);
+        QVERIFY(repo.known().contains(dir.path() + "/stream.ts"));
+    }
+
     void cancelStopsCleanly()
     {
         QTemporaryDir dir;

@@ -151,7 +151,7 @@ jobs:
       - name: Build
         run: |
           flatpak-builder --force-clean --disable-rofiles-fuse --repo=repo build-dir packaging/flatpak/io.github.mdmakky.Lumina.yml
-          flatpak build-bundle repo "Lumina-Player-${TAG}.flatpak" io.github.mdmakky.Lumina
+          flatpak build-bundle --runtime-repo=https://flathub.org/repo/flathub.flatpakrepo repo "Lumina-Player-${TAG}.flatpak" io.github.mdmakky.Lumina
           ls -l *.flatpak
       - uses: actions/upload-artifact@v4
         with:

@@ -29,5 +29,6 @@ private:
     QString m_conn;
     QString m_brokenBackup;
     bool m_valid = false;
+    QString m_errorCode; // SQLite native code of the last failed migration statement
     bool m_tooNew = false; // file written by a newer build: never touched
 };
