@@ -689,6 +689,7 @@ ApplicationWindow {
         MenuRow {
             objectName: "onTopItem"
             text: qsTr("Always on top")
+            secondary: Qt.platform.pluginName.indexOf("wayland") >= 0 ? qsTr("GNOME on Wayland ignores this; use Alt+Space > Always on Top") : ""
             hint: "T"
             mark: "check"
             selected: (root.flags & Qt.WindowStaysOnTopHint) !== 0

@@ -58,7 +58,9 @@ sudo dnf install ./Lumina-Player_0.3.1-preview_Fedora-45.rpm     # use the file 
 Install from a terminal. GNOME Software can open the file too, but the package is **not
 signed**, so it asks for an administrator password and labels it "Potentially unsafe".
 
-**Codecs.** Fedora's own FFmpeg cannot decode E-AC3, DTS or software H.264. Enable
+**Easiest on Fedora: the Flatpak** (above). It has every codec built in and needs nothing extra.
+
+**Codecs (RPM).** `tools/install-fedora-runtime.sh` (from a clone of this repository) does all of the steps below in one go. Fedora's own FFmpeg cannot decode E-AC3, DTS or software H.264. By hand, enable
 [RPM Fusion](https://rpmfusion.org/Configuration) and install the full codecs:
 
 ```bash

@@ -15,8 +15,10 @@ sudo dnf install -y cmake ninja-build gcc-c++ pkgconf-pkg-config \
   qt6-qtbase-private-devel mpv-devel
 
 echo ">> Runtime codecs (full FFmpeg codec set for the system libavcodec) + hardware decode"
-sudo dnf install -y libavcodec-freeworld libva-utils mesa-va-drivers-freeworld || \
-  echo "(some optional packages unavailable on this release; playback of common formats still works)"
+sudo dnf install -y libavcodec-freeworld libva-utils || true
+if rpm -q mesa-va-drivers >/dev/null 2>&1 && ! rpm -q mesa-va-drivers-freeworld >/dev/null 2>&1; then
+  sudo dnf swap -y mesa-va-drivers mesa-va-drivers-freeworld || echo "(swap not possible; software decoding still works)"
+fi
 
 echo ">> Optional: mpv CLI + yt-dlp (network streams / page URLs)"
 sudo dnf install -y mpv yt-dlp || true
