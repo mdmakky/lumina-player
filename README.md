@@ -17,8 +17,8 @@ It was started because seeking in other players stutters on Linux; fast, accurat
 
 | Platform | Package | Command |
 |---|---|---|
-| Any Linux | Flatpak | `flatpak install --user ./Lumina-Player_*_Any-Linux-Flatpak.flatpak` |
-| Fedora 43, 44, 45 | RPM (one per release) | `sudo dnf install ./Lumina-Player_*_Fedora-<N>.rpm` |
+| Any Linux (**best choice on Fedora**: every codec included) | Flatpak | `flatpak install --user ./Lumina-Player_*_Any-Linux-Flatpak.flatpak` |
+| Fedora 43, 44, 45 | RPM (one per release; E-AC3/DTS need RPM Fusion codecs, the player offers a "Fix now" button or run `tools/install-fedora-runtime.sh`) | `sudo dnf install ./Lumina-Player_*_Fedora-<N>.rpm` |
 | Ubuntu 24.04, 25.10, 26.04 | DEB (one per release) | `sudo apt install ./Lumina-Player_*_Ubuntu-<N>.deb` |
 | macOS (Apple Silicon) | DMG, built on a Mac and attached to a release when ready (may lag the Linux packages) | open it and drag to Applications |
 | Windows | not available yet | |

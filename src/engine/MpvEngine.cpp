@@ -354,6 +354,7 @@ void MpvEngine::checkAudioPipeline()
         return;
     const QString log = m_audioLog.join(QLatin1Char('\n'));
     QString reason;
+    m_codecMissing = false;
     if (log.contains(QLatin1String("audio device"), Qt::CaseInsensitive)
         || log.contains(QLatin1String("audio driver"), Qt::CaseInsensitive)) {
         reason = tr("The audio output could not be opened. Check that PipeWire/PulseAudio is running and not used exclusively by another app.");
@@ -365,6 +366,7 @@ void MpvEngine::checkAudioPipeline()
         else if (QSysInfo::productType() == QLatin1String("ubuntu") || QSysInfo::productType() == QLatin1String("debian"))
             fix = tr("run: sudo apt install ffmpeg libavcodec-extra, then restart.");
 #endif
+        m_codecMissing = true;
         reason = tr("No decoder for the %1 audio track (your FFmpeg build lacks it): %2")
                      .arg(codec.isEmpty() ? tr("selected") : codec.toUpper(), fix);
     }
@@ -413,6 +415,8 @@ void MpvEngine::setMediaError(const QString &message)
     if (m_mediaError == message)
         return;
     m_mediaError = message;
+    if (message.isEmpty())
+        m_codecMissing = false;
     emit mediaErrorChanged();
 }
 

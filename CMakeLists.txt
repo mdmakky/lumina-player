@@ -120,6 +120,8 @@ qt_add_executable(lumina
     src/platform/PlatformIntegration.cpp
     src/platform/Mpris.h
     src/platform/Mpris.cpp
+    src/platform/CodecFixer.h
+    src/platform/CodecFixer.cpp
 )
 
 if(UNIX AND NOT APPLE)
@@ -481,6 +483,14 @@ if(BUILD_TESTING)
     target_include_directories(tst_updatechecker PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
     target_link_libraries(tst_updatechecker PRIVATE Qt6::Core Qt6::Network Qt6::Test)
     add_test(NAME UpdateChecker COMMAND tst_updatechecker)
+
+    add_executable(tst_codecfixer
+        tests/unit/tst_CodecFixer.cpp
+        src/platform/CodecFixer.cpp
+    )
+    target_include_directories(tst_codecfixer PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+    target_link_libraries(tst_codecfixer PRIVATE Qt6::Core Qt6::Test)
+    add_test(NAME CodecFixer COMMAND tst_codecfixer)
 
     add_executable(tst_mpris
         tests/unit/tst_Mpris.cpp

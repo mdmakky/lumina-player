@@ -60,7 +60,7 @@ signed**, so it asks for an administrator password and labels it "Potentially un
 
 **Easiest on Fedora: the Flatpak** (above). It has every codec built in and needs nothing extra.
 
-**Codecs (RPM).** `tools/install-fedora-runtime.sh` (from a clone of this repository) does all of the steps below in one go. Fedora's own FFmpeg cannot decode E-AC3, DTS or software H.264. By hand, enable
+**Codecs (RPM).** If a movie has no sound the player shows a banner with a **Fix now** button: it enables RPM Fusion and installs `libavcodec-freeworld` after the system asks for your password (it runs one fixed command through `pkexec`). The same thing from a terminal: `tools/install-fedora-runtime.sh` (from a clone of this repository) does all of the steps below in one go. Fedora's own FFmpeg cannot decode E-AC3, DTS or software H.264. By hand, enable
 [RPM Fusion](https://rpmfusion.org/Configuration) and install the full codecs:
 
 ```bash

@@ -10,6 +10,7 @@
 #include "utilities/Logger.h"
 #include "utilities/CrashReporter.h"
 #include "services/UpdateChecker.h"
+#include "platform/CodecFixer.h"
 
 #include <QDir>
 #include <QFileInfo>
@@ -134,10 +135,12 @@ int main(int argc, char *argv[])
     ApplicationContext context(&app);
     app.installEventFilter(new FileOpenFilter(&context));
 
+    CodecFixer codecFixer; // like updater: must outlive the engine
     UpdateChecker updater{QStringLiteral(LUMINA_VERSION)}; // declared before the engine: it must outlive it (context property)
     QQmlApplicationEngine engine;
     context.registerOnEngine(&engine);
     engine.rootContext()->setContextProperty(QStringLiteral("updater"), &updater);
+    engine.rootContext()->setContextProperty(QStringLiteral("codecFixer"), &codecFixer);
 
     QObject::connect(
         &engine, &QQmlApplicationEngine::objectCreationFailed, &app,

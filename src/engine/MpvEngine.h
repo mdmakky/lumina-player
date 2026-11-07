@@ -33,6 +33,7 @@ class MpvEngine : public QObject
     Q_PROPERTY(double speed READ speed WRITE setSpeed NOTIFY speedChanged FINAL)
     Q_PROPERTY(QString mediaTitle READ mediaTitle NOTIFY mediaTitleChanged FINAL)
     Q_PROPERTY(QString mediaError READ mediaError NOTIFY mediaErrorChanged FINAL)
+    Q_PROPERTY(bool codecMissing READ codecMissing NOTIFY mediaErrorChanged FINAL)
     Q_PROPERTY(QVariantList audioTracks READ audioTracks NOTIFY tracksChanged FINAL)
     Q_PROPERTY(QVariantList videoTracks READ videoTracks NOTIFY tracksChanged FINAL)
     Q_PROPERTY(QVariantList subtitleTracks READ subtitleTracks NOTIFY tracksChanged FINAL)
@@ -88,6 +89,8 @@ public:
     double speed() const { return m_speed; }
     QString mediaTitle() const { return m_mediaTitle; }
     QString mediaError() const { return m_mediaError; }
+    // True when the current error is "no decoder for the audio codec" (the UI may offer a one-click fix).
+    bool codecMissing() const { return m_codecMissing; }
     QVariantList audioTracks() const { return m_audioTracks; }
     QVariantList videoTracks() const { return m_videoTracks; }
     QVariantList subtitleTracks() const { return m_subtitleTracks; }
@@ -307,6 +310,7 @@ private:
     double m_speed = 1.0;
     QString m_mediaTitle;
     QString m_mediaError;
+    bool m_codecMissing = false;
     QVariantList m_audioTracks;
     QVariantList m_videoTracks;
     QVariantList m_subtitleTracks;

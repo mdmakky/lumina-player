@@ -180,6 +180,34 @@ ApplicationWindow {
         onAccepted: player.openUserFiles(selectedUrls)
     }
 
+    ModalCard {
+        id: codecFixDialog
+        objectName: "codecFixDialog"
+        title: qsTr("Install the missing codecs")
+        subtitle: qsTr("Fedora cannot ship the E-AC3, DTS and H.264 decoders. Lumina can enable RPM Fusion (free) and install libavcodec-freeworld for you. Your administrator password is requested by the system, not by Lumina.")
+        cardWidth: 520
+        closePolicy: codecFixer.running ? Popup.NoAutoClose : (Popup.CloseOnEscape | Popup.CloseOnPressOutside)
+        Text {
+            visible: codecFixer.message !== ""
+            Layout.fillWidth: true
+            text: codecFixer.message
+            wrapMode: Text.Wrap
+            color: Theme.secondaryText
+            font.family: Theme.fontFamily
+            font.pixelSize: Theme.fontSizeMedium
+        }
+        ModalFooter {
+            SettingsButton { text: qsTr("Close"); enabled: !codecFixer.running; onClicked: codecFixDialog.close() }
+            SettingsButton {
+                objectName: "codecFixRun"
+                text: codecFixer.running ? qsTr("Installing…") : qsTr("Install")
+                primary: true
+                enabled: !codecFixer.running
+                onClicked: codecFixer.start()
+            }
+        }
+    }
+
     OpenUrlDialog {
         id: openUrlDialog
         objectName: "openUrlDialog"
@@ -288,7 +316,7 @@ ApplicationWindow {
         anchors.topMargin: player.hasMedia ? 72 : 14
         anchors.horizontalCenter: parent.horizontalCenter
         width: Math.min(errorMetrics.advanceWidth, Math.min(root.width - 96, 640)) + 32
-        height: errorText.implicitHeight + 16
+        height: errorText.implicitHeight + 16 + (fixCodecs.visible ? 46 : 0)
         color: Theme.panelOverlay
         border.color: Theme.error
         radius: Theme.radius
@@ -301,7 +329,9 @@ ApplicationWindow {
 
         Text {
             id: errorText
-            anchors.centerIn: parent
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.top: parent.top
+            anchors.topMargin: 8
             width: parent.width - 32
             text: player.engine.mediaError
             wrapMode: Text.WordWrap
@@ -309,6 +339,17 @@ ApplicationWindow {
             color: Theme.error
             font.family: Theme.fontFamily
             font.pixelSize: Theme.fontSizeMedium
+        }
+        SettingsButton {
+            id: fixCodecs
+            objectName: "fixCodecsButton"
+            visible: player.engine.codecMissing && codecFixer.available()
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.bottom: parent.bottom
+            anchors.bottomMargin: 8
+            text: qsTr("Fix now…")
+            primary: true
+            onClicked: codecFixDialog.open()
         }
     }
 
