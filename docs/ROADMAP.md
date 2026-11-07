@@ -54,6 +54,6 @@ Test evidence keys: **UT** = `ctest --preset <preset>` (11 unit test executables
 - [x] Security review (paper review, findings open): `docs/SECURITY_REVIEW.md`
 - [x] QA report and performance report drafts: `docs/QA_REPORT.md`, `docs/PERFORMANCE_REPORT.md` (owner fills TODO rows)
 - [x] Package recipes (unbuilt): `packaging/rpm`, `packaging/deb`, `packaging/appimage`
-- [ ] Fix high-priority security findings (S1-S3)
+- [x] Fix high-priority security findings (S1-S3); see the fix status in docs/SECURITY_REVIEW.md
 - [ ] Manual test matrix run on Fedora, macOS, Windows
 - [ ] Build and sign real packages; Flathub screenshots; tag 0.4.0
